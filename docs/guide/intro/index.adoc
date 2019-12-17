@@ -1,0 +1,3 @@
+## Introduction
+
+WildFly Uberjar project includes support to build and execute a WildFly uberjar.

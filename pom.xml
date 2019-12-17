@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jboss</groupId>
+    <artifactId>jboss-parent</artifactId>
+    <version>36</version>
+  </parent>
+
+  <groupId>org.wildfly.uberjar</groupId>
+  <artifactId>wildfly-uberjar-parent</artifactId>
+  <version>1.0.0.Final-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>WildFly Uberjar Plugin Parent</name>
+  <inceptionYear>2019</inceptionYear>
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>https://repository.jboss.org/licenses/apache-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <modules>
+    <module>docs</module>
+    <module>plugin</module>
+    <module>runtime</module>
+  </modules>
+
+  <properties>
+
+    <version.junit>4.12</version.junit>
+    <version.org.apache.maven>3.3.1</version.org.apache.maven>
+    <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
+    <version.org.jboss.galleon>4.2.1.Final</version.org.jboss.galleon>
+    <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
+    <version.org.jboss.logmanager>2.1.14.Final</version.org.jboss.logmanager>
+    <version.org.jboss.modules>1.9.2.Final</version.org.jboss.modules>
+    <version.org.jboss.threads>2.3.3.Final</version.org.jboss.threads>
+    <version.org.wildfly.common>1.5.2.Final</version.org.wildfly.common>
+    <version.org.wildfly.core.wildfly-core>11.0.0.Beta4-SNAPSHOT</version.org.wildfly.core.wildfly-core>
+    
+    <!-- Checkstyle configuration -->
+    <linkXRef>false</linkXRef>
+    <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wildfly-uberjar-runtime</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.galleon</groupId>
+        <artifactId>galleon-maven-plugin</artifactId>
+        <version>${version.org.jboss.galleon}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <scope>provided</scope>
+        <version>${version.org.apache.maven}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-api</artifactId>
+        <version>${version.org.apache.maven}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-dmr</artifactId>
+        <version>${version.org.jboss.dmr}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.modules</groupId>
+        <artifactId>jboss-modules</artifactId>
+        <version>${version.org.jboss.modules}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.threads</groupId>
+        <artifactId>jboss-threads</artifactId>
+        <version>${version.org.jboss.threads}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging</artifactId>
+        <version>${version.org.jboss.logging}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.logmanager</groupId>
+        <artifactId>jboss-logmanager</artifactId>
+        <version>${version.org.jboss.logmanager}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.wildfly.checkstyle</groupId>
+        <artifactId>wildfly-checkstyle-config</artifactId>
+        <version>${version.org.wildfly.checkstyle-config}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-cli</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-embedded</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-controller-client</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.common</groupId>
+        <artifactId>wildfly-common</artifactId>
+        <version>${version.org.wildfly.common}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${version.junit}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.wildfly.checkstyle</groupId>
+      <artifactId>wildfly-checkstyle-config</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+                                  
+      <plugin>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wildfly-uberjar-maven-plugin</artifactId>
+        <version>${project.version}</version>
+      </plugin>
+      
+        <!-- Checkstyle -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${version.checkstyle.plugin}</version>
+          <configuration>
+            <configLocation>wildfly-checkstyle/checkstyle.xml</configLocation>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>true</failsOnError>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            <useFile />
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.wildfly.checkstyle</groupId>
+              <artifactId>wildfly-checkstyle-config</artifactId>
+              <version>${version.org.wildfly.checkstyle-config}</version>
+            </dependency>
+          </dependencies>
+          <executions>
+            <execution>
+              <id>check-style</id>
+              <phase>compile</phase>
+              <goals>
+                <goal>checkstyle</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>1.8</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,15 @@
+## Maven plugin
+
+This chapter is dedicated to the Maven plugin that can be used to build WildFly uberjar. Maven
+coordinates of the Maven plugin artifact are
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.wildfly.uberjar</groupId>
+    <artifactId>wildfly-uberjar-maven-plugin</artifactId>
+    <version>1.0.0.Final-SNAPSHOT</version>
+</dependency>
+----
+
+include::goals/index.adoc[]

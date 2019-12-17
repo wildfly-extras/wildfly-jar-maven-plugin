@@ -1,0 +1,11 @@
+### Goals overview
+
+[options="autowidth"]
+|===
+|<<_package>> |Build a WildFly uberjar.
+|<<_run>> |Run a WildFly uberjar.
+|===
+
+include::package/index.adoc[]
+include::run/index.adoc[]
+
