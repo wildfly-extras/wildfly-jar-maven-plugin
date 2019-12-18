@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.galleon.maven;
+package org.wildfly.uberjar.maven.goals;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -173,8 +173,19 @@ public final class BuildUberJarMojo extends AbstractMojo {
     @Parameter(alias = "hollow-jar")
     private boolean hollow;
 
+    /**
+     * Set to {@code true} if you want the deployment to be skipped, otherwise
+     * {@code false}.
+     */
+    @Parameter(defaultValue = "false", property = "wildfly.uberjar.run.skip")
+    private boolean skip;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
+            return;
+        }
         validateProjectFile();
         Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve("uberjar-build-artifacts");
         if (Files.exists(contentRoot)) {

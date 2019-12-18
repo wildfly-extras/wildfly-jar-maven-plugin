@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.galleon.uberjar;
+package org.wildfly.uberjar.runtime;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,11 +46,11 @@ import org.jboss.logmanager.PropertyConfigurator;
 import org.wildfly.core.embedded.Configuration;
 import org.wildfly.core.embedded.EmbeddedProcessFactory;
 import org.wildfly.core.embedded.StandaloneServer;
-import static org.wildfly.galleon.uberjar.Constants.JBOSS_SERVER_CONFIG_DIR;
-import static org.wildfly.galleon.uberjar.Constants.JBOSS_SERVER_LOG_DIR;
-import static org.wildfly.galleon.uberjar.Constants.LOG_BOOT_FILE_PROP;
-import static org.wildfly.galleon.uberjar.Constants.LOG_MANAGER_CLASS;
-import static org.wildfly.galleon.uberjar.Constants.LOG_MANAGER_PROP;
+import static org.wildfly.uberjar.runtime.Constants.JBOSS_SERVER_CONFIG_DIR;
+import static org.wildfly.uberjar.runtime.Constants.JBOSS_SERVER_LOG_DIR;
+import static org.wildfly.uberjar.runtime.Constants.LOG_BOOT_FILE_PROP;
+import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_CLASS;
+import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_PROP;
 
 /**
  *
@@ -261,7 +261,7 @@ class UberJar {
                         // Need to synchronize due to shutdown hook.
                         synchronized (this) {
                             if (!shutdown) {
-                                log.finer("Restarting server");
+                                log.info("Restarting server");
                                 server.stop();
                                 try {
                                     System.clearProperty("org.wildfly.additional.cli.boot.script");
@@ -273,7 +273,7 @@ class UberJar {
                                 }
                                 server.start();
                             } else {
-                                log.finer("Can't restart server, already shutdown");
+                                log.warning("Can't restart server, already shutdown");
                             }
                         }
                     }
@@ -291,7 +291,7 @@ class UberJar {
             deleteDir = false;
         } else {
             if (isTmpDir) {
-                log.info("Server tmp directory " + jbossHome + " has not been deleted.");
+                log.warning("Server tmp directory " + jbossHome + " has not been deleted.");
             }
         }
         if (markerDir != null) {

@@ -37,6 +37,7 @@
                 <configuration>
                     <layers>
                         <layer>jaxrs</layer>
+                        <layer>management</layer>
                     </layers>
                 </configuration>
                 <executions>

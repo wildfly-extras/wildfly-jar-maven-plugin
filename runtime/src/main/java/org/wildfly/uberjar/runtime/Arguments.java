@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.galleon.uberjar;
+package org.wildfly.uberjar.runtime;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,23 +23,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import static org.wildfly.galleon.uberjar.Constants.B_ARG;
-import static org.wildfly.galleon.uberjar.Constants.CLI_SCRIPT;
-import static org.wildfly.galleon.uberjar.Constants.CLI_SCRIPT_PROP;
-import static org.wildfly.galleon.uberjar.Constants.DEPLOYMENT;
-import static org.wildfly.galleon.uberjar.Constants.DEPLOYMENT_PROP;
-import static org.wildfly.galleon.uberjar.Constants.D_ARG;
-import static org.wildfly.galleon.uberjar.Constants.EXTERNAL_SERVER_CONFIG;
-import static org.wildfly.galleon.uberjar.Constants.EXTERNAL_SERVER_CONFIG_PROP;
-import static org.wildfly.galleon.uberjar.Constants.HELP;
-import static org.wildfly.galleon.uberjar.Constants.H_ARG;
-import static org.wildfly.galleon.uberjar.Constants.NO_DELETE_SERVER_DIR;
-import static org.wildfly.galleon.uberjar.Constants.NO_DELETE_SERVER_DIR_PROP;
-import static org.wildfly.galleon.uberjar.Constants.SERVER_DIR;
-import static org.wildfly.galleon.uberjar.Constants.SERVER_DIR_PROP;
-import static org.wildfly.galleon.uberjar.Constants.U_ARG;
-import static org.wildfly.galleon.uberjar.Constants.VERSION;
-import static org.wildfly.galleon.uberjar.Constants.V_ARG;
+import static org.wildfly.uberjar.runtime.Constants.B_ARG;
+import static org.wildfly.uberjar.runtime.Constants.CLI_SCRIPT;
+import static org.wildfly.uberjar.runtime.Constants.CLI_SCRIPT_PROP;
+import static org.wildfly.uberjar.runtime.Constants.DEPLOYMENT;
+import static org.wildfly.uberjar.runtime.Constants.DEPLOYMENT_PROP;
+import static org.wildfly.uberjar.runtime.Constants.D_ARG;
+import static org.wildfly.uberjar.runtime.Constants.EXTERNAL_SERVER_CONFIG;
+import static org.wildfly.uberjar.runtime.Constants.EXTERNAL_SERVER_CONFIG_PROP;
+import static org.wildfly.uberjar.runtime.Constants.HELP;
+import static org.wildfly.uberjar.runtime.Constants.H_ARG;
+import static org.wildfly.uberjar.runtime.Constants.NO_DELETE_SERVER_DIR;
+import static org.wildfly.uberjar.runtime.Constants.NO_DELETE_SERVER_DIR_PROP;
+import static org.wildfly.uberjar.runtime.Constants.SERVER_DIR;
+import static org.wildfly.uberjar.runtime.Constants.SERVER_DIR_PROP;
+import static org.wildfly.uberjar.runtime.Constants.U_ARG;
+import static org.wildfly.uberjar.runtime.Constants.VERSION;
+import static org.wildfly.uberjar.runtime.Constants.V_ARG;
 
 /**
  *

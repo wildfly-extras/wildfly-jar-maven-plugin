@@ -48,9 +48,9 @@
   </modules>
 
   <properties>
-
     <version.junit>4.12</version.junit>
-    <version.org.apache.maven>3.3.1</version.org.apache.maven>
+    <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
+    <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
     <version.org.jboss.galleon>4.2.1.Final</version.org.jboss.galleon>
     <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
@@ -59,7 +59,8 @@
     <version.org.jboss.threads>2.3.3.Final</version.org.jboss.threads>
     <version.org.wildfly.common>1.5.2.Final</version.org.wildfly.common>
     <version.org.wildfly.core.wildfly-core>11.0.0.Beta4-SNAPSHOT</version.org.wildfly.core.wildfly-core>
-    
+    <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
+
     <!-- Checkstyle configuration -->
     <linkXRef>false</linkXRef>
     <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
@@ -113,14 +114,14 @@
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-core</artifactId>
-        <scope>provided</scope>
-        <version>${version.org.apache.maven}</version>
+        <version>${version.org.apache.maven.core}</version>
       </dependency>
-
+      
       <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-plugin-api</artifactId>
-        <version>${version.org.apache.maven}</version>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${version.org.apache.maven.plugin-tools}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -181,6 +182,18 @@
         <groupId>org.wildfly.common</groupId>
         <artifactId>wildfly-common</artifactId>
         <version>${version.org.wildfly.common}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-plugin-core</artifactId>
+        <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-maven-plugin</artifactId>
+        <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
       </dependency>
       
       <dependency>
