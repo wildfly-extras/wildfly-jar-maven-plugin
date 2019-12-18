@@ -3,9 +3,11 @@
 [options="autowidth"]
 |===
 |<<_package>> |Build a WildFly uberjar.
-|<<_run>> |Run a WildFly uberjar.
+|<<_run>> |Run a WildFly uberjar (blocking).
+|<<_start>> |Start a WildFly uberjar (non blocking).
 |===
 
 include::package/index.adoc[]
 include::run/index.adoc[]
+include::start/index.adoc[]
 

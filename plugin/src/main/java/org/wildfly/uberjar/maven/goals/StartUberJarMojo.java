@@ -17,7 +17,6 @@
 package org.wildfly.uberjar.maven.goals;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;

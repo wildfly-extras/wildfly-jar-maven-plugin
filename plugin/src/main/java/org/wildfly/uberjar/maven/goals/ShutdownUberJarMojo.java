@@ -27,7 +27,7 @@ import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.core.ServerHelper;
 
 /**
- * Shutdown the uberjar.
+ * Shutdown the uberjar. XXX POC, No shutdown operation in embedded.
  *
  * @author jfdenise
  */
