@@ -368,7 +368,7 @@ public final class BuildUberJarMojo extends AbstractMojo {
         buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
 
         final ArtifactResult result = artifactResolver.resolveArtifact(buildingRequest,
-                new DefaultArtifact("org.wildfly.uberjar", "wildfly-uberjar-runtime", retrieveRuntimeVersion(),
+                new DefaultArtifact("org.wildfly.plugins", "wildfly-uberjar-runtime", retrieveRuntimeVersion(),
                         "provided", JAR, null,
                         new DefaultArtifactHandler(JAR)));
         return result.getArtifact().getFile().toPath();
