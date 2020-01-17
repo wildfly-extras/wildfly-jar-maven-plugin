@@ -37,7 +37,7 @@ public interface UberJarLogger extends BasicLogger {
     /**
      * Default root logger with category of the package name.
      */
-    UberJarLogger ROOT_LOGGER = Logger.getMessageLogger(UberJarLogger.class, "org.jboss.as.cli");
+    UberJarLogger ROOT_LOGGER = Logger.getMessageLogger(UberJarLogger.class, "org.wildfly.uberjar");
 
     @LogMessage(level = DEBUG)
     @Message(id = 1, value = "Shutting down")
@@ -81,4 +81,28 @@ public interface UberJarLogger extends BasicLogger {
     @LogMessage(level = DEBUG)
     @Message(id = 11, value = "Deleting marker dir %s")
     void deletingMarkerDir(Path dep);
+
+    @Message(id = Message.NONE, value = "Sets the start mode of the server, it can be either 'normal','admin-only' or 'suspend'. If this is 'suspend' the server will start in suspended mode, and will not service requests until it has been resumed. If this is started in admin-only mode the server will only open administrative interfaces and accept management requests but not start other runtime services or accept end user requests.")
+    String argStartMode();
+
+    @Message(id = Message.NONE, value = "Set system property jboss.bind.address to the given value")
+    String argPublicBindAddress();
+
+    @Message(id = Message.NONE, value = "Set system property jboss.bind.address.<interface> to the given value")
+    String argInterfaceBindAddress();
+
+    @Message(id = Message.NONE, value = "Set a system property")
+    String argSystem();
+
+    @Message(id = Message.NONE, value = "Display this message and exit")
+    String argHelp();
+
+    @Message(id = Message.NONE, value = "Load system properties from the given url")
+    String argProperties();
+
+    @Message(id = Message.NONE, value = "Set system property jboss.default.multicast.address to the given value")
+    String argDefaultMulticastAddress();
+
+    @Message(id = Message.NONE, value = "Print version and exit")
+    String argVersion();
 }

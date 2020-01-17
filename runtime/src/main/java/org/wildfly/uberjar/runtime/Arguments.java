@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,23 +23,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import static org.wildfly.uberjar.runtime.Constants.B_ARG;
+import org.jboss.as.process.CommandLineConstants;
 import static org.wildfly.uberjar.runtime.Constants.CLI_SCRIPT;
 import static org.wildfly.uberjar.runtime.Constants.CLI_SCRIPT_PROP;
 import static org.wildfly.uberjar.runtime.Constants.DEPLOYMENT;
 import static org.wildfly.uberjar.runtime.Constants.DEPLOYMENT_PROP;
-import static org.wildfly.uberjar.runtime.Constants.D_ARG;
 import static org.wildfly.uberjar.runtime.Constants.EXTERNAL_SERVER_CONFIG;
 import static org.wildfly.uberjar.runtime.Constants.EXTERNAL_SERVER_CONFIG_PROP;
-import static org.wildfly.uberjar.runtime.Constants.HELP;
-import static org.wildfly.uberjar.runtime.Constants.H_ARG;
 import static org.wildfly.uberjar.runtime.Constants.NO_DELETE_SERVER_DIR;
 import static org.wildfly.uberjar.runtime.Constants.NO_DELETE_SERVER_DIR_PROP;
 import static org.wildfly.uberjar.runtime.Constants.SERVER_DIR;
 import static org.wildfly.uberjar.runtime.Constants.SERVER_DIR_PROP;
-import static org.wildfly.uberjar.runtime.Constants.U_ARG;
-import static org.wildfly.uberjar.runtime.Constants.VERSION;
-import static org.wildfly.uberjar.runtime.Constants.V_ARG;
 
 /**
  *
@@ -86,18 +80,24 @@ public class Arguments {
             } else if (NO_DELETE_SERVER_DIR.equals(a)) {
                 validateArg(noDelete, NO_DELETE_SERVER_DIR);
                 noDelete = true;
-            } else if (a.startsWith(B_ARG)) {
+            } else if (a.startsWith(CommandLineConstants.PUBLIC_BIND_ADDRESS)) {
                 getServerArguments().add(a);
-            } else if (a.startsWith(D_ARG)) {
+            } else if (CommandLineConstants.PROPERTIES.equals(a) || CommandLineConstants.SHORT_PROPERTIES.equals(a)) {
                 getServerArguments().add(a);
-            } else if (a.startsWith(U_ARG)) {
+            } else if (a.startsWith(CommandLineConstants.SECURITY_PROP)) {
                 getServerArguments().add(a);
-            } else if (a.equals(VERSION) || a.equals(V_ARG)) {
-                validateArg(isVersion, VERSION);
+            } else if (a.startsWith(CommandLineConstants.SYS_PROP)) {
+                getServerArguments().add(a);
+            } else if (a.startsWith(CommandLineConstants.START_MODE)) {
+                getServerArguments().add(a);
+            } else if (a.startsWith(CommandLineConstants.DEFAULT_MULTICAST_ADDRESS)) {
+                getServerArguments().add(a);
+            } else if (CommandLineConstants.VERSION.equals(a) || CommandLineConstants.SHORT_VERSION.equals(a)) {
+                validateArg(isVersion, CommandLineConstants.VERSION);
                 isVersion = true;
                 serverArguments.add(a);
-            } else if (a.equals(HELP) || a.equals(H_ARG)) {
-                validateArg(isHelp, HELP);
+            } else if (CommandLineConstants.HELP.equals(a) || CommandLineConstants.SHORT_HELP.equals(a)) {
+                validateArg(isHelp, CommandLineConstants.HELP);
                 isHelp = true;
             } else {
                 throw new Exception("Unknown argument " + a);

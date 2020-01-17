@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,14 +36,6 @@ class Constants {
     public static final String SERVER_DIR_PROP = UBERJAR + "server.dir";
     public static final String NO_DELETE_SERVER_DIR = "--no-delete";
     public static final String NO_DELETE_SERVER_DIR_PROP = UBERJAR + "no.delete";
-
-    public static final String B_ARG = "-b";
-    public static final String D_ARG = "-D";
-    public static final String H_ARG = "-h";
-    public static final String U_ARG = "-u";
-    public static final String V_ARG = "-v";
-    public static final String VERSION = "--version";
-    public static final String HELP = "--help";
 
     public static final String LOG_MANAGER_PROP = "java.util.logging.manager";
     public static final String LOG_MANAGER_CLASS = "org.jboss.logmanager.LogManager";

@@ -67,6 +67,19 @@
         </exclusion>
       </exclusions>
     </dependency>
+    
+    <dependency>
+      <groupId>org.wildfly.core</groupId>
+      <artifactId>wildfly-process-controller</artifactId>
+      <exclusions>
+        <!-- so its dependencies are not included in shaded jar -->
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.jboss</groupId>
       <artifactId>jboss-dmr</artifactId>

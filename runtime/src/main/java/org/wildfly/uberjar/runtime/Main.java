@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Arguments arguments = Arguments.parseArguments(args);
         if (arguments.isHelp()) {
-            UberJar.printUsage();
+            CmdUsage.printUsage(System.out);
         } else {
             UberJar uberjar = new UberJar(arguments);
             uberjar.run();

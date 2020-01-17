@@ -62,7 +62,7 @@
     <version.org.jboss.modules>1.9.2.Final</version.org.jboss.modules>
     <version.org.jboss.threads>2.3.3.Final</version.org.jboss.threads>
     <version.org.wildfly.common>1.5.2.Final</version.org.wildfly.common>
-    <version.org.wildfly.core.wildfly-core>11.0.0.Beta7</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>11.0.0.Beta8-SNAPSHOT</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
     <!-- Checkstyle configuration -->
@@ -213,6 +213,12 @@
         <groupId>org.wildfly.common</groupId>
         <artifactId>wildfly-common</artifactId>
         <version>${version.org.wildfly.common}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-process-controller</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
       </dependency>
       
       <dependency>

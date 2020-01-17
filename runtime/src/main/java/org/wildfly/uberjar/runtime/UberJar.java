@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2020 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,10 @@
  */
 package org.wildfly.uberjar.runtime;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +36,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.impl.AdditionalBootCliScriptInvoker;
+import static org.jboss.as.process.CommandLineConstants.ADMIN_ONLY_MODE;
+import static org.jboss.as.process.CommandLineConstants.START_MODE;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logmanager.LogContext;
 import org.jboss.logmanager.PropertyConfigurator;
@@ -223,21 +222,11 @@ class UberJar {
     }
 
     private void addCliScript(Path path) throws IOException {
-        startServerArgs.add("--start-mode=admin-only");
+        startServerArgs.add(START_MODE + "=" + ADMIN_ONLY_MODE);
         startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.CLI_SCRIPT_PROPERTY + "=" + path);
         markerDir = Files.createTempDirectory(null);
         startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.MARKER_DIRECTORY_PROPERTY + "=" + markerDir);
         autoConfigure = true;
-    }
-
-    static void printUsage() throws IOException {
-        InputStream stream = UberJar.class.getClassLoader().getResourceAsStream("help.txt");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
-        String helpLine = reader.readLine();
-        while (helpLine != null) {
-            System.out.println(helpLine);
-            helpLine = reader.readLine();
-        }
     }
 
     public void run() throws Exception {
