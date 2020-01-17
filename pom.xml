@@ -50,15 +50,19 @@
   <properties>
     <version.junit>4.12</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
+    <!-- TEST, TO KEEP???? -->
+    <version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
+    </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
     <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
     <version.org.jboss.galleon>4.2.1.Final</version.org.jboss.galleon>
     <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
     <version.org.jboss.logmanager>2.1.14.Final</version.org.jboss.logmanager>
+    <version.org.jboss.logging.jboss-logging-tools>2.2.1.Final</version.org.jboss.logging.jboss-logging-tools>
     <version.org.jboss.modules>1.9.2.Final</version.org.jboss.modules>
     <version.org.jboss.threads>2.3.3.Final</version.org.jboss.threads>
     <version.org.wildfly.common>1.5.2.Final</version.org.wildfly.common>
-    <version.org.wildfly.core.wildfly-core>11.0.0.Beta4-SNAPSHOT</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>11.0.0.Beta7</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
 
     <!-- Checkstyle configuration -->
@@ -116,12 +120,25 @@
         <artifactId>maven-core</artifactId>
         <version>${version.org.apache.maven.core}</version>
       </dependency>
+      <!-- TEST, TO KEEP???? -->
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-compat</artifactId>
+        <version>${version.org.apache.maven.core}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.apache.maven.plugin-tools</groupId>
         <artifactId>maven-plugin-annotations</artifactId>
         <version>${version.org.apache.maven.plugin-tools}</version>
         <scope>provided</scope>
+      </dependency>
+
+<!-- TEST, TO KEEP???? -->
+      <dependency>
+        <groupId>org.apache.maven.plugin-testing</groupId>
+        <artifactId>maven-plugin-testing-harness</artifactId>
+        <version>${version.org.apache.maven.plugin-testing.maven-plugin-testing-harness}</version>
       </dependency>
 
       <dependency>
@@ -152,6 +169,20 @@
         <groupId>org.jboss.logmanager</groupId>
         <artifactId>jboss-logmanager</artifactId>
         <version>${version.org.jboss.logmanager}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging-annotations</artifactId>
+        <version>${version.org.jboss.logging.jboss-logging-tools}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging-processor</artifactId>
+        <version>${version.org.jboss.logging.jboss-logging-tools}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -200,7 +231,6 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
-        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -233,6 +263,7 @@
             <consoleOutput>true</consoleOutput>
             <failsOnError>true</failsOnError>
             <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            <excludes>**/*$logger.java,**/*$bundle.java</excludes>
             <useFile />
           </configuration>
           <dependencies>

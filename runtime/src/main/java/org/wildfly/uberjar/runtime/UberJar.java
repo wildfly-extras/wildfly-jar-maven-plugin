@@ -38,10 +38,9 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.controller.client.impl.AdditionalBootCliScriptInvoker;
 import org.jboss.dmr.ModelNode;
-import org.jboss.logmanager.Level;
 import org.jboss.logmanager.LogContext;
-import org.jboss.logmanager.Logger;
 import org.jboss.logmanager.PropertyConfigurator;
 import org.wildfly.core.embedded.Configuration;
 import org.wildfly.core.embedded.EmbeddedProcessFactory;
@@ -51,6 +50,7 @@ import static org.wildfly.uberjar.runtime.Constants.JBOSS_SERVER_LOG_DIR;
 import static org.wildfly.uberjar.runtime.Constants.LOG_BOOT_FILE_PROP;
 import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_CLASS;
 import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_PROP;
+import org.wildfly.uberjar.runtime._private.UberJarLogger;
 
 /**
  *
@@ -65,7 +65,7 @@ class UberJar {
             synchronized (UberJar.this) {
                 shutdown = true;
                 try {
-                    log.finer("Shutting down");
+                    log.shuttingDown();
                     // Give max 10 seconds for the server to stop before to delete jbossHome.
                     ModelNode mn = new ModelNode();
                     mn.get("address");
@@ -79,19 +79,19 @@ class UberJar {
                                 if (ret.hasDefined("result")) {
                                     String val = ret.get("result").asString();
                                     if ("stopped".equals(val)) {
-                                        log.finer("Server stopped, exiting");
+                                        log.serverStopped();
                                         break;
                                     } else {
-                                        log.finer("Server not yet stopped, waiting");
+                                        log.serverNotStopped();
                                     }
                                 }
                                 Thread.sleep(1000);
                             } else {
-                                log.finer("Null controller client, exiting");
+                                log.nullController();
                                 break;
                             }
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            log.unexpectedExceptionWhileShuttingDown(ex);
                         }
                     }
                 } finally {
@@ -115,14 +115,13 @@ class UberJar {
         EXECUTE_PERMISSIONS.add(PosixFilePermission.OTHERS_READ);
     }
 
-    private Logger log;
+    private UberJarLogger log;
 
     private Path jbossHome;
     private final List<String> startServerArgs = new ArrayList<>();
     private StandaloneServer server;
     private boolean autoConfigure;
     private Path markerDir;
-    private final List<String> restartServerArgs = new ArrayList<>();
     private boolean shutdown;
     private final boolean isTmpDir;
     private final Arguments arguments;
@@ -148,6 +147,8 @@ class UberJar {
         try ( InputStream wf = Main.class.getResourceAsStream("/wildfly.zip")) {
             unzip(wf, jbossHome.toFile());
         }
+
+        startServerArgs.addAll(arguments.getServerArguments());
         configureLogging();
 
         if (arguments.getDeployment() != null) {
@@ -161,10 +162,10 @@ class UberJar {
             }
             Path target = deployment.resolve(arguments.getDeployment().getFileName());
             Files.copy(arguments.getDeployment(), target);
-            log.log(java.util.logging.Level.INFO, "Installed {0} in server deployments", arguments.getDeployment());
+            log.installDeployment(arguments.getDeployment());
         }
 
-        log.log(Level.INFO, "Installed server and application in {0}, took {1}ms", new Object[]{jbossHome, System.currentTimeMillis() - t});
+        log.advertiseStart(jbossHome, System.currentTimeMillis() - t);
 
         if (arguments.getExternalConfig() != null) {
             final String baseDir = jbossHome + File.separator + "standalone";
@@ -179,7 +180,7 @@ class UberJar {
         System.setProperty(LOG_MANAGER_PROP, LOG_MANAGER_CLASS);
         configureEmbeddedLogging();
         // Share the log context with embedded
-        log = Logger.getLogger("org.wildfly.uberjar");
+        log = UberJarLogger.ROOT_LOGGER;
     }
 
     private void configureEmbeddedLogging() throws IOException {
@@ -223,9 +224,9 @@ class UberJar {
 
     private void addCliScript(Path path) throws IOException {
         startServerArgs.add("--start-mode=admin-only");
-        startServerArgs.add("-Dorg.wildfly.additional.cli.boot.script=" + path);
+        startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.CLI_SCRIPT_PROPERTY + "=" + path);
         markerDir = Files.createTempDirectory(null);
-        startServerArgs.add("-Dorg.wildfly.additional.cli.marker.dir=" + markerDir);
+        startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.MARKER_DIRECTORY_PROPERTY + "=" + markerDir);
         autoConfigure = true;
     }
 
@@ -264,16 +265,16 @@ class UberJar {
                                 log.info("Restarting server");
                                 server.stop();
                                 try {
-                                    System.clearProperty("org.wildfly.additional.cli.boot.script");
-                                    System.clearProperty("org.wildfly.additional.cli.marker.dir");
-                                    server = buildServer(restartServerArgs);
+                                    System.clearProperty(AdditionalBootCliScriptInvoker.CLI_SCRIPT_PROPERTY);
+                                    System.clearProperty(AdditionalBootCliScriptInvoker.MARKER_DIRECTORY_PROPERTY);
+                                    server = buildServer(arguments.getServerArguments());
                                 } catch (RuntimeException ex) {
                                     cleanup();
                                     throw ex;
                                 }
                                 server.start();
                             } else {
-                                log.warning("Can't restart server, already shutdown");
+                                log.allreadyShutdown();
                             }
                         }
                     }
@@ -286,16 +287,16 @@ class UberJar {
 
     private void cleanup() {
         if (deleteDir) {
-            log.log(Level.FINER, "Deleting dir {0}", jbossHome);
+            log.deletingHome(jbossHome);
             deleteDir(jbossHome);
             deleteDir = false;
         } else {
             if (isTmpDir) {
-                log.warning("Server tmp directory " + jbossHome + " has not been deleted.");
+                log.homeNotDeleted(jbossHome);
             }
         }
         if (markerDir != null) {
-            log.log(Level.FINER, "Deleting marker dir {0}", markerDir);
+            log.deletingMarkerDir(markerDir);
             deleteDir(markerDir);
         }
     }
