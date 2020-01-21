@@ -81,17 +81,17 @@ public class Arguments {
                 validateArg(noDelete, NO_DELETE_SERVER_DIR);
                 noDelete = true;
             } else if (a.startsWith(CommandLineConstants.PUBLIC_BIND_ADDRESS)) {
-                getServerArguments().add(a);
+                i = handleMultiArgs(a, args, i);
             } else if (CommandLineConstants.PROPERTIES.equals(a) || CommandLineConstants.SHORT_PROPERTIES.equals(a)) {
-                getServerArguments().add(a);
+                i = handleMultiArgs(a, args, i);
             } else if (a.startsWith(CommandLineConstants.SECURITY_PROP)) {
-                getServerArguments().add(a);
+                serverArguments.add(a);
             } else if (a.startsWith(CommandLineConstants.SYS_PROP)) {
-                getServerArguments().add(a);
+                serverArguments.add(a);
             } else if (a.startsWith(CommandLineConstants.START_MODE)) {
-                getServerArguments().add(a);
+                i = handleMultiArgs(a, args, i);
             } else if (a.startsWith(CommandLineConstants.DEFAULT_MULTICAST_ADDRESS)) {
-                getServerArguments().add(a);
+                i = handleMultiArgs(a, args, i);
             } else if (CommandLineConstants.VERSION.equals(a) || CommandLineConstants.SHORT_VERSION.equals(a)) {
                 validateArg(isVersion, CommandLineConstants.VERSION);
                 isVersion = true;
@@ -103,6 +103,21 @@ public class Arguments {
                 throw new Exception("Unknown argument " + a);
             }
         }
+    }
+
+    private int handleMultiArgs(String a, String[] args, int index) {
+        serverArguments.add(a);
+        int idx = a.indexOf('=');
+        if (idx == -1) {
+            index += 1;
+            serverArguments.add(args[index]);
+        } else {
+            if (idx == args.length - 1) {
+                throw new RuntimeException("Invalid argument syntax " + a);
+            }
+        }
+
+        return index;
     }
 
     private void handleSystemProperties() throws Exception {

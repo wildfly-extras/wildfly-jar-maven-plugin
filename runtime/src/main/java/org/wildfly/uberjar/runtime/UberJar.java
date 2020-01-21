@@ -296,6 +296,7 @@ class UberJar {
         for (String a : args) {
             builder.addCommandArgument(a);
         }
+        builder.setUberJar(true);
         final StandaloneServer serv = EmbeddedProcessFactory.createStandaloneServer(builder.build());
         return serv;
     }

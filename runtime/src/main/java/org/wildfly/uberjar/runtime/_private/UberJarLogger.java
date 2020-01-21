@@ -105,4 +105,7 @@ public interface UberJarLogger extends BasicLogger {
 
     @Message(id = Message.NONE, value = "Print version and exit")
     String argVersion();
+
+    @Message(id = Message.NONE, value = "Set a security property")
+    String argSecurityProperty();
 }

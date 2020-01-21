@@ -28,17 +28,12 @@ import org.wildfly.uberjar.runtime._private.UberJarLogger;
  */
 public class CmdUsage extends CommandLineArgumentUsage {
     public static void init() {
+
         addArguments(CommandLineConstants.PUBLIC_BIND_ADDRESS + " <value>", CommandLineConstants.PUBLIC_BIND_ADDRESS + "=<value>");
         instructions.add(UberJarLogger.ROOT_LOGGER.argPublicBindAddress());
 
         addArguments(CommandLineConstants.PUBLIC_BIND_ADDRESS + "<interface>=<value>");
         instructions.add(UberJarLogger.ROOT_LOGGER.argInterfaceBindAddress());
-
-        addArguments(CommandLineConstants.DEFAULT_MULTICAST_ADDRESS + " <value>", CommandLineConstants.DEFAULT_MULTICAST_ADDRESS + "=<value>");
-        instructions.add(UberJarLogger.ROOT_LOGGER.argDefaultMulticastAddress());
-
-        addArguments(CommandLineConstants.SHORT_PROPERTIES + " <url>", CommandLineConstants.SHORT_PROPERTIES + "=<url>", CommandLineConstants.PROPERTIES + "=<url>");
-        instructions.add(UberJarLogger.ROOT_LOGGER.argProperties());
 
         addArguments(CommandLineConstants.SYS_PROP + "<name>[=<value>]");
         instructions.add(UberJarLogger.ROOT_LOGGER.argSystem());
@@ -46,8 +41,17 @@ public class CmdUsage extends CommandLineArgumentUsage {
         addArguments(CommandLineConstants.SHORT_HELP, CommandLineConstants.HELP);
         instructions.add(UberJarLogger.ROOT_LOGGER.argHelp());
 
+        addArguments(CommandLineConstants.SHORT_PROPERTIES + " <url>", CommandLineConstants.SHORT_PROPERTIES + "=<url>", CommandLineConstants.PROPERTIES + "=<url>");
+        instructions.add(UberJarLogger.ROOT_LOGGER.argProperties());
+
+        addArguments(CommandLineConstants.SECURITY_PROP + "<name>[=<value>]");
+        instructions.add(UberJarLogger.ROOT_LOGGER.argSecurityProperty());
+
         addArguments(CommandLineConstants.START_MODE);
         instructions.add(UberJarLogger.ROOT_LOGGER.argStartMode());
+
+        addArguments(CommandLineConstants.DEFAULT_MULTICAST_ADDRESS + " <value>", CommandLineConstants.DEFAULT_MULTICAST_ADDRESS + "=<value>");
+        instructions.add(UberJarLogger.ROOT_LOGGER.argDefaultMulticastAddress());
 
         addArguments(CommandLineConstants.SHORT_VERSION, CommandLineConstants.VERSION);
         instructions.add(UberJarLogger.ROOT_LOGGER.argVersion());
