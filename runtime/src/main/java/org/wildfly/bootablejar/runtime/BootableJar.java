@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.process.CommandLineConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logmanager.LogContext;
 import org.jboss.logmanager.PropertyConfigurator;
@@ -124,6 +125,7 @@ class BootableJar {
         }
 
         startServerArgs.addAll(arguments.getServerArguments());
+        startServerArgs.add(CommandLineConstants.READ_ONLY_SERVER_CONFIG + "=standalone.xml");
         configureLogging();
 
         if (arguments.getDeployment() != null) {
