@@ -12,7 +12,6 @@ public class HelloWorldEndpoint {
     @GET
     @Produces("text/plain")
     public Response doGet() {
-        System.out.println("HELLO MY FREIEN");
-        return Response.ok("Hello from WildFly uberjar!").build();
+        return Response.ok("Hello from WildFly bootable jar!").build();
     }
 }

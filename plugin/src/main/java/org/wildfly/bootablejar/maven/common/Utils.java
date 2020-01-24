@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.maven.common;
+package org.wildfly.bootablejar.maven.common;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.plugin.core.ServerHelper;
-import org.wildfly.uberjar.maven.goals.BuildUberJarMojo;
+import org.wildfly.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
  *
@@ -34,17 +34,17 @@ import org.wildfly.uberjar.maven.goals.BuildUberJarMojo;
  */
 public class Utils {
 
-    public static String getUberJarPath(MavenProject project, String goal) throws MojoExecutionException {
+    public static String getBootableJarPath(MavenProject project, String goal) throws MojoExecutionException {
         String finalName = project.getBuild().getFinalName();
-        String jarName = finalName + "-" + BuildUberJarMojo.UBERJAR_SUFFIX + "." + BuildUberJarMojo.JAR;
+        String jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
         String path = project.getBuild().getDirectory() + File.separator + jarName;
         if (!Files.exists(Paths.get(path))) {
-            throw new MojoExecutionException("Cannot " + goal + " without an uberjar; please `mvn wildfly-uberjar:package` prior to invoking wildfly-uberjar:run from the command-line");
+            throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-bootable-jar:package` prior to invoking wildfly-bootable-jar:run from the command-line");
         }
         return path;
     }
 
-    public static void startUberJar(String jarPath, List<String> jvmArguments,
+    public static void startBootableJar(String jarPath, List<String> jvmArguments,
             List<String> arguments, boolean waitFor,
             boolean checkStart,
             ModelControllerClient client, long timeout) throws MojoExecutionException {

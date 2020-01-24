@@ -2,9 +2,9 @@
 
 [options="autowidth"]
 |===
-|<<_package>> |Build a WildFly uberjar.
-|<<_run>> |Run a WildFly uberjar (blocking).
-|<<_start>> |Start a WildFly uberjar (non blocking).
+|<<_package>> |Build a WildFly bootable jar.
+|<<_run>> |Run a WildFly bootable jar (blocking).
+|<<_start>> |Start a WildFly bootable jar (non blocking).
 |===
 
 include::package/index.adoc[]

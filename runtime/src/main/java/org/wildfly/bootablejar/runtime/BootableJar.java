@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.runtime;
+package org.wildfly.bootablejar.runtime;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
@@ -35,67 +34,61 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
-import org.jboss.as.controller.client.impl.AdditionalBootCliScriptInvoker;
-import static org.jboss.as.process.CommandLineConstants.ADMIN_ONLY_MODE;
-import static org.jboss.as.process.CommandLineConstants.START_MODE;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logmanager.LogContext;
 import org.jboss.logmanager.PropertyConfigurator;
 import org.wildfly.core.embedded.Configuration;
 import org.wildfly.core.embedded.EmbeddedProcessFactory;
 import org.wildfly.core.embedded.StandaloneServer;
-import static org.wildfly.uberjar.runtime.Constants.JBOSS_SERVER_CONFIG_DIR;
-import static org.wildfly.uberjar.runtime.Constants.JBOSS_SERVER_LOG_DIR;
-import static org.wildfly.uberjar.runtime.Constants.LOG_BOOT_FILE_PROP;
-import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_CLASS;
-import static org.wildfly.uberjar.runtime.Constants.LOG_MANAGER_PROP;
-import org.wildfly.uberjar.runtime._private.UberJarLogger;
+import static org.wildfly.bootablejar.runtime.Constants.JBOSS_SERVER_CONFIG_DIR;
+import static org.wildfly.bootablejar.runtime.Constants.JBOSS_SERVER_LOG_DIR;
+import static org.wildfly.bootablejar.runtime.Constants.LOG_BOOT_FILE_PROP;
+import static org.wildfly.bootablejar.runtime.Constants.LOG_MANAGER_CLASS;
+import static org.wildfly.bootablejar.runtime.Constants.LOG_MANAGER_PROP;
+import org.wildfly.bootablejar.runtime._private.BootableJarLogger;
 
 /**
  *
  * @author jdenise
  */
-class UberJar {
+class BootableJar {
 
     private class ShutdownHook extends Thread {
 
         @Override
         public void run() {
-            synchronized (UberJar.this) {
-                shutdown = true;
-                try {
-                    log.shuttingDown();
-                    // Give max 10 seconds for the server to stop before to delete jbossHome.
-                    ModelNode mn = new ModelNode();
-                    mn.get("address");
-                    mn.get("operation").set("read-attribute");
-                    mn.get("name").set("server-state");
-                    for (int i = 0; i < 10; i++) {
-                        try {
-                            ModelControllerClient client = server.getModelControllerClient();
-                            if (client != null) {
-                                ModelNode ret = client.execute(mn);
-                                if (ret.hasDefined("result")) {
-                                    String val = ret.get("result").asString();
-                                    if ("stopped".equals(val)) {
-                                        log.serverStopped();
-                                        break;
-                                    } else {
-                                        log.serverNotStopped();
-                                    }
+            try {
+                log.shuttingDown();
+                // Give max 10 seconds for the server to stop before to delete jbossHome.
+                ModelNode mn = new ModelNode();
+                mn.get("address");
+                mn.get("operation").set("read-attribute");
+                mn.get("name").set("server-state");
+                for (int i = 0; i < 10; i++) {
+                    try {
+                        ModelControllerClient client = server.getModelControllerClient();
+                        if (client != null) {
+                            ModelNode ret = client.execute(mn);
+                            if (ret.hasDefined("result")) {
+                                String val = ret.get("result").asString();
+                                if ("stopped".equals(val)) {
+                                    log.serverStopped();
+                                    break;
+                                } else {
+                                    log.serverNotStopped();
                                 }
-                                Thread.sleep(1000);
-                            } else {
-                                log.nullController();
-                                break;
                             }
-                        } catch (Exception ex) {
-                            log.unexpectedExceptionWhileShuttingDown(ex);
+                            Thread.sleep(1000);
+                        } else {
+                            log.nullController();
+                            break;
                         }
+                    } catch (Exception ex) {
+                        log.unexpectedExceptionWhileShuttingDown(ex);
                     }
-                } finally {
-                    cleanup();
                 }
+            } finally {
+                cleanup();
             }
         }
     }
@@ -114,33 +107,16 @@ class UberJar {
         EXECUTE_PERMISSIONS.add(PosixFilePermission.OTHERS_READ);
     }
 
-    private UberJarLogger log;
+    private BootableJarLogger log;
 
     private Path jbossHome;
     private final List<String> startServerArgs = new ArrayList<>();
     private StandaloneServer server;
-    private boolean autoConfigure;
-    private Path markerDir;
-    private boolean shutdown;
-    private final boolean isTmpDir;
     private final Arguments arguments;
-    private boolean deleteDir;
 
-    public UberJar(Arguments arguments) throws Exception {
+    public BootableJar(Arguments arguments) throws Exception {
         this.arguments = arguments;
-        deleteDir = !arguments.isNoDelete();
-        if (arguments.getScriptFile() != null) {
-            addCliScript(arguments.getScriptFile());
-        }
-        if (arguments.getServerDir() != null) {
-            setJBossHome(arguments.getServerDir());
-        }
-        if (jbossHome == null) {
-            jbossHome = Files.createTempDirectory("wildfly-uberjar-server");
-            isTmpDir = true;
-        } else {
-            isTmpDir = false;
-        }
+        jbossHome = Files.createTempDirectory("wildfly-bootable-server");
 
         long t = System.currentTimeMillis();
         try ( InputStream wf = Main.class.getResourceAsStream("/wildfly.zip")) {
@@ -164,22 +140,14 @@ class UberJar {
             log.installDeployment(arguments.getDeployment());
         }
 
-        log.advertiseStart(jbossHome, System.currentTimeMillis() - t);
-
-        if (arguments.getExternalConfig() != null) {
-            final String baseDir = jbossHome + File.separator + "standalone";
-            final String serverCfg = System.getProperty(JBOSS_SERVER_CONFIG_DIR, baseDir + File.separator
-                    + "configuration" + File.separator + "standalone.xml");
-            Path target = Paths.get(serverCfg);
-            Files.copy(arguments.getExternalConfig(), target, StandardCopyOption.REPLACE_EXISTING);
-        }
+        log.advertiseInstall(jbossHome, System.currentTimeMillis() - t);
     }
 
     private void configureLogging() throws IOException {
         System.setProperty(LOG_MANAGER_PROP, LOG_MANAGER_CLASS);
         configureEmbeddedLogging();
         // Share the log context with embedded
-        log = UberJarLogger.ROOT_LOGGER;
+        log = BootableJarLogger.ROOT_LOGGER;
     }
 
     private void configureEmbeddedLogging() throws IOException {
@@ -213,22 +181,6 @@ class UberJar {
         return embeddedLogContext;
     }
 
-    private void setJBossHome(String path) throws IOException {
-        jbossHome = Paths.get(path);
-        if (Files.exists(jbossHome)) {
-            throw new IOException("Installation directory " + path + " already exists");
-        }
-        Files.createDirectories(jbossHome);
-    }
-
-    private void addCliScript(Path path) throws IOException {
-        startServerArgs.add(START_MODE + "=" + ADMIN_ONLY_MODE);
-        startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.CLI_SCRIPT_PROPERTY + "=" + path);
-        markerDir = Files.createTempDirectory(null);
-        startServerArgs.add("-D" + AdditionalBootCliScriptInvoker.MARKER_DIRECTORY_PROPERTY + "=" + markerDir);
-        autoConfigure = true;
-    }
-
     public void run() throws Exception {
         try {
             server = buildServer(startServerArgs);
@@ -238,56 +190,12 @@ class UberJar {
         }
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
         server.start();
-        checkForRestart();
-    }
-
-    private void checkForRestart() throws Exception {
-        if (autoConfigure && !arguments.isVersion()) {
-            while (true) {
-                Path marker = markerDir.resolve("wf-restart-embedded-server");
-                Path doneMarker = markerDir.resolve("wf-cli-invoker-result");
-                if (Files.exists(doneMarker)) {
-                    if (Files.exists(marker)) {
-                        // Need to synchronize due to shutdown hook.
-                        synchronized (this) {
-                            if (!shutdown) {
-                                log.info("Restarting server");
-                                server.stop();
-                                try {
-                                    System.clearProperty(AdditionalBootCliScriptInvoker.CLI_SCRIPT_PROPERTY);
-                                    System.clearProperty(AdditionalBootCliScriptInvoker.MARKER_DIRECTORY_PROPERTY);
-                                    server = buildServer(arguments.getServerArguments());
-                                } catch (RuntimeException ex) {
-                                    cleanup();
-                                    throw ex;
-                                }
-                                server.start();
-                            } else {
-                                log.allreadyShutdown();
-                            }
-                        }
-                    }
-                    break;
-                }
-                Thread.sleep(10);
-            }
-        }
     }
 
     private void cleanup() {
-        if (deleteDir) {
-            log.deletingHome(jbossHome);
-            deleteDir(jbossHome);
-            deleteDir = false;
-        } else {
-            if (isTmpDir) {
-                log.homeNotDeleted(jbossHome);
-            }
-        }
-        if (markerDir != null) {
-            log.deletingMarkerDir(markerDir);
-            deleteDir(markerDir);
-        }
+        log.deletingHome(jbossHome);
+        deleteDir(jbossHome);
+
     }
 
     private StandaloneServer buildServer(List<String> args) throws IOException {
@@ -296,7 +204,6 @@ class UberJar {
         for (String a : args) {
             builder.addCommandArgument(a);
         }
-        builder.setUberJar(true);
         final StandaloneServer serv = EmbeddedProcessFactory.createStandaloneServer(builder.build());
         return serv;
     }

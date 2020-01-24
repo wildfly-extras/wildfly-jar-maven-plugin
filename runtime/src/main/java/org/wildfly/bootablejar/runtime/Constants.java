@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.runtime;
+package org.wildfly.bootablejar.runtime;
 
 /**
  *
@@ -25,17 +25,7 @@ class Constants {
     public static final String JBOSS_SERVER_CONFIG_DIR = "jboss.server.config.dir";
     public static final String JBOSS_SERVER_LOG_DIR = "jboss.server.log.dir";
 
-    public static final String UBERJAR = "org.wildfly.uberjar.";
     public static final String DEPLOYMENT = "--deployment";
-    public static final String DEPLOYMENT_PROP = UBERJAR + "deployment";
-    public static final String EXTERNAL_SERVER_CONFIG_PROP = UBERJAR + "server.config";
-    public static final String EXTERNAL_SERVER_CONFIG = "--server-config";
-    public static final String CLI_SCRIPT = "--cli-script";
-    public static final String CLI_SCRIPT_PROP = UBERJAR + "cli.script";
-    public static final String SERVER_DIR = "--server-dir";
-    public static final String SERVER_DIR_PROP = UBERJAR + "server.dir";
-    public static final String NO_DELETE_SERVER_DIR = "--no-delete";
-    public static final String NO_DELETE_SERVER_DIR_PROP = UBERJAR + "no.delete";
 
     public static final String LOG_MANAGER_PROP = "java.util.logging.manager";
     public static final String LOG_MANAGER_CLASS = "org.jboss.logmanager.LogManager";

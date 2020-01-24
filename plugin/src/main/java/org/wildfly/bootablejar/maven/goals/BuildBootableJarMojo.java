@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.maven.goals;
+package org.wildfly.bootablejar.maven.goals;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -74,14 +74,14 @@ import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 
 /**
- * Build an uberjar containing application and provisioned server
+ * Build a bootable jar containing application and provisioned server
  *
  * @author jfdenise
  */
 @Mojo(name = "package", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PACKAGE)
-public final class BuildUberJarMojo extends AbstractMojo {
+public final class BuildBootableJarMojo extends AbstractMojo {
 
-    public static final String UBERJAR_SUFFIX = "wildfly-uberjar";
+    public static final String BOOTABLE_SUFFIX = "wildfly-bootable-jar";
     public static final String JAR = "jar";
     public static final String WAR = "war";
 
@@ -168,7 +168,7 @@ public final class BuildUberJarMojo extends AbstractMojo {
     private String cliScriptFile;
 
     /**
-     * Hollow jar. Create an uberjar that doesn't contain application.
+     * Hollow jar. Create a bootable jar that doesn't contain application.
      */
     @Parameter(alias = "hollow-jar")
     private boolean hollow;
@@ -177,7 +177,7 @@ public final class BuildUberJarMojo extends AbstractMojo {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.uberjar.run.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
     private boolean skip;
 
     @Override
@@ -187,11 +187,11 @@ public final class BuildUberJarMojo extends AbstractMojo {
             return;
         }
         validateProjectFile();
-        Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve("uberjar-build-artifacts");
+        Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve("bootable-jar-build-artifacts");
         if (Files.exists(contentRoot)) {
             deleteDir(contentRoot);
         }
-        Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(this.project.getBuild().getFinalName() + "-" + UBERJAR_SUFFIX + "." + JAR);
+        Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR);
         IoUtils.recursiveDelete(contentRoot);
 
         Path wildflyDir = contentRoot.resolve("wildfly");
@@ -225,7 +225,7 @@ public final class BuildUberJarMojo extends AbstractMojo {
     private File validateProjectFile() throws MojoExecutionException {
         File f = getProjectFile();
         if (f == null && !hollow) {
-            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-uberjar:build-uber-jar from the command-line");
+            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-bootable-jar:build-bootable-jar from the command-line");
         }
         return f;
     }
@@ -368,15 +368,15 @@ public final class BuildUberJarMojo extends AbstractMojo {
         buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
 
         final ArtifactResult result = artifactResolver.resolveArtifact(buildingRequest,
-                new DefaultArtifact("org.wildfly.plugins", "wildfly-uberjar-runtime", retrieveRuntimeVersion(),
+                new DefaultArtifact("org.wildfly.plugins", "wildfly-bootable-jar-runtime", retrieveRuntimeVersion(),
                         "provided", JAR, null,
                         new DefaultArtifactHandler(JAR)));
         return result.getArtifact().getFile().toPath();
     }
 
     private void attachJar(Path jarFile) {
-        debug("Attaching uberjar %s as a project artifact", jarFile);
-        projectHelper.attachArtifact(project, JAR, UBERJAR_SUFFIX, jarFile.toFile());
+        debug("Attaching bootable jar %s as a project artifact", jarFile);
+        projectHelper.attachArtifact(project, JAR, BOOTABLE_SUFFIX, jarFile.toFile());
     }
 
     private void debug(String msg, Object... args) {

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.runtime;
+package org.wildfly.bootablejar.runtime;
 
 /**
  *
@@ -23,12 +23,19 @@ package org.wildfly.uberjar.runtime;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Arguments arguments = Arguments.parseArguments(args);
+        Arguments arguments;
+        try {
+            arguments = Arguments.parseArguments(args);
+        } catch (Throwable ex) {
+            System.err.println(ex);
+            CmdUsage.printUsage(System.out);
+            return;
+        }
         if (arguments.isHelp()) {
             CmdUsage.printUsage(System.out);
         } else {
-            UberJar uberjar = new UberJar(arguments);
-            uberjar.run();
+            BootableJar bjar = new BootableJar(arguments);
+            bjar.run();
         }
     }
 

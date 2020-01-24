@@ -1,4 +1,4 @@
-= WildFly Uberjar Documentation
+= WildFly Bootable Jar Documentation
 Jean-Francois Denise
 :revnumber: {version}
 :revdate: {localdate}

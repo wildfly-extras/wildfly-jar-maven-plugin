@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.maven.goals;
+package org.wildfly.bootablejar.maven.goals;
 
 import java.io.IOException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,12 +27,12 @@ import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.core.ServerHelper;
 
 /**
- * Shutdown the uberjar. XXX POC, No shutdown operation in embedded.
+ * Shutdown the bootable jar. XXX POC, No shutdown operation in embedded.
  *
  * @author jfdenise
  */
 @Mojo(name = "shutdown")
-public class ShutdownUberJarMojo extends AbstractServerConnection {
+public class ShutdownBootableJarMojo extends AbstractServerConnection {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
@@ -41,7 +41,7 @@ public class ShutdownUberJarMojo extends AbstractServerConnection {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.uberjar.start.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.start.skip")
     private boolean skip;
 
     @Override

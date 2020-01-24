@@ -23,14 +23,14 @@
 
   <parent>
     <groupId>org.wildfly.plugins</groupId>
-    <artifactId>wildfly-uberjar-parent</artifactId>
+    <artifactId>wildfly-bootable-jar-parent</artifactId>
     <version>1.0.0.Final-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wildfly-uberjar-runtime</artifactId>
+  <artifactId>wildfly-bootable-jar-runtime</artifactId>
   <packaging>jar</packaging>
 
-  <name>WildFly Uberjar runtime</name>
+  <name>WildFly Bootable Jar runtime</name>
 
   <dependencies>
       <!-- needed by embedded -->
@@ -131,7 +131,7 @@
         <configuration>
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-              <mainClass>org.wildfly.uberjar.runtime.Main</mainClass>
+              <mainClass>org.wildfly.bootablejar.runtime.Main</mainClass>
             </transformer>
           </transformers>
         </configuration>

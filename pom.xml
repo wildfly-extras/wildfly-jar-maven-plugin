@@ -27,11 +27,11 @@
   </parent>
 
   <groupId>org.wildfly.plugins</groupId>
-  <artifactId>wildfly-uberjar-parent</artifactId>
+  <artifactId>wildfly-bootable-jar-parent</artifactId>
   <version>1.0.0.Final-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>WildFly Uberjar Plugin Parent</name>
+  <name>WildFly Bootable Jar Plugin Parent</name>
   <inceptionYear>2019</inceptionYear>
   <licenses>
     <license>
@@ -105,7 +105,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-uberjar-runtime</artifactId>
+        <artifactId>wildfly-bootable-jar-runtime</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -255,7 +255,7 @@
                                   
       <plugin>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-uberjar-maven-plugin</artifactId>
+        <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
         <version>${project.version}</version>
       </plugin>
       

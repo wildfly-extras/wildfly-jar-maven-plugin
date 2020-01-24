@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.maven.goals;
+package org.wildfly.bootablejar.maven.goals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,26 +27,26 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.plugin.common.AbstractServerConnection;
-import org.wildfly.uberjar.maven.common.Utils;
+import org.wildfly.bootablejar.maven.common.Utils;
 
 /**
- * Start the uberjar. The plugin execution keeps the process running.
+ * Start the bootable jar. The plugin execution keeps the process running.
  *
  * @author jfdenise
  */
 @Mojo(name = "start", requiresDependencyResolution = ResolutionScope.RUNTIME)
-public class StartUberJarMojo extends AbstractServerConnection {
+public class StartBootableJarMojo extends AbstractServerConnection {
 
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.uberjar.start.jvmArguments")
+    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.jar.start.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Uberjar arguments.
+     * Bootable jar arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.uberjar.start.arguments")
+    @Parameter(alias = "arguments", property = "wildfly.bootable.jar.start.arguments")
     public List<String> arguments = new ArrayList<>();
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -56,7 +56,7 @@ public class StartUberJarMojo extends AbstractServerConnection {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.uberjar.start.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.start.skip")
     private boolean skip;
 
     /**
@@ -64,19 +64,19 @@ public class StartUberJarMojo extends AbstractServerConnection {
      * status before to return. In case the started server has no management
      * interface enabled this parameter should be set to true.
      */
-    @Parameter(alias = "check-server-start", defaultValue = "true", property = "wildfly.uberjar.start.check.start")
+    @Parameter(alias = "check-server-start", defaultValue = "true", property = "wildfly.bootable.jar.start.check.start")
     private boolean checkStarted;
 
     /**
      * The timeout value to use when checking for the server to be running.
      */
-    @Parameter(alias = "startup-timeout", defaultValue = "60", property = "wildfly.uberjar.start.timeout")
+    @Parameter(alias = "startup-timeout", defaultValue = "60", property = "wildfly.bootable.jar.start.timeout")
     private long startupTimeout;
 
     /**
-     * The Uberjar Process id.
+     * The Bootable Jar Process id.
      */
-    @Parameter(alias = "id", defaultValue = "60", property = "wildfly.uberjar.start.id")
+    @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.jar.start.id")
     private String id;
 
 
@@ -91,7 +91,7 @@ public class StartUberJarMojo extends AbstractServerConnection {
             client = createClient();
         }
         try {
-            Utils.startUberJar(Utils.getUberJarPath(project, goal()), jvmArguments, arguments, false,
+            Utils.startBootableJar(Utils.getBootableJarPath(project, goal()), jvmArguments, arguments, false,
                     checkStarted, client, startupTimeout);
         } finally {
             if (client != null) {

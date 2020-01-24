@@ -1,2 +1,2 @@
-# wildfly-uberjar-maven-plugin
-Support for uberjar in WildFly
+# wildfly-bootable-jar-maven-plugin
+Support for WildFly bootable jar

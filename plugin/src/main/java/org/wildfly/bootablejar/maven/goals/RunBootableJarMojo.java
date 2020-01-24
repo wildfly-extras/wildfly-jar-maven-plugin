@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.uberjar.maven.goals;
+package org.wildfly.bootablejar.maven.goals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,26 +25,26 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.wildfly.uberjar.maven.common.Utils;
+import org.wildfly.bootablejar.maven.common.Utils;
 
 /**
- * Run the uberjar. This is blocking.
+ * Run the bootable jar. This is blocking.
  *
  * @author jfdenise
  */
 @Mojo(name = "run", requiresDependencyResolution = ResolutionScope.RUNTIME)
-public final class RunUberJarMojo extends AbstractMojo {
+public final class RunBootableJarMojo extends AbstractMojo {
 
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.uberjar.run.jvmArguments")
+    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.jar.run.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Uberjar arguments.
+     * Bootable jar arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.uberjar.run.arguments")
+    @Parameter(alias = "arguments", property = "wildfly.bootable.jar.run.arguments")
     public List<String> arguments = new ArrayList<>();
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -54,7 +54,7 @@ public final class RunUberJarMojo extends AbstractMojo {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.uberjar.run.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
     private boolean skip;
 
     @Override
@@ -63,7 +63,7 @@ public final class RunUberJarMojo extends AbstractMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-        Utils.startUberJar(Utils.getUberJarPath(project, "run"), jvmArguments, arguments, true,
+        Utils.startBootableJar(Utils.getBootableJarPath(project, "run"), jvmArguments, arguments, true,
                 false, null, -1);
     }
 }
