@@ -81,7 +81,7 @@ import org.jboss.galleon.xml.ProvisioningXmlParser;
 @Mojo(name = "package", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PACKAGE)
 public final class BuildBootableJarMojo extends AbstractMojo {
 
-    public static final String BOOTABLE_SUFFIX = "wildfly-bootable-jar";
+    public static final String BOOTABLE_SUFFIX = "wildfly-bootable";
     public static final String JAR = "jar";
     public static final String WAR = "war";
 
