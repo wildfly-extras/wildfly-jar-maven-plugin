@@ -168,10 +168,23 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     private String cliScriptFile;
 
     /**
+     * Hollow server + activate scan of deployments dir
+     */
+    @Parameter(alias = "dev-server", property = "wildfly.bootable.dev.server")
+    private boolean devServer;
+
+    /**
      * Hollow jar. Create a bootable jar that doesn't contain application.
      */
-    @Parameter(alias = "hollow-jar")
+    @Parameter(alias = "hollow-jar", property = "wildfly.bootable.hollow")
     private boolean hollow;
+
+    /**
+     * App in dev, copied to deployments dir, expected to be run with a
+     * dev-server.
+     */
+    @Parameter(alias = "dev-app", property = "wildfly.bootable.dev.app")
+    private boolean devApp;
 
     /**
      * Set to {@code true} if you want the deployment to be skipped, otherwise
@@ -182,11 +195,27 @@ public final class BuildBootableJarMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (devServer) {
+            // enforce hollow server
+            hollow = true;
+        }
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
         validateProjectFile();
+        Path deployments = Paths.get(project.getBuild().getDirectory()).resolve("deployments");
+        //Simply copy the primary artifact to the deployments dir scan by the hollow jar.
+        if (devApp) {
+            IoUtils.recursiveDelete(deployments);
+            try {
+                Files.createDirectory(deployments);
+                copyProjectFile(deployments);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Fail creating deployments directory ", ex);
+            }
+            return;
+        }
         Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve("bootable-jar-build-artifacts");
         if (Files.exists(contentRoot)) {
             deleteDir(contentRoot);
@@ -197,8 +226,8 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         Path wildflyDir = contentRoot.resolve("wildfly");
         Path contentDir = contentRoot.resolve("jar-content");
         try {
-            Files.createDirectory(contentRoot);
-            Files.createDirectory(contentDir);
+            Files.createDirectories(contentRoot);
+            Files.createDirectories(contentDir);
             Files.deleteIfExists(jarFile);
         } catch (IOException ex) {
             throw new MojoExecutionException("Packaging wildfly failed", ex);
@@ -209,9 +238,12 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
         try {
-            copyProjectFile(wildflyDir);
+            copyProjectFile(wildflyDir.resolve("standalone/deployments/"));
             if (cliScriptFile != null) {
                 executeCli(wildflyDir);
+            }
+            if (devServer) {
+                configureScanner(wildflyDir, deployments);
             }
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile);
@@ -239,12 +271,23 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         processFile(jbossHome, f);
     }
 
+    private void configureScanner(Path jbossHome, Path deployments) throws IOException {
+        File f = File.createTempFile("bootable-scanner", null);
+        f.deleteOnExit();
+        StringBuilder content = new StringBuilder();
+        content.append("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
+                + "path=\"" + deployments + "\")");
+        Files.write(f.toPath(), content.toString().getBytes());
+
+        processFile(jbossHome, f);
+    }
+
     private void processFile(Path jbossHome, File file) {
 
         try {
             getLog().info("Executing CLI script " + file);
             CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext();
-            try ( BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=echo");
                 String line = reader.readLine();
                 while (line != null) {
@@ -310,7 +353,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             }
         }
         IoUtils.recursiveDelete(home);
-        try ( ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
+        try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(home)
                 .setMessageWriter(new MvnMessageWriter(getLog()))
                 .setLogTime(logTime)
@@ -320,7 +363,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private void copyProjectFile(Path wildflyDir) throws IOException, MojoExecutionException {
+    private void copyProjectFile(Path targetDir) throws IOException, MojoExecutionException {
         if (hollow) {
             getLog().info("Hollow jar, No application deployment added to server.");
             return;
@@ -333,7 +376,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
                 fileName = "ROOT." + WAR;
             }
         }
-        Files.copy(f.toPath(), wildflyDir.resolve("standalone/deployments/" + fileName));
+        Files.copy(f.toPath(), targetDir.resolve(fileName));
     }
 
     private static void zipServer(Path home, Path contentDir) throws IOException {
