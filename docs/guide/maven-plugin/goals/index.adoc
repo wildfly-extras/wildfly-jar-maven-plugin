@@ -4,10 +4,12 @@
 |===
 |<<_package>> |Build a WildFly bootable jar.
 |<<_run>> |Run a WildFly bootable jar (blocking).
+|<<_shutdown>> |Shutdown a WildFly bootable jar.
 |<<_start>> |Start a WildFly bootable jar (non blocking).
 |===
 
 include::package/index.adoc[]
 include::run/index.adoc[]
+include::shutdown/index.adoc[]
 include::start/index.adoc[]
 
