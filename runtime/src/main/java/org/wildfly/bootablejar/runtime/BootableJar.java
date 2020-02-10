@@ -35,6 +35,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.process.CommandLineConstants;
+import org.jboss.as.process.ExitCodes;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logmanager.LogContext;
 import org.jboss.logmanager.PropertyConfigurator;
@@ -58,39 +59,7 @@ class BootableJar {
 
         @Override
         public void run() {
-            try {
-                log.shuttingDown();
-                // Give max 10 seconds for the server to stop before to delete jbossHome.
-                ModelNode mn = new ModelNode();
-                mn.get("address");
-                mn.get("operation").set("read-attribute");
-                mn.get("name").set("server-state");
-                for (int i = 0; i < 10; i++) {
-                    try {
-                        ModelControllerClient client = server.getModelControllerClient();
-                        if (client != null) {
-                            ModelNode ret = client.execute(mn);
-                            if (ret.hasDefined("result")) {
-                                String val = ret.get("result").asString();
-                                if ("stopped".equals(val)) {
-                                    log.serverStopped();
-                                    break;
-                                } else {
-                                    log.serverNotStopped();
-                                }
-                            }
-                            Thread.sleep(1000);
-                        } else {
-                            log.nullController();
-                            break;
-                        }
-                    } catch (Exception ex) {
-                        log.unexpectedExceptionWhileShuttingDown(ex);
-                    }
-                }
-            } finally {
-                cleanup();
-            }
+            shutdown();
         }
     }
 
@@ -120,7 +89,7 @@ class BootableJar {
         jbossHome = Files.createTempDirectory("wildfly-bootable-server");
 
         long t = System.currentTimeMillis();
-        try ( InputStream wf = Main.class.getResourceAsStream("/wildfly.zip")) {
+        try (InputStream wf = Main.class.getResourceAsStream("/wildfly.zip")) {
             unzip(wf, jbossHome.toFile());
         }
 
@@ -206,6 +175,23 @@ class BootableJar {
         for (String a : args) {
             builder.addCommandArgument(a);
         }
+        builder.setShutdownHandler((status) -> {
+            server.stop();
+            if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {
+                System.out.println("RESTARTS");
+                try {
+                    server = buildServer(startServerArgs);
+                    server.start();
+                } catch (Exception ex) {
+                    cleanup();
+
+                }
+            } else {
+                System.exit(status);
+            }
+
+            //System.exit(0);
+        });
         final StandaloneServer serv = EmbeddedProcessFactory.createStandaloneServer(builder.build());
         return serv;
     }
@@ -246,7 +232,7 @@ class BootableJar {
 
     private static void unzip(InputStream wf, File dir) throws Exception {
         byte[] buffer = new byte[1024];
-        try ( ZipInputStream zis = new ZipInputStream(wf)) {
+        try (ZipInputStream zis = new ZipInputStream(wf)) {
             ZipEntry ze = zis.getNextEntry();
             while (ze != null) {
                 String fileName = ze.getName();
@@ -257,7 +243,7 @@ class BootableJar {
                     ze = zis.getNextEntry();
                     continue;
                 }
-                try ( FileOutputStream fos = new FileOutputStream(newFile)) {
+                try (FileOutputStream fos = new FileOutputStream(newFile)) {
                     int len;
                     while ((len = zis.read(buffer)) > 0) {
                         fos.write(buffer, 0, len);
@@ -271,4 +257,41 @@ class BootableJar {
             }
         }
     }
+
+    private void shutdown() {
+        try {
+            log.shuttingDown();
+            // Give max 10 seconds for the server to stop before to delete jbossHome.
+            ModelNode mn = new ModelNode();
+            mn.get("address");
+            mn.get("operation").set("read-attribute");
+            mn.get("name").set("server-state");
+            for (int i = 0; i < 10; i++) {
+                try {
+                    ModelControllerClient client = server.getModelControllerClient();
+                    if (client != null) {
+                        ModelNode ret = client.execute(mn);
+                        if (ret.hasDefined("result")) {
+                            String val = ret.get("result").asString();
+                            if ("stopped".equals(val)) {
+                                log.serverStopped();
+                                break;
+                            } else {
+                                log.serverNotStopped();
+                            }
+                        }
+                        Thread.sleep(1000);
+                    } else {
+                        log.nullController();
+                        break;
+                    }
+                } catch (Exception ex) {
+                    log.unexpectedExceptionWhileShuttingDown(ex);
+                }
+            }
+        } finally {
+            cleanup();
+        }
+    }
+
 }
