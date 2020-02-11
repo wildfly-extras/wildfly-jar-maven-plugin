@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.bootablejar.maven.common;
+package org.wildfly.plugins.bootablejar.maven.common;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.plugin.core.ServerHelper;
-import org.wildfly.bootablejar.maven.goals.BuildBootableJarMojo;
+import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
  *

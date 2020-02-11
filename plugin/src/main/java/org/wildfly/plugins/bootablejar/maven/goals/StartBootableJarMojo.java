@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.bootablejar.maven.goals;
+package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.plugin.common.AbstractServerConnection;
-import org.wildfly.bootablejar.maven.common.Utils;
+import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
  * Start the bootable jar. The plugin execution keeps the process running.

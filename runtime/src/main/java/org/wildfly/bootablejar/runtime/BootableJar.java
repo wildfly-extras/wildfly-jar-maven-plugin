@@ -35,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.process.CommandLineConstants;
-import org.jboss.as.process.ExitCodes;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logmanager.LogContext;
 import org.jboss.logmanager.PropertyConfigurator;
@@ -175,23 +174,22 @@ class BootableJar {
         for (String a : args) {
             builder.addCommandArgument(a);
         }
-        builder.setShutdownHandler((status) -> {
-            server.stop();
-            if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {
-                System.out.println("RESTARTS");
-                try {
-                    server = buildServer(startServerArgs);
-                    server.start();
-                } catch (Exception ex) {
-                    cleanup();
-
-                }
-            } else {
-                System.exit(status);
-            }
-
-            //System.exit(0);
-        });
+//        builder.setShutdownHandler((status) -> {
+//            server.stop();
+//            if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {
+//                try {
+//                    server = buildServer(startServerArgs);
+//                    server.start();
+//                } catch (Exception ex) {
+//                    cleanup();
+//
+//                }
+//            } else {
+//                System.exit(status);
+//            }
+//
+//            //System.exit(0);
+//        });
         final StandaloneServer serv = EmbeddedProcessFactory.createStandaloneServer(builder.build());
         return serv;
     }

@@ -55,6 +55,7 @@ public class ArgumentsTestCase {
                 assertTrue(arguments.isHelp());
                 assertTrue(arguments.isVersion());
             } finally {
+                Files.delete(deployment);
                 Files.delete(config);
                 Files.delete(script);
             }

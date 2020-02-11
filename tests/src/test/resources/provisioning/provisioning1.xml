@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+
+<installation xmlns="urn:jboss:galleon:provisioning:3.0">
+    <feature-pack location="wildfly@maven(org.jboss.universe:community-universe)">
+         <default-configs inherit="false"/>
+            <packages inherit="false"/>
+    </feature-pack>
+    <config model="standalone" name="standalone.xml">
+        <layers>
+            <include name="web-server"/>
+        </layers>
+    </config>
+     <options>
+        <option name="optional-packages" value="passive+"/>
+    </options>
+</installation>

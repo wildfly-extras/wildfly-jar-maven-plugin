@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.bootablejar.maven.goals;
+package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -86,31 +86,31 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     public static final String WAR = "war";
 
     @Component
-    private RepositorySystem repoSystem;
+    RepositorySystem repoSystem;
 
     @Component
-    private ArtifactResolver artifactResolver;
+    ArtifactResolver artifactResolver;
 
     @Component
-    private MavenProjectHelper projectHelper;
+    MavenProjectHelper projectHelper;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-    private RepositorySystemSession repoSession;
+    RepositorySystemSession repoSession;
 
     @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true)
-    private List<RemoteRepository> repositories;
+    List<RemoteRepository> repositories;
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    private MavenProject project;
+    MavenProject project;
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
-    private MavenSession session;
+    MavenSession session;
 
     /**
      * Arbitrary Galleon options used when provisioning the server.
      */
     @Parameter(alias = "plugin-options", required = false)
-    private Map<String, String> pluginOptions = Collections.emptyMap();
+    Map<String, String> pluginOptions = Collections.emptyMap();
 
     /**
      * Whether to use offline mode when the plugin resolves an artifact. In
@@ -118,86 +118,86 @@ public final class BuildBootableJarMojo extends AbstractMojo {
      * artifact resolution.
      */
     @Parameter(alias = "offline", defaultValue = "false")
-    private boolean offline;
+    boolean offline;
 
     /**
      * Whether to log provisioning time at the end
      */
     @Parameter(alias = "log-time", defaultValue = "false")
-    private boolean logTime;
+    boolean logTime;
 
     /**
      * A list of galleon layers to provision.
      */
     @Parameter(alias = "layers", required = false)
-    private List<String> layers = Collections.emptyList();
+    List<String> layers = Collections.emptyList();
 
     /**
      * A list of galleon layers to exclude.
      */
     @Parameter(alias = "exclude-layers", required = false)
-    private List<String> excludeLayers = Collections.emptyList();
+    List<String> excludeLayers = Collections.emptyList();
 
     /**
      * Whether to record provisioned state in .galleon directory.
      */
     @Parameter(alias = "record-state", defaultValue = "false")
-    private boolean recordState;
+    boolean recordState;
 
     @Parameter(defaultValue = "${project.build.directory}")
-    private String projectBuildDir;
+    String projectBuildDir;
 
     /**
      * To make the war registered under root resource path ('/').
      */
     @Parameter(alias = "root-url-path", defaultValue = "true")
-    private boolean rootUrlPath;
+    boolean rootUrlPath;
 
     /**
      * The WildFly galleon feature-pack location to use if no provisioning.xml
      * file found.
      */
     @Parameter(alias = "default-feature-pack-location", defaultValue = "wildfly@maven(org.jboss.universe:community-universe)")
-    private String defaultFpl;
+    String defaultFpl;
 
     /**
      * Path to a JBoss CLI script to execute once the server is provisioned and
      * application installed in server.
      */
     @Parameter(alias = "cli-script-file")
-    private String cliScriptFile;
+    String cliScriptFile;
 
     /**
      * Hollow server + activate scan of deployments dir
      */
     @Parameter(alias = "dev-server", property = "wildfly.bootable.dev.server")
-    private boolean devServer;
+    boolean devServer;
 
     /**
      * Hollow jar. Create a bootable jar that doesn't contain application.
      */
     @Parameter(alias = "hollow-jar", property = "wildfly.bootable.hollow")
-    private boolean hollow;
+    boolean hollowJar;
 
     /**
      * App in dev, copied to deployments dir, expected to be run with a
      * dev-server.
      */
     @Parameter(alias = "dev-app", property = "wildfly.bootable.dev.app")
-    private boolean devApp;
+    boolean devApp;
 
     /**
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
     @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
-    private boolean skip;
+    boolean skip;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (devServer) {
             // enforce hollow server
-            hollow = true;
+            hollowJar = true;
         }
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
@@ -256,8 +256,8 @@ public final class BuildBootableJarMojo extends AbstractMojo {
 
     private File validateProjectFile() throws MojoExecutionException {
         File f = getProjectFile();
-        if (f == null && !hollow) {
-            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-bootable-jar:build-bootable-jar from the command-line");
+        if (f == null && !hollowJar) {
+            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-bootable-jar:package from the command-line");
         }
         return f;
     }
@@ -265,7 +265,12 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     private void executeCli(Path jbossHome) {
         File f = new File(cliScriptFile);
         if (!f.exists()) {
-            throw new RuntimeException("Cli script file doesn't exist");
+            if (!f.isAbsolute()) {
+                f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+            }
+            if (!f.exists()) {
+                throw new RuntimeException("Cli script file " + cliScriptFile + " doesn't exist");
+            }
         }
 
         processFile(jbossHome, f);
@@ -364,7 +369,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     }
 
     private void copyProjectFile(Path targetDir) throws IOException, MojoExecutionException {
-        if (hollow) {
+        if (hollowJar) {
             getLog().info("Hollow jar, No application deployment added to server.");
             return;
         }
@@ -428,7 +433,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private static void deleteDir(Path root) {
+    static void deleteDir(Path root) {
         if (root == null || !Files.exists(root)) {
             return;
         }

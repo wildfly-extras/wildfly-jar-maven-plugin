@@ -50,12 +50,9 @@
   <properties>
     <version.junit>4.12</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
-    <!-- TEST, TO KEEP???? -->
-    <version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
-    </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
     <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
-    <version.org.jboss.galleon>4.2.1.Final</version.org.jboss.galleon>
+    <version.org.jboss.galleon>4.2.4.Final</version.org.jboss.galleon>
     <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
     <version.org.jboss.logmanager>2.1.14.Final</version.org.jboss.logmanager>
     <version.org.jboss.logging.jboss-logging-tools>2.2.1.Final</version.org.jboss.logging.jboss-logging-tools>
@@ -64,7 +61,12 @@
     <version.org.wildfly.common>1.5.2.Final</version.org.wildfly.common>
     <version.org.wildfly.core.wildfly-core>11.0.0.Beta8-SNAPSHOT</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
-
+    <!-- required by tests -->
+    <version.org.apache.httpcomponents.httpclient>4.5.11</version.org.apache.httpcomponents.httpclient>
+<version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
+<version.org.jboss.logging.slf4j-jboss-logging>1.1.0.Final</version.org.jboss.logging.slf4j-jboss-logging>
+<version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
+    </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
     <!-- Checkstyle configuration -->
     <linkXRef>false</linkXRef>
     <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
@@ -120,25 +122,12 @@
         <artifactId>maven-core</artifactId>
         <version>${version.org.apache.maven.core}</version>
       </dependency>
-      <!-- TEST, TO KEEP???? -->
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-compat</artifactId>
-        <version>${version.org.apache.maven.core}</version>
-      </dependency>
       
       <dependency>
         <groupId>org.apache.maven.plugin-tools</groupId>
         <artifactId>maven-plugin-annotations</artifactId>
         <version>${version.org.apache.maven.plugin-tools}</version>
         <scope>provided</scope>
-      </dependency>
-
-<!-- TEST, TO KEEP???? -->
-      <dependency>
-        <groupId>org.apache.maven.plugin-testing</groupId>
-        <artifactId>maven-plugin-testing-harness</artifactId>
-        <version>${version.org.apache.maven.plugin-testing.maven-plugin-testing-harness}</version>
       </dependency>
 
       <dependency>
@@ -233,6 +222,37 @@
         <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
       </dependency>
       
+    <!-- Needed by tests -->
+      <dependency>
+        <groupId>org.apache.maven.plugin-testing</groupId>
+        <artifactId>maven-plugin-testing-harness</artifactId>
+        <version>${version.org.apache.maven.plugin-testing.maven-plugin-testing-harness}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.aether</groupId>
+        <artifactId>aether-connector-basic</artifactId>
+        <version>${version.org.eclipse.aether}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.aether</groupId>
+        <artifactId>aether-transport-http</artifactId>
+        <version>${version.org.eclipse.aether}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.slf4j</groupId>
+        <artifactId>slf4j-jboss-logging</artifactId>
+        <version>${version.org.jboss.logging.slf4j-jboss-logging}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-compat</artifactId>
+        <version>${version.org.apache.maven.core}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>${version.org.apache.httpcomponents.httpclient}</version>
+      </dependency>
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
