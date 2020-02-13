@@ -150,21 +150,22 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     /**
      * To make the war registered under root resource path ('/').
      */
-    @Parameter(alias = "root-url-path", defaultValue = "true")
+    @Parameter(alias = "root-url-path", defaultValue = "true", property = "wildfly.bootable.root.url")
     boolean rootUrlPath;
 
     /**
      * The WildFly galleon feature-pack location to use if no provisioning.xml
      * file found.
      */
-    @Parameter(alias = "default-feature-pack-location", defaultValue = "wildfly@maven(org.jboss.universe:community-universe)")
+    @Parameter(alias = "default-feature-pack-location",
+            defaultValue = "wildfly@maven(org.jboss.universe:community-universe)", property = "wildfly.bootable.fpl")
     String defaultFpl;
 
     /**
      * Path to a JBoss CLI script to execute once the server is provisioned and
      * application installed in server.
      */
-    @Parameter(alias = "cli-script-file")
+    @Parameter(alias = "cli-script-file", property = "wildfly.bootable.cli.script")
     String cliScriptFile;
 
     /**
