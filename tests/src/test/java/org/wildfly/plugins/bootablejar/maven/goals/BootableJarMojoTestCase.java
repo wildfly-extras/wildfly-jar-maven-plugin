@@ -43,7 +43,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
-    private static Path setupProject(String pomFileName, boolean copyWar, String provisioning, String cli) throws IOException {
+    private static Path setupProject(String pomFileName, boolean copyWar, String provisioning, String... cli) throws IOException {
         File pom = getTestFile("src/test/resources/poms/" + pomFileName);
         File war = getTestFile("src/test/resources/test.war");
         assertNotNull(pom);
@@ -64,10 +64,12 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             Files.copy(prov.toPath(), galleon.resolve("provisioning.xml"));
         }
         if (cli != null) {
-            File cliFile = getTestFile("src/test/resources/cli/" + cli);
-            assertNotNull(cliFile);
-            assertTrue(cliFile.exists());
-            Files.copy(cliFile.toPath(), dir.resolve("script.cli"));
+            for (String p : cli) {
+                File cliFile = getTestFile("src/test/resources/cli/" + p);
+                assertNotNull(cliFile);
+                assertTrue(cliFile.exists());
+                Files.copy(cliFile.toPath(), dir.resolve(cliFile.getName()));
+            }
         }
         Files.copy(pom.toPath(), pomFile);
         return dir;
@@ -90,11 +92,11 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testDefaultConfiguration()
             throws Exception {
-        Path dir = setupProject("test1-pom.xml", true, null, null);
+        Path dir = setupProject("test1-pom.xml", true, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
-            assertNull(mojo.cliScriptFile);
+            assertTrue(mojo.cliScriptFiles.isEmpty());
             assertEquals("wildfly@maven(org.jboss.universe:community-universe)", mojo.defaultFpl);
             assertNotNull(mojo.projectBuildDir);
             assertTrue(mojo.excludeLayers.isEmpty());
@@ -112,7 +114,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertFalse(mojo.skip);
             assertTrue(mojo.rootUrlPath);
             mojo.execute();
-            checkJar(dir, true, true, null, null, null);
+            checkJar(dir, true, true, null, null);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
@@ -122,7 +124,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testLayersConfiguration()
             throws Exception {
-        Path dir = setupProject("test8-pom.xml", true, null, null);
+        Path dir = setupProject("test8-pom.xml", true, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -133,7 +135,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"jaxrs"};
-            checkJar(dir, true, true, layers, null, null);
+            checkJar(dir, true, true, layers, null);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
@@ -143,7 +145,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testProvisioningConfiguration()
             throws Exception {
-        Path dir = setupProject("test4-pom.xml", true, "provisioning1.xml", null);
+        Path dir = setupProject("test4-pom.xml", true, "provisioning1.xml");
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -151,7 +153,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"web-server"};
-            checkJar(dir, true, false, layers, null, null);
+            checkJar(dir, true, false, layers, null);
             checkDeployment(dir, false);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
@@ -161,14 +163,18 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testLayersOverrideProvisioningConfiguration()
             throws Exception {
-        Path dir = setupProject("test2-pom.xml", true, "provisioning1.xml", "add-prop.cli");
+        Path dir = setupProject("test2-pom.xml", true, "provisioning1.xml", "add-prop.cli", "add-prop2.cli");
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
+            assertFalse(mojo.cliScriptFiles.isEmpty());
+            assertTrue(mojo.cliScriptFiles.size() == 2);
+            assertTrue(mojo.cliScriptFiles.get(0).equals("add-prop.cli"));
+            assertTrue(mojo.cliScriptFiles.get(1).equals("add-prop2.cli"));
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"jaxrs"};
-            checkJar(dir, true, true, layers, null, "foobootable");
+            checkJar(dir, true, true, layers, null, "foobootable", "foobootable2");
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
@@ -178,7 +184,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testHollowJar()
             throws Exception {
-        Path dir = setupProject("test3-pom.xml", true, null, null);
+        Path dir = setupProject("test3-pom.xml", true, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -192,7 +198,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             mojo.execute();
             String[] layers = {"cloud-profile", "management"};
             String[] excludedLayers = {"ee-security"};
-            checkJar(dir, false, false, layers, excludedLayers, null);
+            checkJar(dir, false, false, layers, excludedLayers);
             checkManagementItf(dir);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
@@ -202,7 +208,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testDevServer()
             throws Exception {
-        Path dir = setupProject("test6-pom.xml", true, null, null);
+        Path dir = setupProject("test6-pom.xml", true, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -218,7 +224,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testDevApp()
             throws Exception {
-        Path dir = setupProject("test7-pom.xml", true, null, null);
+        Path dir = setupProject("test7-pom.xml", true, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -234,7 +240,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     @Test
     public void testSkip()
             throws Exception {
-        Path dir = setupProject("test5-pom.xml", false, null, null);
+        Path dir = setupProject("test5-pom.xml", false, null);
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
@@ -247,7 +253,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     }
 
     private void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
-            String[] layers, String[] excludedLayers, String configToken) throws Exception {
+            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
         Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-wildfly");
         try {
@@ -282,9 +288,11 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
                     }
                 }
             }
-            if (configToken != null) {
-                String str = new String(Files.readAllBytes(configFile), "UTF-8");
-                assertTrue(str.contains(configToken));
+            if (configTokens != null) {
+                for (String token : configTokens) {
+                    String str = new String(Files.readAllBytes(configFile), "UTF-8");
+                    assertTrue(str.contains(token));
+                }
             }
         } finally {
             BuildBootableJarMojo.deleteDir(tmpDir);

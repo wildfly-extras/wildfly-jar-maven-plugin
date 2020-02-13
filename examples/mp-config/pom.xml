@@ -71,7 +71,10 @@
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
                         <configuration>
-                            <cli-script-file>../scripts/openshift-mp-config.cli</cli-script-file>
+                            <cli-script-files>
+                                <script>../scripts/all-addresses.cli</script>
+                                <script>../scripts/mp-config.cli</script>
+                            </cli-script-files>
                         </configuration>
                     </plugin>
                 </plugins>

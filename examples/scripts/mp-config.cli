@@ -1,4 +1,2 @@
-# To expose routes
-/interface=public:write-attribute(name=inet-address,value=0.0.0.0)
 # config map
 /subsystem=microprofile-config-smallrye/config-source=os-map:add(dir={path=/etc/config}, ordinal=200)

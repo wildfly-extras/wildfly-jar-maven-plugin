@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,6 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.as.cli.CommandContext;
 import org.jboss.as.cli.CommandContextFactory;
-import org.jboss.as.cli.CommandLineException;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -162,11 +162,11 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     String defaultFpl;
 
     /**
-     * Path to a JBoss CLI script to execute once the server is provisioned and
+     * Path to a JBoss CLI scripts to execute once the server is provisioned and
      * application installed in server.
      */
-    @Parameter(alias = "cli-script-file", property = "wildfly.bootable.cli.script")
-    String cliScriptFile;
+    @Parameter(alias = "cli-script-files")
+    List<String> cliScriptFiles = Collections.emptyList();
 
     /**
      * Hollow server + activate scan of deployments dir
@@ -240,7 +240,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         }
         try {
             copyProjectFile(wildflyDir.resolve("standalone/deployments/"));
-            if (cliScriptFile != null) {
+            if (!cliScriptFiles.isEmpty()) {
                 executeCli(wildflyDir);
             }
             if (devServer) {
@@ -248,7 +248,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             }
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new MojoExecutionException("Packaging wildfly failed", ex);
         }
 
@@ -263,48 +263,47 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         return f;
     }
 
-    private void executeCli(Path jbossHome) {
-        File f = new File(cliScriptFile);
-        if (!f.exists()) {
-            if (!f.isAbsolute()) {
-                f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-            }
+    private void executeCli(Path jbossHome) throws Exception {
+        List<String> commands = new ArrayList<>();
+        for (String path : cliScriptFiles) {
+            File f = new File(path);
             if (!f.exists()) {
-                throw new RuntimeException("Cli script file " + cliScriptFile + " doesn't exist");
+                if (!f.isAbsolute()) {
+                    f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+                }
+                if (!f.exists()) {
+                    throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                }
             }
-        }
-
-        processFile(jbossHome, f);
-    }
-
-    private void configureScanner(Path jbossHome, Path deployments) throws IOException {
-        File f = File.createTempFile("bootable-scanner", null);
-        f.deleteOnExit();
-        StringBuilder content = new StringBuilder();
-        content.append("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
-                + "path=\"" + deployments + "\")");
-        Files.write(f.toPath(), content.toString().getBytes());
-
-        processFile(jbossHome, f);
-    }
-
-    private void processFile(Path jbossHome, File file) {
-
-        try {
-            getLog().info("Executing CLI script " + file);
-            CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=echo");
+            try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
                 String line = reader.readLine();
                 while (line != null) {
-                    cmdCtx.handle(line.trim());
+                    commands.add(line.trim());
                     line = reader.readLine();
                 }
-            } finally {
-                cmdCtx.handle("stop-embedded-server");
             }
-        } catch (IOException | CommandLineException ex) {
-            throw new RuntimeException("Failure executing CLI script", ex);
+        }
+        processCLI(jbossHome, commands);
+    }
+
+    private void configureScanner(Path jbossHome, Path deployments) throws Exception {
+        File f = File.createTempFile("bootable-scanner", null);
+        f.deleteOnExit();
+        List<String> commands = new ArrayList<>();
+        commands.add("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
+                + "path=\"" + deployments + "\")");
+        processCLI(jbossHome, commands);
+    }
+
+    private void processCLI(Path jbossHome, List<String> commands) throws Exception {
+        CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext();
+        try {
+            cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=echo");
+            for (String line : commands) {
+                cmdCtx.handle(line.trim());
+            }
+        } finally {
+            cmdCtx.handle("stop-embedded-server");
         }
     }
 

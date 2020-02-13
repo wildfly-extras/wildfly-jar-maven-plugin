@@ -16,7 +16,10 @@
             <plugin>
                 <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
                 <configuration>
-                    <cli-script-file>script.cli</cli-script-file>
+                    <cli-script-files>
+                        <script>add-prop.cli</script>
+                        <script>add-prop2.cli</script>
+                    </cli-script-files>
                     <layers>
                         <layer>jaxrs</layer>
                     </layers>
