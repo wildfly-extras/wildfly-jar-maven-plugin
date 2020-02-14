@@ -1,2 +1,2 @@
 # To expose routes
-/interface=public:write-attribute(name=inet-address,value=0.0.0.0)
+/interface=public:write-attribute(name=inet-address,value=${all.addresses})

@@ -18,11 +18,13 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.execution.MavenSession;
@@ -59,6 +62,7 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.as.cli.CommandContext;
 import org.jboss.as.cli.CommandContextFactory;
+import org.jboss.as.cli.impl.CommandContextConfiguration;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -72,6 +76,7 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
+import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
  * Build a bootable jar containing application and provisioned server
@@ -162,11 +167,17 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     String defaultFpl;
 
     /**
-     * Path to a JBoss CLI scripts to execute once the server is provisioned and
+     * Path to JBoss CLI scripts to execute once the server is provisioned and
      * application installed in server.
      */
     @Parameter(alias = "cli-script-files")
     List<String> cliScriptFiles = Collections.emptyList();
+
+    /**
+     * Path to a JBoss CLI script properties file.
+     */
+    @Parameter(alias = "cli-properties-file")
+    String propertiesFile;
 
     /**
      * Hollow server + activate scan of deployments dir
@@ -264,26 +275,38 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     }
 
     private void executeCli(Path jbossHome) throws Exception {
-        List<String> commands = new ArrayList<>();
-        for (String path : cliScriptFiles) {
-            File f = new File(path);
-            if (!f.exists()) {
-                if (!f.isAbsolute()) {
-                    f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-                }
+        Properties props = null;
+        if (propertiesFile != null) {
+            props = loadProperties();
+        }
+        try {
+            List<String> commands = new ArrayList<>();
+            for (String path : cliScriptFiles) {
+                File f = new File(path);
                 if (!f.exists()) {
-                    throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                    if (!f.isAbsolute()) {
+                        f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+                    }
+                    if (!f.exists()) {
+                        throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                    }
+                }
+                try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+                    String line = reader.readLine();
+                    while (line != null) {
+                        commands.add(line.trim());
+                        line = reader.readLine();
+                    }
                 }
             }
-            try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-                String line = reader.readLine();
-                while (line != null) {
-                    commands.add(line.trim());
-                    line = reader.readLine();
+            processCLI(jbossHome, commands);
+        } finally {
+            if (props != null) {
+                for (String key : props.stringPropertyNames()) {
+                    WildFlySecurityManager.clearPropertyPrivileged(key);
                 }
             }
         }
-        processCLI(jbossHome, commands);
     }
 
     private void configureScanner(Path jbossHome, Path deployments) throws Exception {
@@ -296,7 +319,10 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     }
 
     private void processCLI(Path jbossHome, List<String> commands) throws Exception {
-        CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext();
+        CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
+        builder.setResolveParameterValues(true);
+        CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
+
         try {
             cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=echo");
             for (String line : commands) {
@@ -305,6 +331,37 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         } finally {
             cmdCtx.handle("stop-embedded-server");
         }
+    }
+
+    private Properties loadProperties() throws Exception {
+        File f = new File(propertiesFile);
+        if (!f.exists()) {
+            if (!f.isAbsolute()) {
+                f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+            }
+            if (!f.exists()) {
+                throw new RuntimeException("Cli properties file " + f + " doesn't exist");
+            }
+        }
+        final Properties props = new Properties();
+        InputStreamReader inputStreamReader = null;
+        try {
+            inputStreamReader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
+            props.load(inputStreamReader);
+        } catch (java.io.IOException e) {
+            throw new Exception("Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());
+        } finally {
+            if (inputStreamReader != null) {
+                try {
+                    inputStreamReader.close();
+                } catch (java.io.IOException e) {
+                }
+            }
+        }
+        for (String key : props.stringPropertyNames()) {
+            WildFlySecurityManager.setPropertyPrivileged(key, props.getProperty(key));
+        }
+        return props;
     }
 
     private File getProjectFile() {

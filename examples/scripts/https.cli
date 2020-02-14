@@ -1,4 +1,7 @@
 #SSL
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(keystore-path="<path to keystore>", keystore-password="<keystore password>")
+if (outcome == success) of /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:read-resource
+  /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:remove
+end-if
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(keystore-path="${keystore.path}", keystore-password="${keystore.password}")
 #HTTPS
-/subsystem=undertow/server=default/https-listener=https:add(security-realm=ApplicationRealm, socket-binding=https, proxy-address-forwarding=true)
+/subsystem=undertow/server=${undertow.server}/https-listener=https:add(security-realm=ApplicationRealm, socket-binding=https, proxy-address-forwarding=true)

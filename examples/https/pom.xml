@@ -7,10 +7,10 @@
         <artifactId>wildfly-bootable-jar-parent</artifactId>
         <version>1.0.0.Final-SNAPSHOT</version>
     </parent>
-    <artifactId>mp-config</artifactId>
+    <artifactId>https</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly bootable jar MP Config Example</name>
+    <name>WildFly bootable jar https Example</name>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -20,18 +20,6 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>io.smallrye</groupId>
-            <artifactId>smallrye-config</artifactId>
-            <version>1.3.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.annotation</groupId>
-                    <artifactId>javax.annotation-api</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
@@ -47,9 +35,16 @@
                 <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
                 <configuration>
                     <layers>
+                        <layer>core-security-realms</layer>
                         <layer>web-server</layer>
-                        <layer>observability</layer>
                     </layers>
+                    <cli-properties-file>
+                        ../scripts/cli.properties
+                    </cli-properties-file>
+                    <cli-script-files>
+                        <script>../scripts/all-addresses.cli</script>
+                        <script>../scripts/https.cli</script>
+                    </cli-script-files>
                 </configuration>
                 <executions>
                     <execution>
@@ -61,27 +56,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>openshift</id>
-            <build>
-                <finalName>${project.artifactId}</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
-                        <configuration >
-                            <cli-properties-file>
-                                ../scripts/cli.properties
-                            </cli-properties-file>
-                            <cli-script-files>
-                                <script>../scripts/all-addresses.cli</script>
-                                <script>../scripts/mp-config.cli</script>
-                            </cli-script-files>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
