@@ -47,6 +47,8 @@ import static org.wildfly.bootablejar.runtime.Constants.LOG_BOOT_FILE_PROP;
 import static org.wildfly.bootablejar.runtime.Constants.LOG_MANAGER_CLASS;
 import static org.wildfly.bootablejar.runtime.Constants.LOG_MANAGER_PROP;
 import org.wildfly.bootablejar.runtime._private.BootableJarLogger;
+import org.wildfly.core.launcher.Launcher;
+import org.wildfly.core.launcher.StandaloneCommandBuilder;
 
 /**
  *
@@ -58,7 +60,16 @@ class BootableJar {
 
         @Override
         public void run() {
-            shutdown();
+            System.out.println("SHUTDOWN LAUNCH " + isLaunch);
+            if (!isLaunch) {
+                shutdown();
+            } else {
+                System.out.println("SHUTDOWN HOOK CALLED");
+                if (process.isAlive()) {
+                    process.destroy();
+                }
+                cleanup();
+            }
         }
     }
 
@@ -82,8 +93,12 @@ class BootableJar {
     private final List<String> startServerArgs = new ArrayList<>();
     private StandaloneServer server;
     private final Arguments arguments;
+    private Process process;
+    private boolean isLaunch;
 
     public BootableJar(Arguments arguments) throws Exception {
+        this.isLaunch = Boolean.getBoolean("launch");
+        System.out.println("LAUNCH " + isLaunch);
         this.arguments = arguments;
         jbossHome = Files.createTempDirectory("wildfly-bootable-server");
 
@@ -92,8 +107,10 @@ class BootableJar {
             unzip(wf, jbossHome.toFile());
         }
 
+        addDefaultArguments();
         startServerArgs.addAll(arguments.getServerArguments());
         startServerArgs.add(CommandLineConstants.READ_ONLY_SERVER_CONFIG + "=standalone.xml");
+
         configureLogging();
 
         if (arguments.getDeployment() != null) {
@@ -113,9 +130,19 @@ class BootableJar {
         log.advertiseInstall(jbossHome, System.currentTimeMillis() - t);
     }
 
+    private void addDefaultArguments() {
+        if (!isLaunch) {
+            startServerArgs.add("-Djava.net.preferIPv4Stack=true");
+            startServerArgs.add("-Djava.awt.headless=true");
+            startServerArgs.add("-Djboss.modules.system.pkgs=org.jboss.byteman");
+        }
+    }
+
     private void configureLogging() throws IOException {
-        System.setProperty(LOG_MANAGER_PROP, LOG_MANAGER_CLASS);
-        configureEmbeddedLogging();
+        if (!isLaunch) {
+            System.setProperty(LOG_MANAGER_PROP, LOG_MANAGER_CLASS);
+            configureEmbeddedLogging();
+        }
         // Share the log context with embedded
         log = BootableJarLogger.ROOT_LOGGER;
     }
@@ -153,19 +180,37 @@ class BootableJar {
 
     public void run() throws Exception {
         try {
-            server = buildServer(startServerArgs);
+            if (!isLaunch) {
+                server = buildServer(startServerArgs);
+            } else {
+                Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+                startServerProcess();
+            }
         } catch (RuntimeException ex) {
             cleanup();
             throw ex;
         }
-        Runtime.getRuntime().addShutdownHook(new ShutdownHook());
-        server.start();
+
+        if (!isLaunch) {
+            Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+            server.start();
+        }
     }
 
     private void cleanup() {
         log.deletingHome(jbossHome);
         deleteDir(jbossHome);
 
+    }
+
+    private void startServerProcess() throws IOException, InterruptedException {
+        StandaloneCommandBuilder builder = StandaloneCommandBuilder.of(jbossHome);
+        builder.addServerArguments(startServerArgs);
+        System.out.println("Launching server: " + builder.build());
+        Launcher launcher = Launcher.of(builder);
+        process = launcher.redirectError(ProcessBuilder.Redirect.INHERIT).redirectOutput(ProcessBuilder.Redirect.INHERIT).
+                addEnvironmentVariables(System.getenv()).launch();
+        process.waitFor();
     }
 
     private StandaloneServer buildServer(List<String> args) throws IOException {

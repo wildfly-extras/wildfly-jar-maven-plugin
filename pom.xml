@@ -188,6 +188,12 @@
       
       <dependency>
         <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-launcher</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
+      </dependency>
+     
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
         <artifactId>wildfly-embedded</artifactId>
         <version>${version.org.wildfly.core.wildfly-core}</version>
       </dependency>
