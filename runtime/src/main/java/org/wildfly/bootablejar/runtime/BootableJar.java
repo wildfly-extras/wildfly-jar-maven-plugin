@@ -60,11 +60,10 @@ class BootableJar {
 
         @Override
         public void run() {
-            System.out.println("SHUTDOWN LAUNCH " + isLaunch);
+            log.shuttingDown();
             if (!isLaunch) {
                 shutdown();
             } else {
-                System.out.println("SHUTDOWN HOOK CALLED");
                 if (process.isAlive()) {
                     process.destroy();
                 }
@@ -98,7 +97,6 @@ class BootableJar {
 
     public BootableJar(Arguments arguments) throws Exception {
         this.isLaunch = Boolean.getBoolean("launch");
-        System.out.println("LAUNCH " + isLaunch);
         this.arguments = arguments;
         jbossHome = Files.createTempDirectory("wildfly-bootable-server");
 
@@ -215,7 +213,11 @@ class BootableJar {
 
     private StandaloneServer buildServer(List<String> args) throws IOException {
         Configuration.Builder builder = Configuration.Builder.of(jbossHome);
-        builder.addSystemPackages(EXTENDED_SYSTEM_PKGS);
+        // XXX TO REMOVE, to debug logging.
+        boolean b = Boolean.getBoolean("disable.ext.packages");
+        if (!b) {
+            builder.addSystemPackages(EXTENDED_SYSTEM_PKGS);
+        }
         for (String a : args) {
             builder.addCommandArgument(a);
         }
@@ -303,7 +305,6 @@ class BootableJar {
 
     private void shutdown() {
         try {
-            log.shuttingDown();
             // Give max 10 seconds for the server to stop before to delete jbossHome.
             ModelNode mn = new ModelNode();
             mn.get("address");
