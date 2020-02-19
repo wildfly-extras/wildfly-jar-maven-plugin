@@ -342,7 +342,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         //ShutdownBootableJarMojo mojo = (ShutdownBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
         //mojo.execute();
         assertTrue(p.isAlive());
-        p.destroyForcibly();
+        p.destroy();
     }
 
     private boolean checkURL(String url) throws Exception {
