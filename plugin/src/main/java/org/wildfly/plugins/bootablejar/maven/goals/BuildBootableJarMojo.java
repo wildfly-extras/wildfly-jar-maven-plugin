@@ -205,11 +205,21 @@ public final class BuildBootableJarMojo extends AbstractMojo {
     @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
     boolean skip;
 
+    /**
+     * By default the generated jar is
+     * ${project.build.finalName}-wildfly-bootable.jar
+     */
+    @Parameter(alias = "output-file-name")
+    String outputFileName;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (devServer) {
             // enforce hollow server
             hollowJar = true;
+        }
+        if (outputFileName == null) {
+            outputFileName = this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR;
         }
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
@@ -232,7 +242,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         if (Files.exists(contentRoot)) {
             deleteDir(contentRoot);
         }
-        Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR);
+        Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(outputFileName);
         IoUtils.recursiveDelete(contentRoot);
 
         Path wildflyDir = contentRoot.resolve("wildfly");
@@ -433,7 +443,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         File f = validateProjectFile();
 
         String fileName = f.getName();
-        if (project.getPackaging().equals(WAR)) {
+        if (project.getPackaging().equals(WAR) || fileName.endsWith(WAR)) {
             if (rootUrlPath) {
                 fileName = "ROOT." + WAR;
             }
