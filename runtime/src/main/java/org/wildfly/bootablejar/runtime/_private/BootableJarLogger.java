@@ -94,6 +94,6 @@ public interface BootableJarLogger extends BasicLogger {
     @Message(id = Message.NONE, value = "Set a security property")
     String argSecurityProperty();
 
-    @Message(id = Message.NONE, value = "Path to deployment artifact to deploy in hollow jar")
+    @Message(id = Message.NONE, value = "Path to deployment artifact (war,jar,ear or exploded deployment dir) to deploy in hollow jar")
     String argDeployment();
 }

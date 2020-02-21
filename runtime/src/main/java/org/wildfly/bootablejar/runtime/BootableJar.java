@@ -121,11 +121,35 @@ class BootableJar {
                 throw new Exception("Deployment already exists not an hollow-jar");
             }
             Path target = deployment.resolve(arguments.getDeployment().getFileName());
-            Files.copy(arguments.getDeployment(), target);
+            // Exploded deployment
+            if (Files.isDirectory(arguments.getDeployment())) {
+                copyDirectory(arguments.getDeployment(), target);
+                Path doDeploy = deployment.resolve(arguments.getDeployment().getFileName() + ".dodeploy");
+                Files.createFile(doDeploy);
+            } else {
+                Files.copy(arguments.getDeployment(), target);
+            }
             log.installDeployment(arguments.getDeployment());
         }
 
         log.advertiseInstall(jbossHome, System.currentTimeMillis() - t);
+    }
+
+    private void copyDirectory(Path src, Path target) throws IOException {
+        Files.walk(src).forEach(file -> {
+            try {
+                Path targetFile = target.resolve(src.relativize(file));
+                if (Files.isDirectory(file)) {
+                    if (!Files.exists(targetFile)) {
+                        Files.createDirectory(targetFile);
+                    }
+                } else {
+                    Files.copy(file, targetFile);
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
     }
 
     private void addDefaultArguments() {
