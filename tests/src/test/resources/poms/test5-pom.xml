@@ -21,9 +21,6 @@
                         <layer>jaxrs</layer>
                     </layers>
                     <root-url-path>false</root-url-path>
-                    <plugin-options>
-                        <jboss-fork-embedded>true</jboss-fork-embedded>
-                    </plugin-options>
                 </configuration>
                 
             </plugin>

@@ -23,9 +23,6 @@
                     <layers>
                         <layer>jaxrs</layer>
                     </layers>
-                    <plugin-options>
-                        <jboss-fork-embedded>true</jboss-fork-embedded>
-                    </plugin-options>
                 </configuration>
                 
             </plugin>

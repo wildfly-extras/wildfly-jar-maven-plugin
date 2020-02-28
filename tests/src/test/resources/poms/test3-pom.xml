@@ -24,9 +24,6 @@
                         <layer>ee-security</layer>
                     </exclude-layers>
                     <hollow-jar>true</hollow-jar>
-                    <plugin-options>
-                        <jboss-fork-embedded>true</jboss-fork-embedded>
-                    </plugin-options>
                 </configuration>
                 
             </plugin>

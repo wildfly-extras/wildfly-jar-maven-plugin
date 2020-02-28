@@ -43,6 +43,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
+    private static Path TEST_DIR = null;
     private static Path setupProject(String pomFileName, boolean copyWar, String provisioning, String... cli) throws IOException {
         File pom = getTestFile("src/test/resources/poms/" + pomFileName);
         File war = getTestFile("src/test/resources/test.war");
@@ -50,9 +51,15 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         assertTrue(pom.exists());
         assertNotNull(war);
         assertTrue(war.exists());
-        Path dir = Files.createTempDirectory("bootable-jar-test");
-        Path pomFile = dir.resolve("pom.xml");
-        Path target = Files.createDirectory(dir.resolve("target"));
+        // Must re-use the same jboss home (module loader).
+        if (TEST_DIR == null) {
+            TEST_DIR = Files.createTempDirectory("bootable-jar-test");
+        } else {
+            Files.createDirectory(TEST_DIR);
+        }
+
+        Path pomFile = TEST_DIR.resolve("pom.xml");
+        Path target = Files.createDirectory(TEST_DIR.resolve("target"));
         if (copyWar) {
             Files.copy(war.toPath(), target.resolve(war.getName()));
         }
@@ -60,7 +67,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             File prov = getTestFile("src/test/resources/provisioning/" + provisioning);
             assertNotNull(prov);
             assertTrue(prov.exists());
-            Path galleon = Files.createDirectory(dir.resolve("galleon"));
+            Path galleon = Files.createDirectory(TEST_DIR.resolve("galleon"));
             Files.copy(prov.toPath(), galleon.resolve("provisioning.xml"));
         }
         if (cli != null) {
@@ -68,11 +75,11 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
                 File cliFile = getTestFile("src/test/resources/cli/" + p);
                 assertNotNull(cliFile);
                 assertTrue(cliFile.exists());
-                Files.copy(cliFile.toPath(), dir.resolve(cliFile.getName()));
+                Files.copy(cliFile.toPath(), TEST_DIR.resolve(cliFile.getName()));
             }
         }
         Files.copy(pom.toPath(), pomFile);
-        return dir;
+        return TEST_DIR;
     }
 
     @Before
@@ -101,10 +108,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(mojo.projectBuildDir);
             assertTrue(mojo.excludeLayers.isEmpty());
             assertTrue(mojo.layers.isEmpty());
-            assertFalse(mojo.pluginOptions.isEmpty());
-            assertTrue(mojo.pluginOptions.size() == 1);
-            // Not default but needed for multiple plugin invocations in the same process
-            assertTrue(mojo.pluginOptions.toString(), mojo.pluginOptions.get("jboss-fork-embedded").equals("true"));
+            assertTrue(mojo.pluginOptions.isEmpty());
             assertFalse(mojo.devApp);
             assertFalse(mojo.devServer);
             assertFalse(mojo.hollowJar);
@@ -266,10 +270,13 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
             ZipUtils.unzip(zippedWildfly, wildflyHome);
             if (expectDeployment) {
-                assertTrue(Files.exists(wildflyHome.resolve("standalone/deployments/" + (isRoot ? "ROOT.war" : "test.war"))));
+                assertTrue(Files.list(wildflyHome.resolve("standalone/data/content")).count() == 1);
             } else {
-                assertFalse(Files.exists(wildflyHome.resolve("standalone/deployments/" + (isRoot ? "ROOT.war" : "test.war"))));
+                assertTrue(Files.list(wildflyHome.resolve("standalone/data/content")).count() == 0);
             }
+            Path history = wildflyHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
+            assertFalse(Files.exists(history));
+
             Path configFile = wildflyHome.resolve("standalone/configuration/standalone.xml");
             assertTrue(Files.exists(configFile));
             if (layers != null) {
