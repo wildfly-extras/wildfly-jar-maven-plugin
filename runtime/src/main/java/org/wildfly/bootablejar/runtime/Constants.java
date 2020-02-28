@@ -26,6 +26,7 @@ class Constants {
     public static final String JBOSS_SERVER_LOG_DIR = "jboss.server.log.dir";
 
     public static final String DEPLOYMENT = "--deployment";
+    public static final String INSTALL_DIR = "--install-dir";
 
     public static final String LOG_MANAGER_PROP = "java.util.logging.manager";
     public static final String LOG_MANAGER_CLASS = "org.jboss.logmanager.LogManager";

@@ -16,6 +16,7 @@ limitations under the License.
 package org.wildfly.bootablejar.runtime._private;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.annotations.Cause;
@@ -65,6 +66,10 @@ public interface BootableJarLogger extends BasicLogger {
     @Message(id = 7, value = "Installed server and application in %s, took %sms")
     void advertiseInstall(Path home, long duration);
 
+    @LogMessage(level = INFO)
+    @Message(id = 8, value = "Server options: %s")
+    void advertiseOptions(List<String> options);
+
     @LogMessage(level = DEBUG)
     @Message(id = 9, value = "Deleting %s dir")
     void deletingHome(Path dep);
@@ -96,4 +101,7 @@ public interface BootableJarLogger extends BasicLogger {
 
     @Message(id = Message.NONE, value = "Path to deployment artifact (war,jar,ear or exploded deployment dir) to deploy in hollow jar")
     String argDeployment();
+
+    @Message(id = Message.NONE, value = "Path to directory in which the server is installed. By default the server is installed in TEMP directory.")
+    String argInstallation();
 }

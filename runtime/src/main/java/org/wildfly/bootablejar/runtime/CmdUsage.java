@@ -44,6 +44,9 @@ public class CmdUsage extends CommandLineArgumentUsage {
         addArguments(CommandLineConstants.HELP);
         instructions.add(BootableJarLogger.ROOT_LOGGER.argHelp());
 
+        instructions.add(BootableJarLogger.ROOT_LOGGER.argInstallation());
+        addArguments(Constants.INSTALL_DIR + "=<value>");
+
         addArguments(CommandLineConstants.PROPERTIES + "=<url>");
         instructions.add(BootableJarLogger.ROOT_LOGGER.argProperties());
 

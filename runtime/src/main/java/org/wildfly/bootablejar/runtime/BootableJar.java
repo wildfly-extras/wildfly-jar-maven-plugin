@@ -98,7 +98,7 @@ class BootableJar {
     public BootableJar(Arguments arguments) throws Exception {
         this.isLaunch = Boolean.getBoolean("launch");
         this.arguments = arguments;
-        jbossHome = Files.createTempDirectory("wildfly-bootable-server");
+        jbossHome = arguments.installDir() == null ? Files.createTempDirectory("wildfly-bootable-server") : arguments.installDir();
 
         long t = System.currentTimeMillis();
         try (InputStream wf = Main.class.getResourceAsStream("/wildfly.zip")) {
@@ -245,6 +245,7 @@ class BootableJar {
         for (String a : args) {
             builder.addCommandArgument(a);
         }
+        log.advertiseOptions(args);
 //        builder.setShutdownHandler((status) -> {
 //            server.stop();
 //            if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {

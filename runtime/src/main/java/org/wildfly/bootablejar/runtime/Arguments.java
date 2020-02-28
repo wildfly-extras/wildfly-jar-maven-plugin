@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import org.jboss.as.process.CommandLineConstants;
 import static org.wildfly.bootablejar.runtime.Constants.DEPLOYMENT;
+import static org.wildfly.bootablejar.runtime.Constants.INSTALL_DIR;
 
 /**
  *
@@ -40,7 +41,7 @@ public class Arguments {
     private Boolean isVersion;
     private final List<String> serverArguments = new ArrayList<>();
     private Path deployment;
-
+    private Path installDir;
     public static Arguments parseArguments(String[] args) throws Exception {
         Objects.requireNonNull(args);
         Arguments arguments = new Arguments();
@@ -70,6 +71,8 @@ public class Arguments {
                 serverArguments.add(a);
             } else if (CommandLineConstants.HELP.equals(a)) {
                 isHelp = true;
+            } else if (a.startsWith(INSTALL_DIR)) {
+                installDir = Paths.get(getValue(a));
             } else {
                 throw new Exception("Unknown argument " + a);
             }
@@ -106,6 +109,14 @@ public class Arguments {
         return isVersion == null ? false : isVersion;
     }
 
+    /**
+     * Installation dir.
+     *
+     * @return Installation dir
+     */
+    public Path installDir() {
+        return installDir;
+    }
     /**
      * @return the serverArguments
      */
