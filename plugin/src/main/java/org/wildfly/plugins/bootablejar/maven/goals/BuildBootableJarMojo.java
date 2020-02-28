@@ -214,6 +214,10 @@ public final class BuildBootableJarMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
+            return;
+        }
         if (devServer) {
             // enforce hollow server
             hollowJar = true;
@@ -221,10 +225,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         if (outputFileName == null) {
             outputFileName = this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR;
         }
-        if (skip) {
-            getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
-            return;
-        }
+
         validateProjectFile();
         Path deployments = Paths.get(project.getBuild().getDirectory()).resolve("deployments");
         //Simply copy the primary artifact to the deployments dir scan by the hollow jar.
@@ -260,13 +261,13 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
         try {
-            copyProjectFile(wildflyDir.resolve("standalone/deployments/"));
-            if (!cliScriptFiles.isEmpty()) {
-                executeCli(wildflyDir);
-            }
+            List<String> commands = new ArrayList<>();
+            deploy(commands);
+            userScripts(commands);
             if (devServer) {
-                configureScanner(wildflyDir, deployments);
+                configureScanner(deployments, commands);
             }
+            executeCliScript(wildflyDir, commands);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile);
         } catch (Exception ex) {
@@ -284,31 +285,33 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         return f;
     }
 
-    private void executeCli(Path jbossHome) throws Exception {
+    private void userScripts(List<String> commands) throws Exception {
+        for (String path : cliScriptFiles) {
+            File f = new File(path);
+            if (!f.exists()) {
+                if (!f.isAbsolute()) {
+                    f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+                }
+                if (!f.exists()) {
+                    throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                }
+            }
+            try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+                String line = reader.readLine();
+                while (line != null) {
+                    commands.add(line.trim());
+                    line = reader.readLine();
+                }
+            }
+        }
+    }
+
+    private void executeCliScript(Path jbossHome, List<String> commands) throws Exception {
         Properties props = null;
         if (propertiesFile != null) {
             props = loadProperties();
         }
         try {
-            List<String> commands = new ArrayList<>();
-            for (String path : cliScriptFiles) {
-                File f = new File(path);
-                if (!f.exists()) {
-                    if (!f.isAbsolute()) {
-                        f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-                    }
-                    if (!f.exists()) {
-                        throw new RuntimeException("Cli script file " + path + " doesn't exist");
-                    }
-                }
-                try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-                    String line = reader.readLine();
-                    while (line != null) {
-                        commands.add(line.trim());
-                        line = reader.readLine();
-                    }
-                }
-            }
             processCLI(jbossHome, commands);
         } finally {
             if (props != null) {
@@ -316,30 +319,37 @@ public final class BuildBootableJarMojo extends AbstractMojo {
                     WildFlySecurityManager.clearPropertyPrivileged(key);
                 }
             }
+            Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
+            IoUtils.recursiveDelete(history);
         }
     }
 
-    private void configureScanner(Path jbossHome, Path deployments) throws Exception {
-        File f = File.createTempFile("bootable-scanner", null);
-        f.deleteOnExit();
-        List<String> commands = new ArrayList<>();
+    private void configureScanner(Path deployments, List<String> commands) throws Exception {
         commands.add("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
                 + "path=\"" + deployments + "\")");
-        processCLI(jbossHome, commands);
     }
 
     private void processCLI(Path jbossHome, List<String> commands) throws Exception {
         CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
         builder.setResolveParameterValues(true);
         CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
-
+        Exception originalException = null;
         try {
             cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=echo");
             for (String line : commands) {
                 cmdCtx.handle(line.trim());
             }
+        } catch (Exception ex) {
+            originalException = ex;
         } finally {
-            cmdCtx.handle("stop-embedded-server");
+            try {
+                cmdCtx.handle("stop-embedded-server");
+            } catch (Exception ex2) {
+                if (originalException != null) {
+                    ex2.addSuppressed(originalException);
+                }
+                throw ex2;
+            }
         }
     }
 
@@ -396,6 +406,9 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         final Path provisioningFile = Paths.get(project.getBasedir().getAbsolutePath()).resolve("galleon").resolve("provisioning.xml");
         ProvisioningConfig config;
         if (!layers.isEmpty() || !excludeLayers.isEmpty()) {
+            if (Files.exists(provisioningFile)) {
+                getLog().warn("Layers defined in pom.xml override provisioning file located in " + provisioningFile);
+            }
             ConfigModel.Builder configBuilder = ConfigModel.
                     builder("standalone", "standalone.xml");
             for (String layer : layers) {
@@ -425,6 +438,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             }
         }
         IoUtils.recursiveDelete(home);
+        getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(home)
                 .setMessageWriter(new MvnMessageWriter(getLog()))
@@ -449,6 +463,22 @@ public final class BuildBootableJarMojo extends AbstractMojo {
             }
         }
         Files.copy(f.toPath(), targetDir.resolve(fileName));
+    }
+
+    private void deploy(List<String> commands) throws IOException, MojoExecutionException {
+        if (hollowJar) {
+            getLog().info("Hollow jar, No application deployment added to server.");
+            return;
+        }
+        File f = validateProjectFile();
+
+        String runtimeName = f.getName();
+        if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
+            if (rootUrlPath) {
+                runtimeName = "ROOT." + WAR;
+            }
+        }
+        commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
     }
 
     private static void zipServer(Path home, Path contentDir) throws IOException {
