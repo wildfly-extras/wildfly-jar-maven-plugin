@@ -40,13 +40,13 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.jar.start.jvmArguments")
+    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.start.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
      * Bootable jar arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.bootable.jar.start.arguments")
+    @Parameter(alias = "arguments", property = "wildfly.bootable.start.arguments")
     public List<String> arguments = new ArrayList<>();
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -56,7 +56,7 @@ public class StartBootableJarMojo extends AbstractServerConnection {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.start.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.start.skip")
     private boolean skip;
 
     /**
@@ -64,19 +64,19 @@ public class StartBootableJarMojo extends AbstractServerConnection {
      * status before to return. In case the started server has no management
      * interface enabled this parameter should be set to true.
      */
-    @Parameter(alias = "check-server-start", defaultValue = "true", property = "wildfly.bootable.jar.start.check.start")
+    @Parameter(alias = "check-server-start", defaultValue = "true", property = "wildfly.bootable.start.check.start")
     private boolean checkStarted;
 
     /**
      * The timeout value to use when checking for the server to be running.
      */
-    @Parameter(alias = "startup-timeout", defaultValue = "60", property = "wildfly.bootable.jar.start.timeout")
+    @Parameter(alias = "startup-timeout", defaultValue = "60", property = "wildfly.bootable.start.timeout")
     private long startupTimeout;
 
     /**
      * The Bootable Jar Process id.
      */
-    @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.jar.start.id")
+    @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.start.id")
     private String id;
 
 

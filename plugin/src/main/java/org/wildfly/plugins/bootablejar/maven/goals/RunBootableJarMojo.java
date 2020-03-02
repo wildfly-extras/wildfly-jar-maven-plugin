@@ -38,13 +38,13 @@ public final class RunBootableJarMojo extends AbstractMojo {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.jar.run.jvmArguments")
+    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.run.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
      * Bootable jar arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.bootable.jar.run.arguments")
+    @Parameter(alias = "arguments", property = "wildfly.bootable.run.arguments")
     public List<String> arguments = new ArrayList<>();
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -54,7 +54,7 @@ public final class RunBootableJarMojo extends AbstractMojo {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.run.skip")
     private boolean skip;
 
     @Override

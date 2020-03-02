@@ -202,7 +202,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.run.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.package.skip")
     boolean skip;
 
     /**

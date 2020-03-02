@@ -41,7 +41,7 @@ public class ShutdownBootableJarMojo extends AbstractServerConnection {
      * Set to {@code true} if you want the deployment to be skipped, otherwise
      * {@code false}.
      */
-    @Parameter(defaultValue = "false", property = "wildfly.bootable.jar.start.skip")
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.shutdown.skip")
     private boolean skip;
 
     @Override
