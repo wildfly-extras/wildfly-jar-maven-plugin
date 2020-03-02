@@ -209,7 +209,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
      * By default the generated jar is
      * ${project.build.finalName}-wildfly-bootable.jar
      */
-    @Parameter(alias = "output-file-name")
+    @Parameter(alias = "output-file-name", property = "wildfly.bootable.package.output.file.name")
     String outputFileName;
 
     @Override
