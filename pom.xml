@@ -70,6 +70,8 @@
     <!-- Checkstyle configuration -->
     <linkXRef>false</linkXRef>
     <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
+    <bootable-jar.repo.scm.connection>git@github.com:jfdenise/wildfly-uberjar-maven-plugin.git</bootable-jar.repo.scm.connection>
+    <bootable-jar.repo.scm.url>https://github.com/jfdenise/wildfly-uberjar-maven-plugin</bootable-jar.repo.scm.url>   
   </properties>
 
   <repositories>
@@ -345,4 +347,10 @@
       </plugin>
     </plugins>
   </build>
+  <scm>
+      <connection>scm:git:${bootable-jar.repo.scm.connection}</connection>
+      <developerConnection>scm:git:${bootable-jar.repo.scm.connection}</developerConnection>
+      <url>${bootable-jar.repo.scm.url}</url>
+      <tag>HEAD</tag>
+  </scm>
 </project>
