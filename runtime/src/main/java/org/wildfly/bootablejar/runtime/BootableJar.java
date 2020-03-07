@@ -26,11 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.jboss.as.controller.client.ModelControllerClient;
@@ -72,19 +69,7 @@ class BootableJar {
         }
     }
 
-    private static final Set<PosixFilePermission> EXECUTE_PERMISSIONS = new HashSet<>();
     static final String[] EXTENDED_SYSTEM_PKGS = new String[]{"org.jboss.logging", "org.jboss.logmanager"};
-
-    static {
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.OWNER_EXECUTE);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.OWNER_WRITE);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.OWNER_READ);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.GROUP_EXECUTE);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.GROUP_WRITE);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.GROUP_READ);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.OTHERS_EXECUTE);
-        EXECUTE_PERMISSIONS.add(PosixFilePermission.OTHERS_READ);
-    }
 
     private BootableJarLogger log;
 
@@ -318,9 +303,6 @@ class BootableJar {
                     while ((len = zis.read(buffer)) > 0) {
                         fos.write(buffer, 0, len);
                     }
-                }
-                if (newFile.getName().endsWith(".sh")) {
-                    Files.setPosixFilePermissions(newFile.toPath(), EXECUTE_PERMISSIONS);
                 }
                 zis.closeEntry();
                 ze = zis.getNextEntry();
