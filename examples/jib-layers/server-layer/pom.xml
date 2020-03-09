@@ -4,8 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.wildfly.plugins</groupId>
-        <artifactId>wildfly-bootable-jar-parent</artifactId>
-        <version>1.0.0.Alpha2-SNAPSHOT</version>
+        <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
     </parent>
     <artifactId>jaxrs-server</artifactId>
 
@@ -37,12 +38,10 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>2.0.0</version>
                 <configuration>
                     <containerizingMode>packaged</containerizingMode>
                     <to>
-                        <!-- update with your image repository -->
-                        <image>YOUR RESPOSITORY/jaxrs-server-jib</image>
+                        <image>wildfly/jaxrs-server-jib</image>
                     </to>
                     <container>
                         <mainClass>org.wildfly.bootablejar.runtime.Main</mainClass>
@@ -63,7 +62,7 @@
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>build</goal>
+                            <goal>dockerBuild</goal>
                         </goals>
                     </execution>
                 </executions>
