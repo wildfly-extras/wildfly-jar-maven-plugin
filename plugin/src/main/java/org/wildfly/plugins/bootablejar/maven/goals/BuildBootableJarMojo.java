@@ -268,6 +268,7 @@ public final class BuildBootableJarMojo extends AbstractMojo {
                 configureScanner(deployments, commands);
             }
             executeCliScript(wildflyDir, commands);
+            cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile);
         } catch (Exception ex) {
@@ -275,6 +276,13 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    private void cleanupServer(Path jbossHome) throws IOException {
+        Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
+        IoUtils.recursiveDelete(history);
+        IoUtils.recursiveDelete(jbossHome.resolve("bin"));
+        Files.deleteIfExists(jbossHome.resolve("README.txt"));
     }
 
     private File validateProjectFile() throws MojoExecutionException {
@@ -319,8 +327,6 @@ public final class BuildBootableJarMojo extends AbstractMojo {
                     WildFlySecurityManager.clearPropertyPrivileged(key);
                 }
             }
-            Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
-            IoUtils.recursiveDelete(history);
         }
     }
 
