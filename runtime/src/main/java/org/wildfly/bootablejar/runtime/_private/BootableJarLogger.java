@@ -37,7 +37,7 @@ public interface BootableJarLogger extends BasicLogger {
     /**
      * Default root logger with category of the package name.
      */
-    BootableJarLogger ROOT_LOGGER = Logger.getMessageLogger(BootableJarLogger.class, "org.wildfly.bootablejar");
+    BootableJarLogger ROOT_LOGGER = Logger.getMessageLogger(BootableJarLogger.class, "org.wildfly.jar");
 
     @LogMessage(level = DEBUG)
     @Message(id = 1, value = "Shutting down")

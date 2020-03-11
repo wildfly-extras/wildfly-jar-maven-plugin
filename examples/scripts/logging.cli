@@ -1,8 +1,8 @@
 /subsystem=logging/logger=org.jboss.as.logging:add
 /subsystem=logging/logger=org.xnio:add
-/subsystem=logging/logger=org.wildfly.bootablejar:add
+/subsystem=logging/logger=org.wildfly.jar:add
 /subsystem=logging/logger=com.example.demo.rest:add
-/subsystem=logging/logger=org.wildfly.bootablejar:write-attribute(name=level,value=ALL)
+/subsystem=logging/logger=org.wildfly.jar:write-attribute(name=level,value=ALL)
 /subsystem=logging/logger=org.xnio:write-attribute(name=level,value=ALL)
 /subsystem=logging/logger=org.jboss.as.logging:write-attribute(name=level,value=ALL)
 /subsystem=logging/logger=com.example.demo.rest:write-attribute(name=level,value=ALL)
