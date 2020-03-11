@@ -79,9 +79,12 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.start.id")
     private String id;
 
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        doExecute(project);
+    }
+
+    private void doExecute(MavenProject project) throws MojoExecutionException, MojoFailureException {
         if (skip) {
             getLog().debug(String.format("Skipping " + goal() + " of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
@@ -102,6 +105,10 @@ public class StartBootableJarMojo extends AbstractServerConnection {
                 }
             }
         }
+    }
+
+    void startDevMode(MavenProject project) throws MojoExecutionException, MojoFailureException {
+        doExecute(project);
     }
 
     @Override

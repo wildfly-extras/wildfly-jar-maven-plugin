@@ -16,6 +16,8 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.nio.file.Path;
+import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,12 +25,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * Build a bootable jar containing application and provisioned server
+ * Build a bootable jar for dev mode
  *
  * @author jfdenise
  */
-@Mojo(name = "package", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PACKAGE)
-public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
+@Mojo(name = "dev", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.COMPILE)
+public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -36,6 +38,18 @@ public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
+        hollowJar = true;
         super.execute();
+        new StartBootableJarMojo().startDevMode(project);
+    }
+
+    @Override
+    protected void configureCli(List<String> commands) {
+        configureScanner(getDeploymentsDir(), commands);
+    }
+
+    private void configureScanner(Path deployments, List<String> commands) {
+        commands.add("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
+                + "path=\"" + deployments + "\")");
     }
 }

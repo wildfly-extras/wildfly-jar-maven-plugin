@@ -109,8 +109,6 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertTrue(mojo.excludeLayers.isEmpty());
             assertTrue(mojo.layers.isEmpty());
             assertTrue(mojo.pluginOptions.isEmpty());
-            assertFalse(mojo.devApp);
-            assertFalse(mojo.devServer);
             assertFalse(mojo.hollowJar);
             assertFalse(mojo.logTime);
             assertFalse(mojo.offline);
@@ -203,23 +201,23 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             String[] layers = {"cloud-profile", "management"};
             String[] excludedLayers = {"ee-security"};
             checkJar(dir, false, false, layers, excludedLayers);
-            checkManagementItf(dir);
+            checkManagementItf(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
         }
     }
 
-    @Test
+    //@Test
+    // Can't run until shutdown is implemented.
     public void testDevServer()
             throws Exception {
         Path dir = setupProject("test6-pom.xml", true, null);
         try {
-            BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
+            DevBootableJarMojo mojo = (DevBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "dev");
             assertNotNull(mojo);
-            assertTrue(mojo.devServer);
             mojo.execute();
             checkJar(dir, false, false, null, null, "target/deployments");
-            checkManagementItf(dir);
+            checkManagementItf(dir, false);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
         }
@@ -232,11 +230,12 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
-            assertTrue(mojo.devApp);
+            System.setProperty("dev", "");
             mojo.execute();
             assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly-bootable.jar")));
             assertTrue(Files.exists(dir.resolve("target").resolve("deployments").resolve("ROOT.war")));
         } finally {
+            System.clearProperty("dev");
             BuildBootableJarMojo.deleteDir(dir);
         }
     }
@@ -308,20 +307,23 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     }
 
     private void checkDeployment(Path dir, boolean isRoot) throws Exception {
-        checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"));
+        checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true);
     }
 
-    private void checkManagementItf(Path dir) throws Exception {
-        checkURL(dir, "http://127.0.0.1:9990/management");
+    private void checkManagementItf(Path dir, boolean start) throws Exception {
+        checkURL(dir, "http://127.0.0.1:9990/management", start);
     }
 
-    private void checkURL(Path dir, String url) throws Exception {
+    private void checkURL(Path dir, String url, boolean start) throws Exception {
         // Uncomment when we can shutdown the server
 
         int timeout = 30000;
         long sleep = 1000;
         boolean success = false;
-        Process p = startServer(dir);
+        Process p = null;
+        if (start) {
+            p = startServer(dir);
+        }
         while (timeout > 0) {
             if (checkURL(url)) {
                 System.out.println("Successfully connected to " + url);
@@ -346,10 +348,13 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     }
 
     private void shutdownServer(Path dir, Process p) throws Exception {
-        //ShutdownBootableJarMojo mojo = (ShutdownBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
-        //mojo.execute();
-        assertTrue(p.isAlive());
-        p.destroy();
+        if (p == null) {
+            ShutdownBootableJarMojo mojo = (ShutdownBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
+            mojo.execute();
+        } else {
+            assertTrue(p.isAlive());
+            p.destroy();
+        }
     }
 
     private boolean checkURL(String url) throws Exception {
