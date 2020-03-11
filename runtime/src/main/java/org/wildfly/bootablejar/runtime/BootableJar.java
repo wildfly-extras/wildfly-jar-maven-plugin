@@ -200,6 +200,21 @@ class BootableJar {
 
         if (!isLaunch) {
             Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+//            BiConsumer<Integer, Throwable> cons = (status, exx) -> {
+//                server.stop();
+//                if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {
+//                    try {
+//                        server = buildServer(startServerArgs);
+//                        server.start();
+//                    } catch (Exception ex) {
+//                        cleanup();
+//                    }
+//                } else {
+//                    System.exit(status);
+//                }
+//
+//            };
+//            server.start(cons);
             server.start();
         }
     }
@@ -231,22 +246,6 @@ class BootableJar {
             builder.addCommandArgument(a);
         }
         log.advertiseOptions(args);
-//        builder.setShutdownHandler((status) -> {
-//            server.stop();
-//            if (status == ExitCodes.RESTART_PROCESS_FROM_STARTUP_SCRIPT) {
-//                try {
-//                    server = buildServer(startServerArgs);
-//                    server.start();
-//                } catch (Exception ex) {
-//                    cleanup();
-//
-//                }
-//            } else {
-//                System.exit(status);
-//            }
-//
-//            //System.exit(0);
-//        });
         final StandaloneServer serv = EmbeddedProcessFactory.createStandaloneServer(builder.build());
         return serv;
     }
