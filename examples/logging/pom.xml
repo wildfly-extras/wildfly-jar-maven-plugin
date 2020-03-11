@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
-        <version>1.0.0.Alpha3-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <artifactId>logging</artifactId>
     <packaging>war</packaging>
@@ -35,6 +35,7 @@
                     <cli-script-files>
                         <script>../scripts/logging.cli</script>
                     </cli-script-files>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
                     <layers>
                         <layer>jaxrs</layer>
                         <layer>logging</layer>

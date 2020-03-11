@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
-        <version>1.0.0.Alpha3-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <artifactId>jaxrs-jib</artifactId>
     <packaging>jar</packaging>
@@ -39,6 +39,7 @@
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
                 <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
                     <layers>
                         <layer>jaxrs</layer>
                         <layer>observability</layer>
