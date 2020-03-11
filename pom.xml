@@ -45,6 +45,7 @@
     <module>docs</module>
     <module>plugin</module>
     <module>runtime</module>
+    <module>tests</module>
   </modules>
 
   <properties>
