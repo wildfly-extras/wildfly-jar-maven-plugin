@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-bootable-jar-parent</artifactId>
-        <version>1.0.0.Final-SNAPSHOT</version>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
 
     <artifactId>wildfly-bootable-jar-maven-plugin-tests</artifactId>
@@ -91,6 +91,13 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>

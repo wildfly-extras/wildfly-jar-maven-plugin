@@ -104,7 +104,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
             assertTrue(mojo.cliScriptFiles.isEmpty());
-            assertEquals("wildfly@maven(org.jboss.universe:community-universe)", mojo.defaultFpl);
+            assertEquals("wildfly@maven(org.jboss.universe:community-universe)", mojo.featurePackLocation);
             assertNotNull(mojo.projectBuildDir);
             assertTrue(mojo.excludeLayers.isEmpty());
             assertTrue(mojo.layers.isEmpty());

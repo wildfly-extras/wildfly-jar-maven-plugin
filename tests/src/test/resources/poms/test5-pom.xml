@@ -16,6 +16,7 @@
             <plugin>
                 <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
                 <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
                     <skip>true</skip>
                     <layers>
                         <layer>jaxrs</layer>
