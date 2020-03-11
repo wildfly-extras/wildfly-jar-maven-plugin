@@ -6,8 +6,8 @@ coordinates of the Maven plugin artifact are
 [source,xml]
 ----
 <dependency>
-    <groupId>org.wildfly.bootablejar</groupId>
-    <artifactId>wildfly-bootablejar-maven-plugin</artifactId>
+    <groupId>org.wildfly.plugins</groupId>
+    <artifactId>wildfly-jar-maven-plugin</artifactId>
     <version>1.0.0.Final-SNAPSHOT</version>
 </dependency>
 ----

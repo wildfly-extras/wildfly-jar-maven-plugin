@@ -27,7 +27,7 @@
   </parent>
 
   <groupId>org.wildfly.plugins</groupId>
-  <artifactId>wildfly-bootable-jar-parent</artifactId>
+  <artifactId>wildfly-jar-parent</artifactId>
   <version>1.0.0.Alpha3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -110,7 +110,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-bootable-jar-runtime</artifactId>
+        <artifactId>wildfly-jar-runtime</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -284,7 +284,7 @@
                                   
       <plugin>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
+        <artifactId>wildfly-jar-maven-plugin</artifactId>
         <version>${project.version}</version>
       </plugin>
       

@@ -14,7 +14,7 @@
         <finalName>test</finalName>
         <plugins>
             <plugin>
-                <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
                     <skip>true</skip>

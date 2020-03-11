@@ -22,11 +22,11 @@
 
     <parent>
         <groupId>org.wildfly.plugins</groupId>
-        <artifactId>wildfly-bootable-jar-parent</artifactId>
+        <artifactId>wildfly-jar-parent</artifactId>
         <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
+    <artifactId>wildfly-jar-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
     <name>WildFly Bootable Jar Maven Plugin</name>
@@ -34,7 +34,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>wildfly-bootable-jar-runtime</artifactId>
+            <artifactId>wildfly-jar-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.galleon</groupId>
@@ -72,7 +72,7 @@
                 <configuration>
                     <!-- see http://jira.codehaus.org/browse/MNG-5346 -->
                     <!--<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>-->
-                    <goalPrefix>wildfly-bootable-jar</goalPrefix>
+                    <goalPrefix>wildfly-jar</goalPrefix>
                 </configuration>
 
                 <executions>

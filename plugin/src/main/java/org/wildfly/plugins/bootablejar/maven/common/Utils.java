@@ -39,7 +39,7 @@ public class Utils {
         String jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
         String path = project.getBuild().getDirectory() + File.separator + jarName;
         if (!Files.exists(Paths.get(path))) {
-            throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-bootable-jar:package` prior to invoking wildfly-bootable-jar:run from the command-line");
+            throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
         }
         return path;
     }

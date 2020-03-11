@@ -1,6 +1,6 @@
 # Servlet WildFly bootable jar example
 To build: mvn package
-To run: mvn wildfly-bootable-jar:run
+To run: mvn wildfly-jar:run
 Access the application: http://127.0.0.1:8080/hello
 
 Openshift binary build and deployment
@@ -8,7 +8,7 @@ Openshift binary build and deployment
 
 Steps:
 * mvn package -Popenshift
-* mkdir os && cp target/https-wildfly-bootable.jar os/
+* mkdir os && cp target/https-wildfly.jar os/
 * oc new-build --strategy source --binary --image-stream openjdk11 --name https-test
 * oc start-build https-test --from-dir ./os/
 * oc new-app https-test

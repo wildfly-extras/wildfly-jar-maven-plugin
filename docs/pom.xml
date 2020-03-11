@@ -22,7 +22,7 @@
 
   <parent>
     <groupId>org.wildfly.plugins</groupId>
-    <artifactId>wildfly-bootable-jar-parent</artifactId>
+    <artifactId>wildfly-jar-parent</artifactId>
     <version>1.0.0.Alpha3-SNAPSHOT</version>
   </parent>
 

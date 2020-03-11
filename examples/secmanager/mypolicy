@@ -1,3 +1,3 @@
-grant codeBase "file:/home/jdenise/workspaces/wildfly-uberjar-maven-plugin/examples/secmanager/target/sec-manager-wildfly-bootable.jar" {
+grant codeBase "file:/home/jdenise/workspaces/wildfly-uberjar-maven-plugin/examples/secmanager/target/sec-manager-wildfly.jar" {
  permission java.security.AllPermission;
 };

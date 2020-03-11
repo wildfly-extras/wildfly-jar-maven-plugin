@@ -3,14 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
-    <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
+    <artifactId>wildfly-jar-examples-parent</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
 
     <name>WildFly bootable Jar examples</name>
 
     <properties>
-        <version.bootable.jar>1.0.0.Alpha2</version.bootable.jar>
+        <version.bootable.jar>1.0.0.Alpha3-SNAPSHOT</version.bootable.jar>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -89,7 +89,7 @@
             <plugins>
                 <plugin>
                     <groupId>org.wildfly.plugins</groupId>
-                    <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>
+                    <artifactId>wildfly-jar-maven-plugin</artifactId>
                     <version>${version.bootable.jar}</version>
                 </plugin>
                 <plugin>

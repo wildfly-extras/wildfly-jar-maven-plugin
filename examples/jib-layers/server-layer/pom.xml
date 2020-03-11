@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.wildfly.plugins</groupId>
-        <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0</version>
         <relativePath>../..</relativePath>
     </parent>
@@ -18,7 +18,7 @@
         <plugins>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
                     <layers>

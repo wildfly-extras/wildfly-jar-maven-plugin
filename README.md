@@ -1,2 +1,2 @@
-# wildfly-bootable-jar-maven-plugin
+# wildfly-jar-maven-plugin
 Support for WildFly bootable jar

@@ -232,7 +232,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(mojo);
             System.setProperty("dev", "");
             mojo.execute();
-            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly-bootable.jar")));
+            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly.jar")));
             assertTrue(Files.exists(dir.resolve("target").resolve("deployments").resolve("ROOT.war")));
         } finally {
             System.clearProperty("dev");
@@ -249,7 +249,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(mojo);
             assertTrue(mojo.skip);
             mojo.execute();
-            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly-bootable.jar")));
+            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly.jar")));
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
         }
@@ -260,7 +260,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
         Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-wildfly");
         try {
-            Path jar = dir.resolve("target").resolve("test-wildfly-bootable.jar");
+            Path jar = dir.resolve("target").resolve("test-wildfly.jar");
             assertTrue(Files.exists(jar));
 
             ZipUtils.unzip(jar, tmpDir);
@@ -340,7 +340,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     }
 
     private Process startServer(Path dir) throws Exception {
-        String[] cmd = {"java", "-jar", dir.resolve("target").resolve("test-wildfly-bootable.jar").toString()};
+        String[] cmd = {"java", "-jar", dir.resolve("target").resolve("test-wildfly.jar").toString()};
         Process p = new ProcessBuilder(cmd).start();
         return p;
         //StartBootableJarMojo mojo = (StartBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");

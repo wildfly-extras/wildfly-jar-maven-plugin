@@ -43,7 +43,7 @@ import org.eclipse.aether.repository.LocalRepository;
  *
  */
 public abstract class AbstractConfiguredMojoTestCase extends AbstractMojoTestCase {
-    private static final String ARTIFACTID = "wildfly-bootable-jar-maven-plugin";
+    private static final String ARTIFACTID = "wildfly-jar-maven-plugin";
 
     protected MavenSession newMavenSession() {
         try {
@@ -53,7 +53,7 @@ public abstract class AbstractConfiguredMojoTestCase extends AbstractMojoTestCas
             MavenExecutionRequestPopulator populator;
             populator = getContainer().lookup(MavenExecutionRequestPopulator.class);
             populator.populateDefaults(request);
-            // Required otherwise WARNING:The POM for org.wildfly.plugins:wildfly-bootable-jar-runtime:jar
+            // Required otherwise WARNING:The POM for org.wildfly.plugins:wildfly-jar-runtime:jar
             // is invalid, transitive dependencies (if any)
             request.setSystemProperties(System.getProperties());
 

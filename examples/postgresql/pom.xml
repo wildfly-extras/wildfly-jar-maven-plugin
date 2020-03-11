@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.wildfly.plugins</groupId>
-        <artifactId>wildfly-bootable-jar-examples-parent</artifactId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0</version>
     </parent>
     <artifactId>postgresql</artifactId>
@@ -46,7 +46,7 @@
         <plugins>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
                 <executions>
                     <execution>
                         <goals>
@@ -65,7 +65,7 @@
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-bootable-jar-maven-plugin</artifactId>   
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
                         <configuration >
                             <cli-properties-file>
                                 ../scripts/cli.properties

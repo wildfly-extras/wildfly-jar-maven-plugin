@@ -82,7 +82,7 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  */
 class AbstractBuildBootableJarMojo extends AbstractMojo {
 
-    public static final String BOOTABLE_SUFFIX = "wildfly-bootable";
+    public static final String BOOTABLE_SUFFIX = "wildfly";
     public static final String JAR = "jar";
     public static final String WAR = "war";
 
@@ -190,7 +190,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     /**
      * By default the generated jar is
-     * ${project.build.finalName}-wildfly-bootable.jar
+     * ${project.build.finalName}-wildfly.jar
      */
     @Parameter(alias = "output-file-name", property = "wildfly.bootable.package.output.file.name")
     String outputFileName;
@@ -286,7 +286,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     protected File validateProjectFile() throws MojoExecutionException {
         File f = getProjectFile();
         if (f == null && !hollowJar) {
-            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-bootable-jar:package from the command-line");
+            throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-jar:package from the command-line");
         }
         return f;
     }
@@ -502,7 +502,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
 
         final ArtifactResult result = artifactResolver.resolveArtifact(buildingRequest,
-                new DefaultArtifact("org.wildfly.plugins", "wildfly-bootable-jar-runtime", retrieveRuntimeVersion(),
+                new DefaultArtifact("org.wildfly.plugins", "wildfly-jar-runtime", retrieveRuntimeVersion(),
                         "provided", JAR, null,
                         new DefaultArtifactHandler(JAR)));
         return result.getArtifact().getFile().toPath();
