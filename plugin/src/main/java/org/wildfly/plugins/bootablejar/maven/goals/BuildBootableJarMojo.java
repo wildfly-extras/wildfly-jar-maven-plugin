@@ -162,9 +162,9 @@ public final class BuildBootableJarMojo extends AbstractMojo {
      * The WildFly galleon feature-pack location to use if no provisioning.xml
      * file found.
      */
-    @Parameter(alias = "default-feature-pack-location",
-            defaultValue = "wildfly@maven(org.jboss.universe:community-universe)", property = "wildfly.bootable.fpl")
-    String defaultFpl;
+    @Parameter(alias = "feature-pack-location", required = false,
+            property = "wildfly.bootable.fpl")
+    String featurePackLocation;
 
     /**
      * Path to JBoss CLI scripts to execute once the server is provisioned and
@@ -412,6 +412,9 @@ public final class BuildBootableJarMojo extends AbstractMojo {
         final Path provisioningFile = Paths.get(project.getBasedir().getAbsolutePath()).resolve("galleon").resolve("provisioning.xml");
         ProvisioningConfig config;
         if (!layers.isEmpty() || !excludeLayers.isEmpty()) {
+            if (featurePackLocation == null) {
+                throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
+            }
             if (Files.exists(provisioningFile)) {
                 getLog().warn("Layers defined in pom.xml override provisioning file located in " + provisioningFile);
             }
@@ -430,15 +433,18 @@ public final class BuildBootableJarMojo extends AbstractMojo {
                 pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
             }
             FeaturePackConfig dependency = FeaturePackConfig.
-                    builder(FeaturePackLocation.fromString(defaultFpl)).
+                    builder(FeaturePackLocation.fromString(featurePackLocation)).
                     setInheritPackages(false).setInheritConfigs(false).build();
             config = ProvisioningConfig.builder().addFeaturePackDep(dependency).addConfig(configBuilder.build()).build();
         } else {
             if (Files.exists(provisioningFile)) {
                 config = ProvisioningXmlParser.parse(provisioningFile);
             } else {
+                if (featurePackLocation == null) {
+                    throw new ProvisioningException("No server feature-pack location to provision standalone configuration, you must set a feature-pack-location.");
+                }
                 FeaturePackConfig dependency = FeaturePackConfig.
-                        builder(FeaturePackLocation.fromString(defaultFpl)).
+                        builder(FeaturePackLocation.fromString(featurePackLocation)).
                         setInheritPackages(true).setInheritConfigs(false).includeDefaultConfig("standalone", "standalone.xml").build();
                 config = ProvisioningConfig.builder().addFeaturePackDep(dependency).build();
             }
