@@ -17,12 +17,13 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)</feature-pack-location>
-                    <layers>
+                     <layers>
                         <layer>cloud-profile</layer>
                         <layer>management</layer>
                     </layers>
                     <exclude-layers>
                         <layer>ee-security</layer>
+                        <layer>observability</layer>
                     </exclude-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>

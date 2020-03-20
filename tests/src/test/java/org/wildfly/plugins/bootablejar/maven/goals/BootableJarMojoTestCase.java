@@ -194,8 +194,9 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertTrue(mojo.layers.size() == 2);
             assertTrue(mojo.layers.get(0).equals("cloud-profile"));
             assertTrue(mojo.layers.get(1).equals("management"));
-            assertTrue(mojo.excludeLayers.size() == 1);
+            assertTrue(mojo.excludeLayers.size() == 2);
             assertTrue(mojo.excludeLayers.get(0).equals("ee-security"));
+            assertTrue(mojo.excludeLayers.get(1).equals("observability"));
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"cloud-profile", "management"};
