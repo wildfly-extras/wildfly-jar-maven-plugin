@@ -59,7 +59,7 @@ public interface BootableJarLogger extends BasicLogger {
     RuntimeException unexpectedExceptionWhileShuttingDown(@Cause Throwable cause);
 
     @LogMessage(level = INFO)
-    @Message(id = 6, value = "Installed %s in server deployments")
+    @Message(id = 6, value = "Deployed %s in server")
     void installDeployment(Path dep);
 
     @LogMessage(level = INFO)
@@ -74,6 +74,8 @@ public interface BootableJarLogger extends BasicLogger {
     @Message(id = 9, value = "Deleting %s dir")
     void deletingHome(Path dep);
 
+    @Message(id = 10, value = "Not an hollow jar, deployment already exists")
+    Exception deploymentAlreadyExist();
 
     @Message(id = Message.NONE, value = "Set system property jboss.bind.address to the given value")
     String argPublicBindAddress();

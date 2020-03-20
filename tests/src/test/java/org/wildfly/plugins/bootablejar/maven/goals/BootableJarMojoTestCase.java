@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -209,6 +212,21 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
+    @Test
+    public void testHollowJarWithDeployment()
+            throws Exception {
+        Path dir = setupProject("test9-pom.xml", true, null);
+        try {
+            BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
+            assertNotNull(mojo);
+            assertTrue(mojo.hollowJar);
+            mojo.execute();
+            checkDeployment(dir, false, "--deployment=" + dir.resolve("target").resolve("test.war").toString());
+        } finally {
+            BuildBootableJarMojo.deleteDir(dir);
+        }
+    }
+
     //@Test
     // Can't run until shutdown is implemented.
     public void testDevServer()
@@ -319,11 +337,15 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true);
     }
 
+    private void checkDeployment(Path dir, boolean isRoot, String... args) throws Exception {
+        checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true, args);
+    }
+
     private void checkManagementItf(Path dir, boolean start) throws Exception {
         checkURL(dir, "http://127.0.0.1:9990/management", start);
     }
 
-    private void checkURL(Path dir, String url, boolean start) throws Exception {
+    private void checkURL(Path dir, String url, boolean start, String... args) throws Exception {
         // Uncomment when we can shutdown the server
 
         int timeout = 30000;
@@ -331,7 +353,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         boolean success = false;
         Process p = null;
         if (start) {
-            p = startServer(dir);
+            p = startServer(dir, args);
         }
         while (timeout > 0) {
             if (checkURL(url)) {
@@ -348,9 +370,12 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
-    private Process startServer(Path dir) throws Exception {
+    private Process startServer(Path dir, String... args) throws Exception {
         String[] cmd = {"java", "-jar", dir.resolve("target").resolve("test-wildfly.jar").toString()};
-        Process p = new ProcessBuilder(cmd).start();
+        List<String> arguments = new ArrayList<>();
+        arguments.addAll(Arrays.asList(cmd));
+        arguments.addAll(Arrays.asList(args));
+        Process p = new ProcessBuilder(arguments).start();
         return p;
         //StartBootableJarMojo mojo = (StartBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
         //mojo.execute();

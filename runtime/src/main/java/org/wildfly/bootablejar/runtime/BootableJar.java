@@ -17,6 +17,7 @@
 package org.wildfly.bootablejar.runtime;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.process.CommandLineConstants;
 import org.jboss.dmr.ModelNode;
@@ -47,11 +54,18 @@ import org.wildfly.bootablejar.runtime._private.BootableJarLogger;
 import org.wildfly.core.launcher.Launcher;
 import org.wildfly.core.launcher.StandaloneCommandBuilder;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 /**
  *
  * @author jdenise
  */
 class BootableJar {
+
+    private static final String DEP_1 = "ff";
+    private static final String DEP_2 = "00";
 
     private class ShutdownHook extends Thread {
 
@@ -97,20 +111,16 @@ class BootableJar {
         configureLogging();
 
         if (arguments.getDeployment() != null) {
-            Path deployment = jbossHome.resolve("standalone/deployments");
-            File[] files = deployment.toFile().listFiles((f, name) -> {
-                name = name.toLowerCase();
-                return name.endsWith(".war") || name.endsWith(".jar") || name.endsWith(".ear");
-            });
-            if (files != null && files.length > 0) {
-                throw new Exception("Deployment already exists not an hollow-jar");
-            }
-            Path target = deployment.resolve(arguments.getDeployment().getFileName());
+            Path deploymentDir = jbossHome.resolve("standalone/data/content/" + DEP_1 + "/" + DEP_2);
+
+            Path target = deploymentDir.resolve("content");
+            Files.createDirectories(deploymentDir);
             // Exploded deployment
-            if (Files.isDirectory(arguments.getDeployment())) {
+            boolean isExploded = Files.isDirectory(arguments.getDeployment());
+            updateConfig(jbossHome.resolve("standalone/configuration/standalone.xml"),
+                    arguments.getDeployment().getFileName().toString(), isExploded);
+            if (isExploded) {
                 copyDirectory(arguments.getDeployment(), target);
-                Path doDeploy = deployment.resolve(arguments.getDeployment().getFileName() + ".dodeploy");
-                Files.createFile(doDeploy);
             } else {
                 Files.copy(arguments.getDeployment(), target);
             }
@@ -118,6 +128,44 @@ class BootableJar {
         }
 
         log.advertiseInstall(jbossHome, System.currentTimeMillis() - t);
+    }
+
+    private static void updateConfig(Path configFile, String name, boolean isExploded) throws Exception {
+        FileInputStream fileInputStream = new FileInputStream(configFile.toFile());
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+        Document document = documentBuilder.parse(fileInputStream);
+        Element root = document.getDocumentElement();
+
+        NodeList lst = root.getChildNodes();
+        for (int i = 0; i < lst.getLength(); i++) {
+            Node n = lst.item(i);
+            if (n instanceof Element) {
+                if ("deployments".equals(n.getNodeName())) {
+                    throw BootableJarLogger.ROOT_LOGGER.deploymentAlreadyExist();
+                }
+            }
+        }
+        Element deployments = document.createElement("deployments");
+        Element deployment = document.createElement("deployment");
+        Element content = document.createElement("content");
+        content.setAttribute("sha1", DEP_1 + DEP_2);
+        if (isExploded) {
+            content.setAttribute("archive", "false");
+        }
+        deployment.appendChild(content);
+        deployment.setAttribute("name", name);
+        deployment.setAttribute("runtime-name", name);
+        deployments.appendChild(deployment);
+
+        root.appendChild(deployments);
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        StreamResult output = new StreamResult(configFile.toFile());
+        DOMSource input = new DOMSource(document);
+
+        transformer.transform(input, output);
+
     }
 
     private void copyDirectory(Path src, Path target) throws IOException {
