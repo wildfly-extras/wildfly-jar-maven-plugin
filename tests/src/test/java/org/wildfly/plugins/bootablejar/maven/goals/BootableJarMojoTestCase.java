@@ -298,7 +298,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             if (expectDeployment) {
                 assertTrue(Files.list(wildflyHome.resolve("standalone/data/content")).count() == 1);
             } else {
-                assertTrue(Files.list(wildflyHome.resolve("standalone/data/content")).count() == 0);
+                assertFalse(Files.exists(wildflyHome.resolve("standalone/data/content")));
             }
             Path history = wildflyHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
             assertFalse(Files.exists(history));

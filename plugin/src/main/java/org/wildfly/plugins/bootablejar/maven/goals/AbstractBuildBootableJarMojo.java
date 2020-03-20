@@ -245,7 +245,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             deploy(commands);
             userScripts(commands);
             configureCli(commands);
-            executeCliScript(wildflyDir, commands);
+            if (!commands.isEmpty()) {
+                executeCliScript(wildflyDir, commands);
+            }
             cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile);
