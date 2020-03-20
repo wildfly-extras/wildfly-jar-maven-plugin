@@ -31,6 +31,9 @@
                         <layer>core-security-realms</layer>
                         <layer>web-server</layer>
                     </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
                     <cli-properties-file>
                         ../scripts/cli.properties
                     </cli-properties-file>

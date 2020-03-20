@@ -35,6 +35,9 @@
                         <layer>web-server</layer>
                         <layer>observability</layer>
                     </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
                 </configuration>
                 <executions>
                     <execution>

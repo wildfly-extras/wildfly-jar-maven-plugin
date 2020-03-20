@@ -44,6 +44,9 @@
                         <layer>jaxrs</layer>
                         <layer>observability</layer>
                     </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
                     <plugin-options>
                         <jboss-fork-embedded>true</jboss-fork-embedded>
                     </plugin-options>

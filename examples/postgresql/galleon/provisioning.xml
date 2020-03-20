@@ -13,6 +13,7 @@
         <layers>
             <include name="cloud-profile"/>
             <include name="postgresql-datasource"/>
+            <exclude name="deployment-scanner"/>
         </layers>
     </config>
     <options>
