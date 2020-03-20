@@ -289,7 +289,6 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     private void cleanupServer(Path jbossHome) throws IOException {
         Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
         IoUtils.recursiveDelete(history);
-        IoUtils.recursiveDelete(jbossHome.resolve("bin"));
         Files.deleteIfExists(jbossHome.resolve("README.txt"));
     }
 
