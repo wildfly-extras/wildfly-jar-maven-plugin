@@ -21,6 +21,9 @@
                     <layers>
                         <layer>jaxrs</layer>
                     </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
                     <root-url-path>false</root-url-path>
                 </configuration>
                 

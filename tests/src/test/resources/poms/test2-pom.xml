@@ -24,6 +24,9 @@
                     <layers>
                         <layer>jaxrs</layer>
                     </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
                 </configuration>
                 
             </plugin>

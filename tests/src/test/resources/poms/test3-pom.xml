@@ -24,6 +24,7 @@
                     <exclude-layers>
                         <layer>ee-security</layer>
                         <layer>observability</layer>
+                        <layer>deployment-scanner</layer>
                     </exclude-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>
