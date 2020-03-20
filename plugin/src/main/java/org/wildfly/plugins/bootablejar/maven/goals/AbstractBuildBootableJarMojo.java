@@ -350,6 +350,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 throw ex2;
             }
         }
+        if (originalException != null) {
+            throw originalException;
+        }
     }
 
     private Properties loadProperties() throws Exception {
