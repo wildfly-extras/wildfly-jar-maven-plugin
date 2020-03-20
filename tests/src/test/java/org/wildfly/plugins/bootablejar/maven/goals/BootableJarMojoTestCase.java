@@ -216,8 +216,15 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         try {
             DevBootableJarMojo mojo = (DevBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "dev");
             assertNotNull(mojo);
+            assertTrue(mojo.excludeLayers.size() == 1);
+            assertTrue(mojo.excludeLayers.get(0).equals("deployment-scanner"));
             mojo.execute();
             checkJar(dir, false, false, null, null, "target/deployments");
+            Path config = dir.resolve("target").resolve("bootable-jar-build-artifacts").
+                    resolve("wildfly").resolve("standalone").resolve("configuration").resolve("standalone.xml");
+            assertTrue(Files.exists(config));
+            String content = new String(Files.readAllBytes(dir), "UTF-8");
+            assertTrue(content.contains(DevBootableJarMojo.DEPLOYMENT_SCANNER_NAME));
             checkManagementItf(dir, false);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);

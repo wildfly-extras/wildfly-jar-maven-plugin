@@ -33,9 +33,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.execution.MavenSession;
@@ -195,6 +197,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "output-file-name", property = "wildfly.bootable.package.output.file.name")
     String outputFileName;
 
+    private Set<String> extraLayers = new HashSet<>();
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -250,6 +254,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    protected void addExtraLayer(String layer) {
+        extraLayers.add(layer);
     }
 
     private void copyProjectFile(Path targetDir) throws IOException, MojoExecutionException {
@@ -401,13 +409,30 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return null;
     }
 
+    protected Path getProvisioningFile() {
+        return Paths.get(project.getBasedir().getAbsolutePath()).resolve("galleon").resolve("provisioning.xml");
+    }
+
+    protected boolean hasLayers() {
+        return !layers.isEmpty();
+    }
+
+    protected List<String> getLayers() {
+        return layers;
+    }
+
+    protected List<String> getExcludedLayers() {
+        return excludeLayers;
+    }
+
+
     private void provisionServer(Path home) throws ProvisioningException {
         final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
                 : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
 
-        final Path provisioningFile = Paths.get(project.getBasedir().getAbsolutePath()).resolve("galleon").resolve("provisioning.xml");
+        final Path provisioningFile = getProvisioningFile();
         ProvisioningConfig config;
-        if (!layers.isEmpty() || !excludeLayers.isEmpty()) {
+        if (!layers.isEmpty()) {
             if (featurePackLocation == null) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
             }
@@ -419,6 +444,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             for (String layer : layers) {
                 configBuilder.includeLayer(layer);
             }
+
+            for (String layer : extraLayers) {
+                if (!layers.contains(layer)) {
+                    configBuilder.includeLayer(layer);
+                }
+            }
+
             for (String layer : excludeLayers) {
                 configBuilder.excludeLayer(layer);
             }
@@ -439,10 +471,22 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 if (featurePackLocation == null) {
                     throw new ProvisioningException("No server feature-pack location to provision standalone configuration, you must set a feature-pack-location.");
                 }
+                ConfigModel.Builder configBuilder = null;
+                if (!extraLayers.isEmpty()) {
+                    configBuilder = ConfigModel.
+                            builder("standalone", "standalone.xml");
+                    for (String layer : extraLayers) {
+                        configBuilder.includeLayer(layer);
+                    }
+                }
                 FeaturePackConfig dependency = FeaturePackConfig.
                         builder(FeaturePackLocation.fromString(featurePackLocation)).
                         setInheritPackages(true).setInheritConfigs(false).includeDefaultConfig("standalone", "standalone.xml").build();
-                config = ProvisioningConfig.builder().addFeaturePackDep(dependency).build();
+                ProvisioningConfig.Builder provBuilder = ProvisioningConfig.builder().addFeaturePackDep(dependency);
+                if (configBuilder != null) {
+                    provBuilder.addConfig(configBuilder.build());
+                }
+                config = provBuilder.build();
             }
         }
         IoUtils.recursiveDelete(home);

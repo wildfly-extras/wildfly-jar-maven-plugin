@@ -16,6 +16,7 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,12 +32,26 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  */
 @Mojo(name = "dev", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.COMPILE)
 public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
+    private static final String DEPLOYMENT_SCANNER_LAYER = "deployment-scanner";
+
+    public static final String DEPLOYMENT_SCANNER_NAME = "wildfly-jar-for-dev-mode";
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
+        }
+        if (Files.exists(getProvisioningFile()) && !hasLayers()) {
+            getLog().warn("Dev mode, can't enforce provisioning of " + DEPLOYMENT_SCANNER_LAYER
+                    + ". Make sure your provisioned configuration contains deployment-scanner subsystem for dev mode to properly operate.");
+        } else {
+            if (getExcludedLayers().contains(DEPLOYMENT_SCANNER_LAYER)) {
+                getLog().warn("Dev mode, removing layer " + DEPLOYMENT_SCANNER_LAYER + " from the list of excluded layers to ensure dev mode can be operated");
+                getExcludedLayers().remove(DEPLOYMENT_SCANNER_LAYER);
+            }
+            getLog().info("Dev mode, adding layer " + DEPLOYMENT_SCANNER_LAYER + " to ensure dev mode can be operated");
+            addExtraLayer(DEPLOYMENT_SCANNER_LAYER);
         }
         hollowJar = true;
         super.execute();
@@ -49,7 +64,7 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
     }
 
     private void configureScanner(Path deployments, List<String> commands) {
-        commands.add("/subsystem=deployment-scanner/scanner=new:add(scan-interval=1000,auto-deploy-exploded=false,"
+        commands.add("/subsystem=deployment-scanner/scanner=" + DEPLOYMENT_SCANNER_NAME + ":add(scan-interval=1000,auto-deploy-exploded=false,"
                 + "path=\"" + deployments + "\")");
     }
 }
