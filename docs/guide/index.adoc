@@ -1,0 +1,18 @@
+= WildFly Bootable Jar Documentation
+Jean-Francois Denise
+:revnumber: {version}
+:revdate: {localdate}
+:toc: left
+:icons: font
+:imagesdir: images
+:linkattrs:
+:sectnums:
+
+:ec2-pub-ip-dash: 1-2-3-4
+:ec2-pub-ip: 1.2.3.4
+
+(C) 2019 The original authors.
+
+include::intro/index.adoc[]
+
+include::maven-plugin/index.adoc[]

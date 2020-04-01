@@ -1,0 +1,1 @@
+/subsystem=security-manager/deployment-permissions=default:write-attribute(name=minimum-permissions, value=[{class="java.util.PropertyPermission", actions="read", name="*"}])

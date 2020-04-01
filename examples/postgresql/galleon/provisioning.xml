@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+
+<installation xmlns="urn:jboss:galleon:provisioning:3.0">
+    <feature-pack location="wildfly@maven(org.jboss.universe:community-universe)#20.0.0.Beta1-SNAPSHOT">
+        <default-configs inherit="false"/>
+        <packages inherit="false"/>
+    </feature-pack>
+    <feature-pack location="org.wildfly:wildfly-datasources-galleon-pack:1.0.6.Final">
+        <default-configs inherit="false"/>
+        <packages inherit="false"/>
+    </feature-pack>
+    <config model="standalone" name="standalone.xml">
+        <layers>
+            <include name="cloud-profile"/>
+            <include name="postgresql-datasource"/>
+            <exclude name="deployment-scanner"/>
+        </layers>
+    </config>
+    <options>
+        <option name="optional-packages" value="passive+"/>
+    </options>
+</installation>

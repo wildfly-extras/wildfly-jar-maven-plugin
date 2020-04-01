@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <version>1.0</version>
+    </parent>
+    <artifactId>logging</artifactId>
+    <packaging>war</packaging>
+
+    <name>WildFly bootable jar Jaxrs Example with enabled logging</name>
+
+    <dependencies>
+        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ws.rs</groupId>
+            <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <configuration>
+                    <cli-script-files>
+                        <script>../scripts/logging.cli</script>
+                    </cli-script-files>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                    <layers>
+                        <layer>jaxrs</layer>
+                        <layer>logging</layer>
+                        <layer>management</layer>
+                    </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

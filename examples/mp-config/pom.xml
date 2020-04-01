@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <version>1.0</version>
+    </parent>
+    <artifactId>mp-config</artifactId>
+    <packaging>war</packaging>
+
+    <name>WildFly bootable jar MP Config Example</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-web-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                    <layers>
+                        <layer>web-server</layer>
+                        <layer>observability</layer>
+                    </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <configuration >
+                            <cli-properties-file>
+                                ../scripts/cli.properties
+                            </cli-properties-file>
+                            <cli-script-files>
+                                <script>../scripts/all-addresses.cli</script>
+                                <script>../scripts/mp-config.cli</script>
+                            </cli-script-files>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

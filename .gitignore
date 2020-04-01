@@ -1,0 +1,5 @@
+/target/
+/docs/target/
+/plugin/target/
+/tests/target/
+/examples/**/target

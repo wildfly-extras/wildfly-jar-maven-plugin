@@ -1,0 +1,2 @@
+# config map
+/subsystem=microprofile-config-smallrye/config-source=os-map:add(dir={path=${config.path}}, ordinal=${config.ordinal})

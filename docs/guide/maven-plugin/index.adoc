@@ -1,0 +1,15 @@
+## Maven plugin
+
+This chapter is dedicated to the Maven plugin that can be used to build WildFly bootable jar. Maven
+coordinates of the Maven plugin artifact are
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.wildfly.plugins</groupId>
+    <artifactId>wildfly-jar-maven-plugin</artifactId>
+    <version>1.0.0.Alpha4</version>
+</dependency>
+----
+
+include::goals/index.adoc[]

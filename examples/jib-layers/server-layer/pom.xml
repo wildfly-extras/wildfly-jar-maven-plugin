@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <version>1.0</version>
+        <relativePath>../..</relativePath>
+    </parent>
+    <artifactId>jaxrs-server</artifactId>
+
+    <name>WildFly bootable jar Jaxrs server JIB layer</name>
+   
+   
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                    <layers>
+                        <layer>jaxrs</layer>
+                        <layer>management</layer>
+                    </layers>
+                    <exclude-layers>
+                        <layer>deployment-scanner</layer>
+                    </exclude-layers>
+                    <hollow-jar>true</hollow-jar>
+                    <output-file-name>jaxrs-server.jar</output-file-name>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <configuration>
+                    <containerizingMode>packaged</containerizingMode>
+                    <to>
+                        <image>wildfly/jaxrs-server-jib</image>
+                    </to>
+                    <container>
+                        <mainClass>org.wildfly.bootablejar.runtime.Main</mainClass>
+                        <args>
+                            <!-- required to create a route -->
+                            <arg>
+                                -b=0.0.0.0
+                            </arg>
+                            <!-- Deployed app installed by next layer -->
+                            <arg>--deployment=/deployments/ROOT.war/</arg>
+                        </args>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                    </container>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>dockerBuild</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
