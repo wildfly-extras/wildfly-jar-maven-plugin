@@ -1,0 +1,28 @@
+RULE trace doGet entry
+
+CLASS HelloWorldEndpoint
+
+METHOD doGet
+
+AT ENTRY
+IF true
+
+DO traceln("entering doGet")
+
+ENDRULE
+
+ 
+
+RULE trace doGet exit
+
+CLASS HelloWorldEndpoint
+
+METHOD doGet
+
+AT EXIT
+
+IF true
+
+DO traceln("exiting doGet")
+
+ENDRULE
