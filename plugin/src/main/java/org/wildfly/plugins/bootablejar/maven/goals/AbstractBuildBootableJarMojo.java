@@ -680,11 +680,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             ProvisioningRuntime rt = pm.getRuntime(config);
             String version = null;
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
-                if (fprt.getFPID().getProducer().getName().equals("wildfly-core")) {
+                if (fprt.getPackage(MODULE_ID_JAR_RUNTIME) != null) {
                     version = fprt.getFPID().getBuild();
-                    if (fprt.getPackage(MODULE_ID_JAR_RUNTIME) == null) {
-                        throw new ProvisioningException(MODULE_ID_JAR_RUNTIME + " package not present in config, server doesn't support bootable jar packaging.");
-                    }
+                    break;
                 }
             }
             if (version == null) {
