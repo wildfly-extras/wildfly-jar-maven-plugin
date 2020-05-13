@@ -10,7 +10,7 @@
     <name>WildFly bootable Jar examples</name>
 
     <properties>
-        <version.bootable.jar>2.0.0.Alpha1-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>2.0.0.Alpha2</version.bootable.jar>
         <version.wildfly>20.0.0.Beta1-SNAPSHOT</version.wildfly>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -82,6 +82,26 @@
                 <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
                 <version>1.0.1.Final</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-core</artifactId>
+                <version>9.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-adapter-core</artifactId>
+                <version>9.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-adapter-spi</artifactId>
+                <version>9.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.spec.javax.servlet</groupId>
+                <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+                <version>1.0.2.Final</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

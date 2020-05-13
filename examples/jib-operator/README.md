@@ -15,4 +15,4 @@ Deploy/Run in openshift
 * oc new-app <image>
 * Create a service (selector deploymentconfig: jaxrs-operator-jib, port 8080)
 * Expose the service
-* Access the application: http://<route>/hello
+* Access the application: http://\<route\>/hello

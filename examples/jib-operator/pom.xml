@@ -41,7 +41,7 @@
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
-                        <layer>jaxrs</layer>
+                        <layer>jaxrs-server</layer>
                         <layer>observability</layer>
                     </layers>
                     <exclude-layers>
@@ -88,7 +88,7 @@
                         <ports>
                             <port>8080</port>
                         </ports>
-                        <mainClass>org.wildfly.bootablejar.runtime.Main</mainClass>
+                        <mainClass>org.wildfly.core.jar.boot.Main</mainClass>
                     </container>
                 </configuration>
                 <executions>

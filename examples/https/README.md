@@ -1,13 +1,10 @@
-# Servlet WildFly bootable jar example
-To build: mvn package
-To run: mvn wildfly-jar:run
-Access the application: http://127.0.0.1:8080/hello
+# WildFly bootable jar Https Openshift example
 
 Openshift binary build and deployment
 =====================================
 
 Steps:
-* mvn package -Popenshift
+* mvn package
 * mkdir os && cp target/https-wildfly.jar os/
 * oc new-build --strategy source --binary --image-stream openjdk11 --name https-test
 * oc start-build https-test --from-dir ./os/
@@ -26,4 +23,4 @@ Steps:
             - name: secret-volume
               mountPath: /etc/wf-secrets
 
-* Access the app: <route>/https-test
+* Access the app: \<route\>/https-test

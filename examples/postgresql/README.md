@@ -1,6 +1,4 @@
-# Postgresql WildFly bootable jar example
-
-* To build: mvn package
+# Postgresql WildFly bootable jar Openshift example
 
 Openshift binary build and deployment
 =====================================
@@ -22,4 +20,4 @@ Steps:
 - POSTGRESQL_DATABASE=sampledb
 
 * Add a task (from POD terminal): curl -X POST http://127.0.0.1:8080/tasks/title/foo
-* Access the app: <route>/
+* Access the app: \<route\>/

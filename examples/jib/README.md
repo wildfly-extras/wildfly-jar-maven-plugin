@@ -11,8 +11,8 @@ For a decoupling of server packaging and app packaging check ../jib-layers examp
 
 Deploy/Run in openshift
 =======================
-* Push the image to a docker repository (can update pom.xml to do tha tdirectory in jib plugin config).
+* Push the image to a docker repository (can update pom.xml to do that directory in jib plugin config).
 * oc new-app <image>
 * Create a service (selector deploymentconfig: jaxrs-jib, port 8080)
 * Expose the service
-* Access the application: http://<route>/hello
+* Access the application: http://\<route\>/hello

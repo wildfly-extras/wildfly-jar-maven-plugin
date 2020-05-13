@@ -1,5 +1,6 @@
-# JAXRS WildFly bootable jar example
+# WildFly bootable hollow jar example
+
+Build a bootable jar containing  no deployment.
 
 * To build: mvn package
 * To run: mvn wildfly-jar:run
-* Access the application: http://127.0.0.1:8080/hello

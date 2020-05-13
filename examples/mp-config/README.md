@@ -1,4 +1,4 @@
-# MP Config WildFly bootable jar example
+# MP Config WildFly bootable jar Openshift example
 
 * To build: mvn package
 * To run: mvn wildfly-jar:run
@@ -26,4 +26,4 @@ Steps:
             - name: config-volume
               mountPath: /etc/config
 
-* Access the app: <route>/test-config
+* Access the app: \<route\>/test-config

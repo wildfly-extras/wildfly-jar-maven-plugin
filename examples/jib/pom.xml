@@ -82,7 +82,7 @@
                         <ports>
                             <port>8080</port>
                         </ports>
-                        <mainClass>org.wildfly.bootablejar.runtime.Main</mainClass>
+                        <mainClass>org.wildfly.core.jar.boot.Main</mainClass>
                     </container>
                 </configuration>
                 <executions>
