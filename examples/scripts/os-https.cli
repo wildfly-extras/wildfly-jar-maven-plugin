@@ -2,8 +2,8 @@
 if (outcome == success) of /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:read-resource
   /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:remove
 end-if
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(keystore-path="keystore.jks", keystore-relative-to=jboss.server.config.dir, keystore-password="${keystore.password}")
+/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(keystore-path="${keystore.path}", keystore-password="${keystore.password}")
 #HTTPS
-# Disable http
+# Disable HTTP
 /subsystem=undertow/server=${undertow.server}/http-listener=default:write-attribute(name=enabled, value=false)
 /subsystem=undertow/server=${undertow.server}/https-listener=https:add(security-realm=ApplicationRealm, socket-binding=https, proxy-address-forwarding=true)

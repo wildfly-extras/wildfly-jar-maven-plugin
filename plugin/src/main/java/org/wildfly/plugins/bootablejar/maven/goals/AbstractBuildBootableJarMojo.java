@@ -158,6 +158,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "record-state", defaultValue = "false")
     boolean recordState;
 
+    /**
+     * Project build dir.
+     */
     @Parameter(defaultValue = "${project.build.directory}")
     String projectBuildDir;
 
@@ -274,15 +277,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         String bootVersion = null;
         try {
-            //if (existingServer == null) {
-                bootVersion = provisionServer(wildflyDir);
-            //} else {
-            //  if (coreVersion == null) {
-            //      throw new ProvisioningException("Null coreVersion, you must set it");
-            //  }
-            //  bootVersion = coreVersion;
-            //  IoUtils.copy(Paths.get(existingServer), wildflyDir);
-            //}
+            bootVersion = provisionServer(wildflyDir);
         } catch (ProvisioningException ex) {
             throw new MojoExecutionException("Provisioning failed", ex);
         }

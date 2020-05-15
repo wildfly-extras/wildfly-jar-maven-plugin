@@ -19,6 +19,7 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -38,9 +39,9 @@
                         ../scripts/cli.properties
                     </cli-properties-file>
                     <cli-script-files>
-                        <script>../scripts/all-addresses.cli</script>
                         <script>../scripts/https.cli</script>
                     </cli-script-files>
+                    <extraServerContent>extra-content</extraServerContent>
                 </configuration>
                 <executions>
                     <execution>
@@ -52,4 +53,25 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <configuration>
+                            <cli-script-files>
+                                <script>../scripts/all-addresses.cli</script>
+                                <script>../scripts/os-https.cli</script>
+                            </cli-script-files>
+                            <extraServerContent  combine.self="override"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

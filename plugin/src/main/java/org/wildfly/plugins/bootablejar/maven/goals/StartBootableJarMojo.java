@@ -53,7 +53,7 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     private MavenProject project;
 
     /**
-     * Set to {@code true} if you want the deployment to be skipped, otherwise
+     * Set to {@code true} if you want the start goal to be skipped, otherwise
      * {@code false}.
      */
     @Parameter(defaultValue = "false", property = "wildfly.bootable.start.skip")

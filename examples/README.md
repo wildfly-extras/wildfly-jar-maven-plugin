@@ -5,18 +5,20 @@ that contains the information to build and run the example. NB: The examples dep
 JDK11 required arguments
 ========================
 
---add-exports=java.base/sun.nio.ch=ALL-UNNAMED
---add-exports=jdk.unsupported/sun.reflect=ALL-UNNAMED
---add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED
+When running on JDK11, the following options should be used:
+
+* --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+* --add-exports=jdk.unsupported/sun.reflect=ALL-UNNAMED
+* --add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED
 
 Openshift binary build and deployment
 =====================================
-The JDK11 openshift builder image is used to build/run these example applications
+The JDK11 openshift builder image can be used to build/run these example applications. To import the image in openshift:
 
 * oc import-image openjdk11 --from=registry.access.redhat.com/openjdk/openjdk-11-rhel7 --confirm
 
-JVM env var required for openshift
-===================================
+JVM ENV variable required for Openshift
+=======================================
 
 * GC_MAX_METASPACE_SIZE=256
 * GC_METASPACE_SIZE=96
@@ -27,8 +29,9 @@ Interesting arguments to pass to JAVA_ARGS when running in Openshift
 * -Djboss.node.name=<a node name>
 * -b=0.0.0.0
 
-DEBUG
-=====
+Enable Debug for Openshift
+==========================
+
 Env variables to enable debug:
 * JAVA_DEBUG=true
 * JAVA_DEBUG_PORT=8787

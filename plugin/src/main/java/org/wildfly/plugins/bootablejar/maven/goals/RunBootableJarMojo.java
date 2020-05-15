@@ -51,7 +51,7 @@ public final class RunBootableJarMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * Set to {@code true} if you want the deployment to be skipped, otherwise
+     * Set to {@code true} if you want the run goal to be skipped, otherwise
      * {@code false}.
      */
     @Parameter(defaultValue = "false", property = "wildfly.bootable.run.skip")

@@ -38,8 +38,8 @@ public class ShutdownBootableJarMojo extends AbstractServerConnection {
     private MavenProject project;
 
     /**
-     * Set to {@code true} if you want the deployment to be skipped, otherwise
-     * {@code false}.
+     * Set to {@code true} if you want the shutdown goal to be skipped,
+     * otherwise     * {@code false}.
      */
     @Parameter(defaultValue = "false", property = "wildfly.bootable.shutdown.skip")
     private boolean skip;
