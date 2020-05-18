@@ -41,7 +41,9 @@
                     <cli-script-files>
                         <script>../scripts/https.cli</script>
                     </cli-script-files>
-                    <extraServerContent>extra-content</extraServerContent>
+                    <extra-server-content-dirs>
+                        <extra-content>extra-content</extra-content>
+                    </extra-server-content-dirs>
                 </configuration>
                 <executions>
                     <execution>
@@ -67,7 +69,7 @@
                                 <script>../scripts/all-addresses.cli</script>
                                 <script>../scripts/os-https.cli</script>
                             </cli-script-files>
-                            <extraServerContent  combine.self="override"/>
+                            <extra-server-content-dirs  combine.self="override"/>
                         </configuration>
                     </plugin>
                 </plugins>

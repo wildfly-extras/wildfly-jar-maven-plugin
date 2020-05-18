@@ -219,23 +219,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     private List<FeaturePack> featurePacks = Collections.emptyList();
 
     /**
-     * Directory content copied to provisioned server.
+     * A list of directories to copy content to the provisioned server.
      */
-    @Parameter(alias = "extra-server-content-dir", property = "wildfly.bootable.package.extra.server.content.dir")
-    String extraServerContent;
-
-    /**
-     *
-     * To package an existing server as a bootable jar. Instead of using galleon
-     * to provision a server, an existing server can be packaged as a bootable
-     * jar. The argument existing-server-core-version must be set to the
-     * wildfly-core version of the existing server.
-     */
-    // @Parameter(alias = "existing-server", property = "wildfly.bootable.package.existing.server")
-    // String existingServer;
-
-    // @Parameter(alias = "existing-server-core-version", property = "wildfly.bootable.package.existing.server.core.version")
-    // String coreVersion;
+    @Parameter(alias = "extra-server-content-dirs", property = "wildfly.bootable.package.extra.server.content.dirs")
+    List<String> extraServerContent = Collections.emptyList();
 
     private Set<String> extraLayers = new HashSet<>();
 
@@ -301,10 +288,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private void copyExtraContent(Path wildflyDir) throws Exception {
-        if (extraServerContent != null) {
-            Path extraContent = Paths.get(extraServerContent);
+        for (String path : extraServerContent) {
+            Path extraContent = Paths.get(path);
             if (!Files.exists(extraContent)) {
-                throw new Exception("Extra content dir doesn't exist");
+                throw new Exception("Extra content dir " + path + " doesn't exist");
             }
             IoUtils.copy(extraContent, wildflyDir);
         }
