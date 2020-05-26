@@ -27,6 +27,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.maven.plugin.Mojo;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -45,6 +46,9 @@ import org.junit.runners.JUnit4;
 // Still using JUnit3 in AbstractMojoTestCase class.
 @RunWith(JUnit4.class)
 public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
+
+    private static final String WILDFLY_VERSION = "version.wildfly";
+    private static final String TEST_REPLACE = "TEST_REPLACE";
 
     private static Path TEST_DIR = null;
     private static Path setupProject(String pomFileName, boolean copyWar, String provisioning, String... cli) throws IOException {
@@ -73,7 +77,14 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(prov);
             assertTrue(prov.exists());
             Path galleon = Files.createDirectory(TEST_DIR.resolve("galleon"));
-            Files.copy(prov.toPath(), galleon.resolve("provisioning.xml"));
+            StringBuilder content = new StringBuilder();
+            for (String s : Files.readAllLines(prov.toPath())) {
+                if (s.contains(TEST_REPLACE)) {
+                    s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_VERSION));
+                }
+                content.append(s);
+            }
+            Files.write(galleon.resolve("provisioning.xml"), content.toString().getBytes());
         }
         if (cli != null) {
             for (String p : cli) {
@@ -102,6 +113,20 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
+    @Override
+    protected Mojo lookupConfiguredMojo(File pom, String goal) throws Exception {
+        Mojo mojo = super.lookupConfiguredMojo(pom, goal);
+        if (mojo instanceof AbstractBuildBootableJarMojo) {
+            AbstractBuildBootableJarMojo buildMojo = (AbstractBuildBootableJarMojo) mojo;
+            if (buildMojo.featurePackLocation != null) {
+                int i = buildMojo.featurePackLocation.lastIndexOf("#");
+                String fpl = buildMojo.featurePackLocation.substring(0, i + 1) + System.getProperty(WILDFLY_VERSION);
+                buildMojo.featurePackLocation = fpl;
+            }
+        }
+        return mojo;
+    }
+
     @Test
     public void testDefaultConfiguration()
             throws Exception {
@@ -110,7 +135,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
             assertTrue(mojo.cliScriptFiles.isEmpty());
-            assertEquals("wildfly@maven(org.jboss.universe:community-universe)#20.0.0.Beta1-SNAPSHOT", mojo.featurePackLocation);
+            assertTrue(mojo.featurePackLocation.startsWith("wildfly@maven(org.jboss.universe:community-universe)#"));
             assertNotNull(mojo.projectBuildDir);
             assertTrue(mojo.excludeLayers.isEmpty());
             assertTrue(mojo.layers.isEmpty());
@@ -209,7 +234,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             String[] layers = {"cloud-profile", "management"};
             String[] excludedLayers = {"ee-security"};
             checkJar(dir, false, false, layers, excludedLayers);
-            checkManagementItf(dir, true);
+            checkMetrics(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
         }
@@ -348,6 +373,10 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         checkURL(dir, "http://127.0.0.1:9990/management", start);
     }
 
+    private void checkMetrics(Path dir, boolean start) throws Exception {
+        checkURL(dir, "http://127.0.0.1:9990/metrics", start);
+    }
+
     private void checkURL(Path dir, String url, boolean start, String... args) throws Exception {
         int timeout = 30000;
         long sleep = 1000;
@@ -392,6 +421,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
                 HttpGet httpget = new HttpGet(url);
 
                 CloseableHttpResponse response = httpclient.execute(httpget);
+                System.out.println("STATUS CODE " + response.getStatusLine().getStatusCode());
                 return response.getStatusLine().getStatusCode() == 200;
             }
         } catch (Exception ex) {

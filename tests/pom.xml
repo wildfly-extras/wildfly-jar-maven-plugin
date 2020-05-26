@@ -88,6 +88,28 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <!-- Enable the default tests (which the parent pom turns off for this profile) -->
+                    <execution>
+                        <id>default-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <systemProperties>
+                                <property>
+                                    <name>version.wildfly</name>
+                                    <value>${version.wildfly}</value>
+                                </property>
+                            </systemProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
