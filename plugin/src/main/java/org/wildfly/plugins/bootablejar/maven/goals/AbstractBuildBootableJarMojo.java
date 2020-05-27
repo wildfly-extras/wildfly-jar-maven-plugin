@@ -632,23 +632,31 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                     config = ProvisioningXmlParser.parse(provisioningFile);
                 } else {
                     if (featurePackLocation == null) {
-                        throw new ProvisioningException("No server feature-pack location to provision standalone configuration, you must set a feature-pack-location.");
+                        throw new ProvisioningException("No server feature-pack location to provision microprofile standalone configuration, "
+                                + "you must set a feature-pack-location.");
                     }
                     ConfigModel.Builder configBuilder = null;
                     if (!extraLayers.isEmpty()) {
                         configBuilder = ConfigModel.
-                                builder("standalone", "standalone.xml");
+                                builder("standalone", "standalone-microprofile.xml");
                         for (String layer : extraLayers) {
                             configBuilder.includeLayer(layer);
                         }
                     }
                     FeaturePackConfig dependency = FeaturePackConfig.
                             builder(FeaturePackLocation.fromString(featurePackLocation)).
-                            setInheritPackages(true).setInheritConfigs(false).includeDefaultConfig("standalone", "standalone.xml").build();
+                            setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig("standalone", "standalone-microprofile.xml").build();
                     ProvisioningConfig.Builder provBuilder = ProvisioningConfig.builder().addFeaturePackDep(dependency).addOptions(pluginOptions);
-                    if (configBuilder != null) {
-                        provBuilder.addConfig(configBuilder.build());
+                    // Create a config to merge options to name the config standalone.xml
+                    if (configBuilder == null) {
+                        configBuilder = ConfigModel.builder("standalone", "standalone-microprofile.xml");
                     }
+                    configBuilder.setProperty("--server-config", "standalone.xml");
+                    provBuilder.addConfig(configBuilder.build());
+                    // The microprofile config is fully expressed with galleon layers, we can trim it.
+                    pluginOptions = Collections.
+                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+                    provBuilder.addOptions(pluginOptions);
                     config = provBuilder.build();
                 }
             } else {

@@ -107,7 +107,8 @@ _galleon_ directory must be located in the root directory of your maven project.
 
 ### Specifying the set of Galleon layers to use
 
-If no Galleon layers are provided, a complete standalone server (with default _standalone.xml_ configuration) is provisioned and packaged in the bootable jar according to the WildFly feature-pack in use. 
+If no Galleon layers are provided, a microprofile standalone server (with a configuration identical to the 
+_standalone-microprofile.xml_ configuration) is provisioned and packaged in the bootable jar. 
 In order to reduce the server content to your application needs, use the link:#layers[layers] configuration element.
 
 For example, to provision a server containing jaxrs and management support:
