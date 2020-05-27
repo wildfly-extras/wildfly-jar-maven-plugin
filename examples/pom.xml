@@ -10,7 +10,7 @@
     <name>WildFly bootable Jar examples</name>
 
     <properties>
-        <version.bootable.jar>2.0.0.Alpha3-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>2.0.0.Alpha4-SNAPSHOT</version.bootable.jar>
         <version.wildfly>20.0.0.Beta1</version.wildfly>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
