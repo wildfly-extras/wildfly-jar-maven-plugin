@@ -15,6 +15,8 @@ First, make sure you don't have pending changes in your master branch.
 * `mvn release:perform`
 * Update docs/* content to reference the new SNAPSHOT version. 
 * Commit the changes with message: `Update doc to X.X.X.Final-SNAPSHOT`
+* Update the examples/pom.xml file to reference the new SNAPSHOT version.
+* Commit the changes with message: `Update examples to X.X.X.Final-SNAPSHOT`
 * `push upstream master`
 
 == STEP 2: Release in Nexus
