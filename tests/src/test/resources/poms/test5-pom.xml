@@ -22,9 +22,9 @@
                         <layer>jaxrs</layer>
                         <layer>management</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                     <root-url-path>false</root-url-path>
                 </configuration>
                 

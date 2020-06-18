@@ -149,8 +149,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
      * A list of galleon layers to exclude. Can be used when
      * feature-pack-location or feature-packs are set.
      */
-    @Parameter(alias = "exclude-layers", required = false)
-    List<String> excludeLayers = Collections.emptyList();
+    @Parameter(alias = "excluded-layers", required = false)
+    List<String> excludedLayers = Collections.emptyList();
 
     /**
      * Whether to record provisioned state in .galleon directory.
@@ -501,7 +501,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     protected List<String> getExcludedLayers() {
-        return excludeLayers;
+        return excludedLayers;
     }
 
     private String provisionServer(Path home) throws ProvisioningException, MojoExecutionException {
@@ -607,7 +607,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                     }
                 }
 
-                for (String layer : excludeLayers) {
+                for (String layer : excludedLayers) {
                     configBuilder.excludeLayer(layer);
                 }
                 if (pluginOptions.isEmpty()) {

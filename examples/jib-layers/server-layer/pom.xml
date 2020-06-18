@@ -25,9 +25,9 @@
                         <layer>jaxrs</layer>
                         <layer>management</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                     <output-file-name>jaxrs-server.jar</output-file-name>
                 </configuration>

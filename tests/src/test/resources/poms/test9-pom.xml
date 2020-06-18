@@ -21,10 +21,10 @@
                         <layer>jaxrs</layer>
                         <layer>management</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <!-- Exclude scanner, hollow jar doesn't need it -->
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>
                 

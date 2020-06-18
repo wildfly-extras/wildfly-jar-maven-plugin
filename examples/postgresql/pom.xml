@@ -66,9 +66,9 @@
                         <layer>cloud-profile</layer>
                         <layer>postgresql-datasource</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                 </configuration>
                 <executions>
                     <execution>

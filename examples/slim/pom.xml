@@ -31,9 +31,9 @@
                     <layers>
                         <layer>jaxrs</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                     <plugin-options>
                          <jboss-maven-dist/>
                          <jboss-maven-repo>./my-maven-repo</jboss-maven-repo>

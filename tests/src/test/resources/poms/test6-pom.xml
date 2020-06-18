@@ -21,10 +21,10 @@
                         <layer>jaxrs</layer>
                         <layer>management</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <!-- force exclusion, dev mode must re-include it -->
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                 </configuration>
                 
             </plugin>

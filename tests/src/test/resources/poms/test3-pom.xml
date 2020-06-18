@@ -21,11 +21,11 @@
                         <layer>cloud-profile</layer>
                         <layer>management</layer>
                     </layers>
-                    <exclude-layers>
+                    <excluded-layers>
                         <layer>ee-security</layer>
                         <layer>observability</layer>
                         <layer>deployment-scanner</layer>
-                    </exclude-layers>
+                    </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>
                 

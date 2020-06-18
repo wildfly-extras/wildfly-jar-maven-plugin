@@ -137,7 +137,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertTrue(mojo.cliScriptFiles.isEmpty());
             assertTrue(mojo.featurePackLocation.startsWith("wildfly@maven(org.jboss.universe:community-universe)#"));
             assertNotNull(mojo.projectBuildDir);
-            assertTrue(mojo.excludeLayers.isEmpty());
+            assertTrue(mojo.excludedLayers.isEmpty());
             assertTrue(mojo.layers.isEmpty());
             assertTrue(mojo.pluginOptions.isEmpty());
             assertFalse(mojo.hollowJar);
@@ -225,10 +225,10 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertTrue(mojo.layers.size() == 2);
             assertTrue(mojo.layers.get(0).equals("cloud-profile"));
             assertTrue(mojo.layers.get(1).equals("management"));
-            assertTrue(mojo.excludeLayers.size() == 3);
-            assertTrue(mojo.excludeLayers.get(0).equals("ee-security"));
-            assertTrue(mojo.excludeLayers.get(1).equals("observability"));
-            assertTrue(mojo.excludeLayers.get(2).equals("deployment-scanner"));
+            assertTrue(mojo.excludedLayers.size() == 3);
+            assertTrue(mojo.excludedLayers.get(0).equals("ee-security"));
+            assertTrue(mojo.excludedLayers.get(1).equals("observability"));
+            assertTrue(mojo.excludedLayers.get(2).equals("deployment-scanner"));
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"cloud-profile", "management"};
@@ -263,8 +263,8 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         try {
             DevBootableJarMojo mojo = (DevBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "dev");
             assertNotNull(mojo);
-            assertTrue(mojo.excludeLayers.size() == 1);
-            assertTrue(mojo.excludeLayers.get(0).equals("deployment-scanner"));
+            assertTrue(mojo.excludedLayers.size() == 1);
+            assertTrue(mojo.excludedLayers.get(0).equals("deployment-scanner"));
             mojo.execute();
             checkJar(dir, false, false, null, null, "target/deployments");
             Path config = dir.resolve("target").resolve("bootable-jar-build-artifacts").
