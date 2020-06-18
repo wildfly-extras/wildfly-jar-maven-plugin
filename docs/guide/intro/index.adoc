@@ -122,15 +122,15 @@ For example, to provision a server containing jaxrs and management support:
 
 ### Excluding Galleon layers
 
-In order to exclude layers that are not strictly required, use the link:#excludeLayers[exclude-layers] configuration element.
+In order to exclude layers that are not strictly required, use the link:#excludedLayers[excluded-layers] configuration element.
 
 For example, _jaxrs_ layer (that depends on _web-server_ layer) brings the deployment scanner. The deployment scanner being an optional dependency of the _web-server_ layer 
 it can be excluded:
 
 ```
-<exclude-layers>
+<excluded-layers>
     <layer>deployment-scanner</layer>
-</exclude-layers>
+</excluded-layers>
 ``` 
 
 ## URL context path of deployed application
