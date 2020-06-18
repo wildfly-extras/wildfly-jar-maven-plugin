@@ -54,7 +54,7 @@
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
     <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
-    <version.org.jboss.galleon>4.2.4.Final</version.org.jboss.galleon>
+    <version.org.jboss.galleon>4.2.5.Final</version.org.jboss.galleon>
     <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
     <version.org.jboss.logmanager>2.1.14.Final</version.org.jboss.logmanager>
     <version.org.jboss.logging.jboss-logging-tools>2.2.1.Final</version.org.jboss.logging.jboss-logging-tools>
