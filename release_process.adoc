@@ -9,6 +9,8 @@ First, make sure you don't have pending changes in your master branch.
 * `pull --rebase upstream master`
 * Update docs/* content to reference the new released version. 
 * Commit the changes with message: `Update doc to X.X.X.Final`
+* Update the examples/pom.xml file to reference the released plugin
+* Commit the changes with message: `Update examples to X.X.X.Final`
 * `mvn release:prepare`
 * `mvn release:perform`
 * Update docs/* content to reference the new SNAPSHOT version. 
