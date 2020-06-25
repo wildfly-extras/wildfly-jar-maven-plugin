@@ -192,6 +192,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     String propertiesFile;
 
     /**
+     * By default expressions present in CLI scripts are resolved locally prior to send
+     * the operations to the server.
+     */
+    @Parameter(alias = "cli-resolve-expressions", defaultValue = "true")
+    boolean cliResolveExpressions;
+
+    /**
      * Hollow jar. Create a bootable jar that doesn't contain application.
      */
     @Parameter(alias = "hollow-jar", property = "wildfly.bootable.hollow")
@@ -389,7 +396,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         try {
             CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
             builder.setEchoCommand(true);
-            builder.setResolveParameterValues(true);
+            builder.setResolveParameterValues(cliResolveExpressions);
             builder.setConsoleOutput(out);
             CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
 
