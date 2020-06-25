@@ -1,0 +1,45 @@
+# Listen on accessible interface (required to create route).
+/interface=public:write-attribute(name=inet-address,value=${env.HOSTNAME})
+
+# Configure server address for KUBE_PING to be accessible from other PODS.
+# HOSTNAME env variable is defined in the Openshift POD.
+/interface=private:write-attribute(name=inet-address,value=${env.HOSTNAME})
+
+batch
+/subsystem=jgroups/channel=ee:write-attribute(name=cluster)
+/subsystem=jgroups/channel=ee:write-attribute(name=stack,value=tcp)
+/subsystem=jgroups/stack=udp/protocol=FD_SOCK:write-attribute(name=socket-binding
+/subsystem=jgroups/stack=tcp/protocol=FD_SOCK:write-attribute(name=socket-binding
+/subsystem=jgroups/stack=udp/protocol=PING:remove
+/subsystem=jgroups/stack=tcp/protocol=MPING:remove
+/socket-binding-group=standard-sockets/socket-binding=jgroups-udp-fd:remove
+/socket-binding-group=standard-sockets/socket-binding=jgroups-tcp-fd:remove
+run-batch
+
+# Infinispan, add a more efficient cache.
+batch
+/subsystem=infinispan/cache-container=web/replicated-cache=repl:add
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=repl)
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/component=locking:add(isolation=REPEATABLE_READ
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/component=transaction:add(mode=BATCH
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/store=file:add
+run-batch
+
+# jgroups Authentication protocol and KUBE_PING configuration
+batch
+/subsystem=jgroups/stack=tcp/protocol=AUTH:add(add-index=7)
+/subsystem=jgroups/stack=tcp/protocol=AUTH/token=digest:add(algorithm=SHA-512, shared-secret-reference={clear-text=${env.CLUSTER_PASSWORD}})
+run-batch
+
+batch
+/subsystem=jgroups/stack=udp/protocol=AUTH:add(add-index=7)
+/subsystem=jgroups/stack=udp/protocol=AUTH/token=digest:add(algorithm=SHA-512, shared-secret-reference={clear-text=${env.CLUSTER_PASSWORD}})
+run-batch      
+
+batch
+/subsystem=jgroups/stack=tcp/protocol=kubernetes.KUBE_PING:add(add-index=0)
+run-batch
+
+batch
+/subsystem=jgroups/stack=udp/protocol=kubernetes.KUBE_PING:add(add-index=0)
+run-batch
