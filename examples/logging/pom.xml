@@ -32,9 +32,15 @@
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>   
                 <configuration>
-                    <cli-script-files>
-                        <script>../scripts/logging.cli</script>
-                    </cli-script-files>
+                    <cli-sessions>
+                        <cli-session>
+                            <script-files>
+                                <script>../scripts/logging.cli</script>
+                            </script-files>
+                            <properties-file>../scripts/cli.properties</properties-file>
+                            <resolve-expressions>true</resolve-expressions>
+                        </cli-session>
+                    </cli-sessions>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
                         <layer>jaxrs</layer>

@@ -56,11 +56,23 @@
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-jar-maven-plugin</artifactId>   
                         <configuration >
-                            <cli-script-files>
-                                <script>../scripts/os-clustering.cli</script>
-                            </cli-script-files>
-                            <!-- we want the env variables to be resolved on the server side -->
-                            <cliResolveExpressions>false</cliResolveExpressions>
+                            <cli-sessions>
+                                <cli-session>
+                                    <script-files>
+                                        <script>../scripts/os-clustering.cli</script>
+                                    </script-files>
+                                    <!-- we want the env variables to be resolved on the server side -->
+                                    <resolve-expressions>false</resolve-expressions>
+                                </cli-session>
+                                <cli-session>
+                                    <script-files>
+                                        <script>../scripts/all-addresses.cli</script>
+                                    </script-files>
+                                    <properties-file>../scripts/cli.properties</properties-file>
+                                    <!-- we want the properties to be resolved during CLI execution -->
+                                    <resolve-expressions>true</resolve-expressions>
+                                </cli-session>
+                            </cli-sessions>
                         </configuration>
                     </plugin>
                 </plugins>

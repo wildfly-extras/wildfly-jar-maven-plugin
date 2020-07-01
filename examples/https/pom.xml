@@ -35,12 +35,16 @@
                     <excluded-layers>
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
-                    <cli-properties-file>
-                        ../scripts/cli.properties
-                    </cli-properties-file>
-                    <cli-script-files>
-                        <script>../scripts/https.cli</script>
-                    </cli-script-files>
+                    <cli-sessions>
+                        <cli-session>
+                            <properties-file>
+                                ../scripts/cli.properties
+                            </properties-file>
+                            <script-files>
+                                <script>../scripts/https.cli</script>
+                            </script-files>
+                        </cli-session>
+                    </cli-sessions>
                     <extra-server-content-dirs>
                         <extra-content>extra-content</extra-content>
                     </extra-server-content-dirs>
@@ -65,10 +69,17 @@
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-jar-maven-plugin</artifactId>   
                         <configuration>
-                            <cli-script-files>
-                                <script>../scripts/all-addresses.cli</script>
-                                <script>../scripts/os-https.cli</script>
-                            </cli-script-files>
+                            <cli-sessions>
+                                <cli-session>
+                                    <properties-file>
+                                        ../scripts/cli.properties
+                                    </properties-file>
+                                    <script-files>
+                                        <script>../scripts/all-addresses.cli</script>
+                                        <script>../scripts/os-https.cli</script>
+                                    </script-files>
+                                </cli-session>
+                            </cli-sessions>
                             <extra-server-content-dirs  combine.self="override"/>
                         </configuration>
                     </plugin>

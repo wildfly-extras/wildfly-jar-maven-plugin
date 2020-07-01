@@ -179,24 +179,27 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     String featurePackLocation;
 
     /**
-     * Path to JBoss CLI scripts to execute once the server is provisioned and
-     * application is deployed to the server.
+     * List of CLI execution sessions. An embedded server is started for each CLI session.
+     * CLI session are configured in the following way:
+     * <br/>
+     * &lt;cli-sessions&gt;<br/>
+     * &lt;cli-session&gt;<br/>
+     * &lt;script-files&gt;<br/>
+     * &lt;script&gt;../scripts/script1.cli&lt;/script&gt;<br/>
+     * &lt;/script-files&gt;<br/>
+     * &lt;!-- Expressions resolved during server execution --&gt;<br/>
+     * &lt;resolve-expressions&gt;false&lt;/resolve-expressions&gt;<br/>
+     * &lt;/cli-session&gt;<br/>
+     * &lt;cli-session&gt;<br/>
+     * &lt;script-files&gt;<br/>
+     * &lt;script&gt;../scripts/script2.cli&lt;/script&gt;<br/>
+     * &lt;/script-files&gt;<br/>
+     * &lt;properties-file&gt;../scripts/cli.properties&lt;/properties-file&gt;<br/>
+     * &lt;/cli-session&gt;<br/>
+     * &lt;/cli-sessions&gt;
      */
-    @Parameter(alias = "cli-script-files")
-    List<String> cliScriptFiles = Collections.emptyList();
-
-    /**
-     * Path to a JBoss CLI script properties file.
-     */
-    @Parameter(alias = "cli-properties-file")
-    String propertiesFile;
-
-    /**
-     * By default expressions present in CLI scripts are resolved locally prior to send
-     * the operations to the server.
-     */
-    @Parameter(alias = "cli-resolve-expressions", defaultValue = "true")
-    boolean cliResolveExpressions;
+    @Parameter(alias = "cli-sessions")
+    List<CliSession> cliSessions = Collections.emptyList();
 
     /**
      * Hollow jar. Create a bootable jar that doesn't contain application.
@@ -279,11 +282,11 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             copyExtraContent(wildflyDir);
             List<String> commands = new ArrayList<>();
             deploy(commands);
-            userScripts(commands);
             configureCli(commands);
             if (!commands.isEmpty()) {
-                executeCliScript(wildflyDir, commands);
+                executeCliScript(wildflyDir, commands, null, false, "Server configuration");
             }
+            userScripts(wildflyDir);
             cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile, bootVersion);
@@ -346,34 +349,41 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return f;
     }
 
-    private void userScripts(List<String> commands) throws Exception {
-        for (String path : cliScriptFiles) {
-            File f = new File(path);
-            if (!f.exists()) {
-                if (!f.isAbsolute()) {
-                    f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-                }
+    private void userScripts(Path wildflyDir) throws Exception {
+        for (CliSession session : cliSessions) {
+            List<String> commands = new ArrayList<>();
+            for (String path : session.getScriptFiles()) {
+                File f = new File(path);
                 if (!f.exists()) {
-                    throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                    if (!f.isAbsolute()) {
+                        f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
+                    }
+                    if (!f.exists()) {
+                        throw new RuntimeException("Cli script file " + path + " doesn't exist");
+                    }
+                }
+                try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+                    String line = reader.readLine();
+                    while (line != null) {
+                        commands.add(line.trim());
+                        line = reader.readLine();
+                    }
                 }
             }
-            try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
-                String line = reader.readLine();
-                while (line != null) {
-                    commands.add(line.trim());
-                    line = reader.readLine();
-                }
+            if(!commands.isEmpty()) {
+                executeCliScript(wildflyDir, commands, session.getPropertiesFile(), session.getResolveExpression(), session.toString());
             }
         }
     }
 
-    private void executeCliScript(Path jbossHome, List<String> commands) throws Exception {
+    private void executeCliScript(Path jbossHome, List<String> commands, String propertiesFile, boolean resolveExpression, String message) throws Exception {
+        getLog().info("Executing CLI, " + message);
         Properties props = null;
         if (propertiesFile != null) {
-            props = loadProperties();
+            props = loadProperties(propertiesFile);
         }
         try {
-            processCLI(jbossHome, commands);
+            processCLI(jbossHome, commands, resolveExpression);
         } finally {
             if (props != null) {
                 for (String key : props.stringPropertyNames()) {
@@ -383,8 +393,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private void processCLI(Path jbossHome, List<String> commands) throws Exception {
-        getLog().info("Executing CLI scripts.");
+    private void processCLI(Path jbossHome, List<String> commands, boolean resolveExpression) throws Exception {
         Level level = disableLog();
         Path config = jbossHome.resolve("bin").resolve("jboss-cli.xml");
         String origConfig = System.getProperty("jboss.cli.config");
@@ -396,7 +405,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         try {
             CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
             builder.setEchoCommand(true);
-            builder.setResolveParameterValues(cliResolveExpressions);
+            builder.setResolveParameterValues(resolveExpression);
             builder.setConsoleOutput(out);
             CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
 
@@ -449,7 +458,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         l.setLevel(level);
     }
 
-    private Properties loadProperties() throws Exception {
+    private Properties loadProperties(String propertiesFile) throws Exception {
         File f = new File(propertiesFile);
         if (!f.exists()) {
             if (!f.isAbsolute()) {
