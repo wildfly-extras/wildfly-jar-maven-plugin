@@ -134,7 +134,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
-            assertTrue(mojo.cliScriptFiles.isEmpty());
+            assertTrue(mojo.cliSessions.isEmpty());
             assertTrue(mojo.featurePackLocation.startsWith("wildfly@maven(org.jboss.universe:community-universe)#"));
             assertNotNull(mojo.projectBuildDir);
             assertTrue(mojo.excludedLayers.isEmpty());
@@ -200,10 +200,11 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         try {
             BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
             assertNotNull(mojo);
-            assertFalse(mojo.cliScriptFiles.isEmpty());
-            assertTrue(mojo.cliScriptFiles.size() == 2);
-            assertTrue(mojo.cliScriptFiles.get(0).equals("add-prop.cli"));
-            assertTrue(mojo.cliScriptFiles.get(1).equals("add-prop2.cli"));
+            assertTrue(mojo.cliSessions.size() == 1);
+            CliSession session = mojo.cliSessions.get(0);
+            assertTrue(session.getScriptFiles().size() == 2);
+            assertTrue(session.getScriptFiles().get(0).equals("add-prop.cli"));
+            assertTrue(session.getScriptFiles().get(1).equals("add-prop2.cli"));
             mojo.recordState = true;
             mojo.execute();
             String[] layers = {"jaxrs", "management"};

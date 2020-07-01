@@ -159,11 +159,56 @@ In addition to Galleon layers that you can use to configure the server, you can 
 
 The maven plugin allows you to:
 
-* Run JBoss CLI scripts (see https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/logging[logging] example to configure loggers).
+* Run https://docs.wildfly.org/20/Admin_Guide.html#Command_Line_Interface[WildFly CLI] scripts (see https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/logging[logging] example to configure loggers).
 * Add extra content that you want to see packaged in the server (eg: _standalone/configuration/application-users.properties_, _standalone/configuration/keystore.jks_, ...).
 The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/https[https] shows how to package a keystore file in the bootable jar.
 
 NB: The configuration changes applied during packaging are persisted in the server configuration.
+
+### WildFly CLI execution during packaging
+
+Part of WildFly CLI command line tool has been integrated in the Maven plugin. The plugin supports execution of CLI script files with a limited set of CLI configuration items.
+
+CLI script files are text files that contain a sequence of WildFly CLI commands. Commands can be CLI defined commands 
+(some builtin commands allowing to achieve complex sequence of server operations) and generic management operations to be sent to the server. Some examples can
+be found in WildFly administration guide https://docs.wildfly.org/20/Admin_Guide.html#CLI_Recipes[CLI recipes chapter].
+
+In the context of Bootable JAR, the script does not need to contain commands to connect to the server or start an embedded server. 
+The Maven plugin handles that for you by starting an embedded server for each group of scripts.
+
+The plugin allows you to execute multiple group of scripts with different CLI contexts. 
+A group of scripts and its configuration are defined in a ```cli-session``` composed of:
+
+* ```<script-files>```: the list of paths to script files .
+* ```properties-file```: (optional) a path to a properties file that contains java properties that scripts can reference (using the syntax ```${my.prop}```). 
+For example, a command that sets the public inet-address to the value of ```all.addresses``` system property looks like: ```/interface=public:write-attribute(name=inet-address,value=${all.addresses})```
+* ```resolve-expressions```: (optional) a boolean indicating if system properties or 
+expressions are resolved before sending the operation requests to the server. Value is ```true``` by default.
+
+All scripts present in a ```cli-session``` are executed within a single CLI execution. An embedded server is started for each defined ```cli-session```.
+
+NB: The scripts are executed in the order they are defined in the plugin configuration. 
+
+CLI configuration example:
+```
+<cli-sessions>
+  <cli-session>
+    <script-files>
+        <script>../scripts/script1.cli</script>
+    </script-files>
+    <!-- We want the env variables to be resolved during server execution -->
+    <resolve-expressions>false</resolve-expressions>
+  </cli-session>
+  <cli-session>
+    <script-files>
+        <script>../scripts/script2.cli</script>
+    </script-files>
+    <properties-file>../scripts/cli.properties</properties-file>
+    <!-- We want the properties to be resolved during CLI execution (not actually needed, this is the default behavior) -->
+    <resolve-expressions>true</resolve-expressions>
+  </cli-session>
+</cli-sessions>
+```
 
 ## Configuring the server at runtime
 

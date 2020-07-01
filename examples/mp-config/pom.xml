@@ -59,13 +59,17 @@
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-jar-maven-plugin</artifactId>   
                         <configuration >
-                            <cli-properties-file>
-                                ../scripts/cli.properties
-                            </cli-properties-file>
-                            <cli-script-files>
-                                <script>../scripts/all-addresses.cli</script>
-                                <script>../scripts/mp-config.cli</script>
-                            </cli-script-files>
+                            <cli-sessions>
+                                <cli-session>
+                                    <properties-file>
+                                        ../scripts/cli.properties
+                                    </properties-file>
+                                    <script-files>
+                                        <script>../scripts/all-addresses.cli</script>
+                                        <script>../scripts/mp-config.cli</script>
+                                    </script-files>
+                                </cli-session>
+                            </cli-sessions>
                         </configuration>
                     </plugin>
                 </plugins>

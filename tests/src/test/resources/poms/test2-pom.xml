@@ -17,10 +17,14 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#TEST_REPLACE</feature-pack-location>
-                    <cli-script-files>
-                        <script>add-prop.cli</script>
-                        <script>add-prop2.cli</script>
-                    </cli-script-files>
+                    <cli-sessions>
+                        <cli-session>
+                            <script-files>
+                                <script>add-prop.cli</script>
+                                <script>add-prop2.cli</script>
+                            </script-files>
+                        </cli-session>
+                    </cli-sessions>
                     <layers>
                         <layer>jaxrs</layer>
                         <layer>management</layer>

@@ -28,12 +28,16 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration >
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
-                    <cli-properties-file>
-                        ../scripts/cli.properties
-                    </cli-properties-file>
-                    <cli-script-files>
-                        <script>../scripts/deployment-permissions.cli</script>
-                    </cli-script-files>
+                    <cli-sessions>
+                        <cli-session>
+                            <properties-file>
+                                ../scripts/cli.properties
+                            </properties-file>
+                            <script-files>
+                                <script>../scripts/deployment-permissions.cli</script>
+                            </script-files>
+                        </cli-session>
+                    </cli-sessions>
                 </configuration>
                 <executions>
                     <execution>
