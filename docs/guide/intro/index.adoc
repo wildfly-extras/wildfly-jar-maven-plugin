@@ -210,9 +210,59 @@ CLI configuration example:
 </cli-sessions>
 ```
 
+## Configuring the server for cloud execution
+
+The configuration item ```<cloud></cloud>``` allows to build a bootable JAR for cloud environment. By default the server is configured to run inside an OpenShift context.
+Set the cloud child element ```<type>openshift|kubernetes</type>``` to select the targeted cloud platform.
+
+The sever configuration is updated in order to properly operate in a cloud environment:
+
+* The ```microprofile-health``` and ```core-tools``` (that contains WildFly CLI) galleon layers are provisioned. They are required for the  OpenShift probes and WildFly OpenShift operator to properly operate.
+* The public and private inet addresses are bound to the value of the ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS).
+* The management inet address is bound to the 0.0.0.0 inet address allowing for local (required by WildFly CLI) and remote access (required by OpenShift readiness and liveness probes).
+* The transaction subsystem id is set to the value of ```jboss.node.name```.
+* The ```jboss.node.name``` system propery, if not set, is set to the value of ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS). The node name value
+is truncated to a max of 23 characters in order for the transaction subsystem to properly operate.
+* The server logs are printed in the console.
+* jgroups subsystem is configured to use kubernetes.KUBE_PING jgroups protocol for both tcp (default stack) and udp. PING and MPING protocols are removed.
+* It is possible to configure jgroups to use un-encrypted password authentication. Set the ```<cloud>``` child element ```<enable-jgroups-password>true|false</enable-jgroups-password>``` to enable authentication. 
+NB: When authentication is enabled, the environment variable ```JGROUPS_CLUSTER_PASSWORD``` must be set.
+
+Some examples:
+
+Configure for OpenShift execution:
+
+```
+<cloud/>
+```
+
+Configure for OpenShift execution with jgroups authentication enabled:
+
+```
+<cloud>
+  <enable-jgroups-password>true</enable-jgroups-password>
+</cloud>
+```
+Configure for kubernetes execution:
+
+```
+<cloud>
+  <type>kubernetes</type>
+</cloud>
+```
+
+### WildFly OpenShift operator
+
+The WildFly OpenShift operator can be used to manage deployments based on image containing a WildFly bootable JAR.
+At boot time, the WildFly bootable JAR dumps in the file ```/opt/jboss/container/wildfly-bootable-jar/install-dir``` its installation path.
+This information is required by the WildFly OpenShift operator to retrieve transaction logs and call into WildFly CLI.
+
+
 ## Configuring the server at runtime
 
 The server can be configured using WildFly management tooling (JBOSS CLI, HAL web console, ...).
+
+In an OpenShift context, the WildFly CLI tool can be retrieved in the bootable JAr installation directory (advertised in the ```/opt/jboss/container/wildfly-bootable-jar/install-dir``` file).
 
 NB: Configuration changes are not persisted. Once the server is killed, management updates are lost.
 

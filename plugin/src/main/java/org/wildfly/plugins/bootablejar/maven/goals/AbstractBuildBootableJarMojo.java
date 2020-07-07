@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +50,8 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptorBuilder;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.DefaultProjectBuildingRequest;
@@ -242,6 +245,12 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private Set<String> extraLayers = new HashSet<>();
 
+    private Path wildflyDir;
+
+    public Path getJBossHome() {
+        return wildflyDir;
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -269,7 +278,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(outputFileName);
         IoUtils.recursiveDelete(contentRoot);
 
-        Path wildflyDir = contentRoot.resolve("wildfly");
+        wildflyDir = contentRoot.resolve("wildfly");
         Path contentDir = contentRoot.resolve("jar-content");
         try {
             Files.createDirectories(contentRoot);
@@ -285,6 +294,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
         try {
+            copyExtraContentInternal(wildflyDir, contentDir);
             copyExtraContent(wildflyDir);
             List<String> commands = new ArrayList<>();
             deploy(commands);
@@ -311,6 +321,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
             IoUtils.copy(extraContent, wildflyDir);
         }
+    }
+
+    protected void copyExtraContentInternal(Path wildflyDir, Path contentDir) throws Exception {
+
     }
 
     protected void addExtraLayer(String layer) {
@@ -712,7 +726,6 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                             break;
                         }
                     }
-                    System.out.println("FPID " + fprt.getFPID());
                     break;
                 }
             }
@@ -777,7 +790,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private void buildJar(Path contentDir, Path jarFile, Artifact artifact) throws MojoExecutionException, IOException {
         try {
-            Path rtJarFile = resolveBoot(artifact);
+            Path rtJarFile = resolveArtifact(artifact);
             ZipUtils.unzip(rtJarFile, contentDir);
             ZipUtils.zip(contentDir, jarFile);
         } catch (PlexusConfigurationException | UnsupportedEncodingException e) {
@@ -785,7 +798,24 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private Path resolveBoot(Artifact artifact) throws UnsupportedEncodingException,
+    public String retrievePluginVersion() throws UnsupportedEncodingException, PlexusConfigurationException, MojoExecutionException {
+        InputStream is = getClass().getResourceAsStream("/META-INF/maven/plugin.xml");
+        if (is == null) {
+            throw new MojoExecutionException("Can't retrieve plugin descriptor");
+        }
+        PluginDescriptorBuilder builder = new PluginDescriptorBuilder();
+        PluginDescriptor pluginDescriptor = builder.build(new InputStreamReader(is, "UTF-8"));
+        return pluginDescriptor.getVersion();
+    }
+
+    public Path resolveArtifact(String groupId, String artifactId, String version) throws UnsupportedEncodingException,
+            PlexusConfigurationException, MojoExecutionException {
+        return resolveArtifact(new DefaultArtifact(groupId, artifactId, version,
+                            "provided", JAR, null,
+                            new DefaultArtifactHandler(JAR)));
+    }
+
+    private Path resolveArtifact(Artifact artifact) throws UnsupportedEncodingException,
             PlexusConfigurationException, MojoExecutionException {
         final ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
         buildingRequest.setLocalRepository(session.getLocalRepository());
@@ -797,7 +827,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             return result.getArtifact().getFile().toPath();
         } catch (ArtifactResolverException ex) {
             throw new MojoExecutionException("Can't resolve boot artifact "
-                    + artifact + " no support for bootable jar packaging");
+                    + artifact + " no support for bootable jar packaging", ex);
         }
     }
 

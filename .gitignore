@@ -14,3 +14,4 @@ target/
 
 examples/slim/my-maven-repo/
 examples/**/nb-configuration.xml
+/extensions/cloud/target/
