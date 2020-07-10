@@ -138,17 +138,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>jboss-public-repository</id>
-            <name>JBoss Public Maven Repository Group</name>
-            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>Red Hat GA</id>
-            <name>Red Hat GA</name>
-            <url>https://maven.repository.redhat.com/ga/</url>
-        </repository>
-    </repositories>
-
 </project>
