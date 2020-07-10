@@ -83,6 +83,7 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
+import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -521,6 +522,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private String provisionServer(Path home) throws ProvisioningException, MojoExecutionException {
+        MavenRepositoriesEnricher.enrich(session, project, repositories);
         final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
                 : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
 
