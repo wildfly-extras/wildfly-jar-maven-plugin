@@ -10,7 +10,7 @@ configure the application
 == Run the application locally
 
 * To build: `mvn package`
-* To run: `CONFIG1="Value comes from the env" mvn wildfly-jar:run`
+* To run: `CONFIG1="Value comes from the env" java -jar target/microprofile-config-wildfly.jar`
 * Access the application: http://localhost:8080/
 
 [source,bash]
@@ -35,7 +35,7 @@ $ oc new-build --strategy source --binary --image-stream openjdk-11 --name micro
 $ oc start-build microprofile-config-app --from-dir target/openshift
 ----
 
-Once the application image is built, it will be available with the imagestream tag `microprofile-config-app:latest`:
+Once the application image has been built, it will be available with the imagestream tag `microprofile-config-app:latest`:
 
 [source,bash]
 ----
