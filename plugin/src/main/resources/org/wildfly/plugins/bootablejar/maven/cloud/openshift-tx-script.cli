@@ -1,0 +1,4 @@
+if (outcome == success) of /subsystem=transactions:read-resource
+ /subsystem=transactions:write-attribute(name=node-identifier,value=${jboss.node.name:1})
+ /subsystem=transactions:write-attribute(name=recovery-listener,value=true)
+end-if

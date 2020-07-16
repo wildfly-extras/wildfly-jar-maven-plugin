@@ -45,6 +45,8 @@
     <module>docs</module>
     <module>plugin</module>
     <module>tests</module>
+    <!-- disable extension until core support them -->
+    <!--<module>extensions</module>-->
   </modules>
 
   <properties>
@@ -102,6 +104,19 @@
 
   <dependencyManagement>
     <dependencies>
+        
+      <!-- Disable extension waiting for core to contain it.
+     <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wildfly-jar-cloud-extension</artifactId>
+        <version>${project.version}</version>
+      </dependency> -->
+        
+      <dependency>
+        <groupId>org.wildfly.core</groupId>
+        <artifactId>wildfly-jar-boot</artifactId>
+        <version>${version.org.wildfly.core.wildfly-core}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.jboss.galleon</groupId>

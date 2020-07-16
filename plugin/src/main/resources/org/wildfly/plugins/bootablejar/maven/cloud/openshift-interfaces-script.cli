@@ -1,0 +1,12 @@
+# Management interfaces
+if (outcome == success) of /interface=private:read-resource
+/interface=private:write-attribute(name=inet-address,value=${jboss.bind.address.private,env.HOSTNAME:127.0.0.1})
+end-if
+if (outcome == success) of /interface=public:read-resource
+/interface=public:write-attribute(name=inet-address,value=${jboss.bind.address,env.HOSTNAME:127.0.0.1})
+end-if
+
+# We want the CLI to be able to connect on 127.0.0.1
+if (outcome == success) of /interface=management:read-resource
+/interface=management:write-attribute(name=inet-address,value=${jboss.bind.address.management:0.0.0.0})
+end-if
