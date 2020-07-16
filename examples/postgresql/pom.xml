@@ -89,17 +89,8 @@
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-jar-maven-plugin</artifactId>   
-                        <configuration >
-                            <cli-sessions>
-                                <cli-session>
-                                    <properties-file>
-                                        ../scripts/cli.properties
-                                    </properties-file>
-                                    <script-files>
-                                        <script>../scripts/all-addresses.cli</script>
-                                    </script-files>
-                                </cli-session>
-                            </cli-sessions>
+                        <configuration>
+                            <cloud/>
                         </configuration>
                     </plugin>
                 </plugins>
