@@ -1,0 +1,95 @@
+= MicroProfile Config Example
+:toc:               left
+:icons:             font
+:idprefix:
+:idseparator:       -
+
+This example shows to use MicroProfile Config in a Web application and
+configure the application
+
+== Run the application locally
+
+* To build: `mvn package`
+* To run: `CONFIG1="Value comes from the env" mvn wildfly-jar:run`
+* Access the application: http://localhost:8080/
+
+[source,bash]
+----
+$ curl http://localhost:8080/
+config1 = Value comes from the env
+config2 = Value for config2 comes from a properties file inside the application
+config3 = Default value for config3 comes from my code
+----
+
+== Run the application on Openshift
+
+=== Package the application and create the application image
+
+[source,bash]
+----
+$ mvn package -Popenshift
+$ mkdir target/openshift && cp target/microprofile-config-wildfly.jar target/openshift
+# Import the OpenJDK 11 image to run the Java application
+$ oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
+$ oc new-build --strategy source --binary --image-stream openjdk-11 --name microprofile-config-app
+$ oc start-build microprofile-config-app --from-dir target/openshift
+----
+
+Once the application image is built, it will be available with the imagestream tag `microprofile-config-app:latest`:
+
+[source,bash]
+----
+$ oc get is microprofile-config-app
+NAME                      IMAGE REPOSITORY                                                                              TAGS     UPDATED
+microprofile-config-app   default-route-openshift-image-registry.apps-crc.testing/wildfly-jar/microprofile-config-app   latest   1 second ago
+----
+
+=== Deploy the application
+
+[source,bash]
+----
+$ oc new-app microprofile-config-app
+$ oc expose svc/microprofile-config-app
+$ curl http://$(oc get route microprofile-config-app --template='{{ .spec.host }}')
+config1 = Default value for config1 comes from my code
+config2 = Value for config2 comes from a properties file inside the application
+config3 = Default value for config3 comes from my code
+----
+
+=== Create a ConfigMap to configure the application
+
+[source,bash]
+----
+$ oc create configmap microprofile-config-map --from-literal=config2="Value for config2 comes from Openshift ConfigMap"
+----
+
+=== Mount the config map in the application
+
+[source,bash]
+----
+$ oc edit dc microprofile-config-app
+
+    spec:
+      volumes:
+        - name: config-volume
+          configMap:
+            name: microprofile-config-map
+      containers:
+        - name: microprofile-config-app
+          env:
+            - name: CONFIG1
+              value: Value from Config1 comes from an env var in the DeploymentConfig
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+----
+
+Once the DeploymentConfig is saved, the application will be redeployed and the new configuration will be taken into account:
+
+[source,bash]
+----
+$ curl http://$(oc get route microprofile-config-app --template='{{ .spec.host }}')
+config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config2 = Value for config2 comes from Openshift ConfigMap
+config3 = Default value for config3 comes from my code
+----
