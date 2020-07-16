@@ -24,11 +24,6 @@ JVM ENV variable required for Openshift
 * GC_METASPACE_SIZE=96
 * JAVA_OPTS=-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true
 
-
-Interesting arguments to pass to JAVA_ARGS when running in Openshift
-* -Djboss.node.name=<a node name>
-* -b=0.0.0.0
-
 Enable Debug for Openshift
 ==========================
 

@@ -68,11 +68,11 @@
                                         ../scripts/cli.properties
                                     </properties-file>
                                     <script-files>
-                                        <script>../scripts/all-addresses.cli</script>
                                         <script>../scripts/mp-config.cli</script>
                                     </script-files>
                                 </cli-session>
                             </cli-sessions>
+                            <cloud/>
                         </configuration>
                     </plugin>
                 </plugins>

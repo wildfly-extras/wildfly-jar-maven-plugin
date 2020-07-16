@@ -76,11 +76,11 @@
                                         ../scripts/cli.properties
                                     </properties-file>
                                     <script-files>
-                                        <script>../scripts/all-addresses.cli</script>
                                         <script>../scripts/os-https.cli</script>
                                     </script-files>
                                 </cli-session>
                             </cli-sessions>
+                            <cloud/>
                             <extra-server-content-dirs  combine.self="override"/>
                         </configuration>
                     </plugin>
