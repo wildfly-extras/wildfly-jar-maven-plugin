@@ -32,10 +32,11 @@
     <name>WildFly Bootable Jar Maven Plugin</name>
 
     <dependencies>
+        <!-- Disable extensions until core supports it 
         <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>wildfly-jar-cloud-extension</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.jboss.galleon</groupId>
             <artifactId>galleon-maven-plugin</artifactId>

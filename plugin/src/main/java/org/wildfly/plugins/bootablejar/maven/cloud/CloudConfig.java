@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
-import org.jboss.galleon.util.ZipUtils;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
@@ -83,8 +82,9 @@ public class CloudConfig {
         try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
             props.store(s, type + " properties");
         }
-        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", mojo.retrievePluginVersion());
-        ZipUtils.unzip(extensionJar, contentDir);
+        // Disable extensions until core supports it.
+        //Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", mojo.retrievePluginVersion());
+        //ZipUtils.unzip(extensionJar, contentDir);
     }
 
     public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {

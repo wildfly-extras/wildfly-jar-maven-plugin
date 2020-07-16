@@ -37,10 +37,11 @@
             <artifactId>wildfly-jar-maven-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Disable extensions until core supports it
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>wildfly-jar-cloud-extension</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
