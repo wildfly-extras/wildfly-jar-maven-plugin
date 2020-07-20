@@ -1,5 +1,6 @@
 Each directory contains a specific use-case in which wildfly bootable jar maven plugin is used. Each example contains a README.md file
-that contains the information to build and run the example. NB: The examples depend on the latest released plugin.
+that contains the information to build and run the example. NB: The released examples depend on the released plugin. In the master branch,
+the examples depend on the SNAPSHOT build of the plugin.
 
 
 JDK11 required arguments
