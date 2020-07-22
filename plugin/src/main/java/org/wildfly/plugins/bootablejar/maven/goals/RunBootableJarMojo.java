@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -38,14 +39,26 @@ public final class RunBootableJarMojo extends AbstractMojo {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.run.jvmArguments")
+    @Parameter(alias = "jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Bootable jar arguments.
+     * Bootable jar server arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.bootable.run.arguments")
+    @Parameter(alias = "arguments")
     public List<String> arguments = new ArrayList<>();
+
+    /**
+     * Additional JVM options that can be set thanks to system property.
+     */
+    @Parameter(property = "wildfly.bootable.jvmArguments")
+    public String jvmArgumentsProps;
+
+    /**
+     * Bootable jar server arguments that can be set thanks to system property.
+     */
+    @Parameter(property = "wildfly.bootable.arguments")
+    public String argumentsProps;
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
@@ -70,6 +83,21 @@ public final class RunBootableJarMojo extends AbstractMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
+
+        if (jvmArgumentsProps != null) {
+            StringTokenizer args = new StringTokenizer(jvmArgumentsProps);
+            while (args.hasMoreTokens()) {
+                this.jvmArguments.add(args.nextToken());
+            }
+        }
+
+        if (argumentsProps != null) {
+            StringTokenizer args = new StringTokenizer(argumentsProps);
+            while (args.hasMoreTokens()) {
+                this.arguments.add(args.nextToken());
+            }
+        }
+
         Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, "run"), jvmArguments, arguments, true,
                 false, null, -1);
     }

@@ -19,6 +19,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -40,14 +41,27 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments", property = "wildfly.bootable.start.jvmArguments")
+    @Parameter(alias = "jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Bootable jar arguments.
+     * Bootable jar server arguments.
      */
-    @Parameter(alias = "arguments", property = "wildfly.bootable.start.arguments")
+    @Parameter(alias = "arguments")
     public List<String> arguments = new ArrayList<>();
+
+    /**
+     * Additional JVM options that can be set thanks to system property.
+     */
+    @Parameter(property = "wildfly.bootable.jvmArguments")
+    public String jvmArgumentsProps;
+
+    /**
+     * Bootable jar server arguments that can be set thanks to system property.
+     */
+    @Parameter(property = "wildfly.bootable.arguments")
+    public String argumentsProps;
+
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
@@ -100,6 +114,21 @@ public class StartBootableJarMojo extends AbstractServerConnection {
         if (checkStarted) {
             client = createClient();
         }
+
+        if (jvmArgumentsProps != null) {
+            StringTokenizer args = new StringTokenizer(jvmArgumentsProps);
+            while (args.hasMoreTokens()) {
+                this.jvmArguments.add(args.nextToken());
+            }
+        }
+
+        if (argumentsProps != null) {
+            StringTokenizer args = new StringTokenizer(argumentsProps);
+            while (args.hasMoreTokens()) {
+                this.arguments.add(args.nextToken());
+            }
+        }
+
         try {
             Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, goal()), jvmArguments, arguments, false,
                     checkStarted, client, startupTimeout);
