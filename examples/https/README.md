@@ -7,7 +7,7 @@ Build and run
 =============
 
 * mvn package 
-* java -jar target/https-wildfly.jar
+* java -jar target/https-bootable.jar
 * https://127.0.0.1:8443/hello
 
 Openshift binary build and deployment
@@ -17,7 +17,7 @@ In this example, the keystore is not packaged in the bootable jar but mounted in
 
 Steps:
 * mvn package -Popenshift
-* mkdir os && cp target/https-wildfly.jar os/
+* mkdir os && cp target/https-bootable.jar os/
 * oc new-build --strategy source --binary --image-stream openjdk11 --name https-test
 * oc start-build https-test --from-dir ./os/
 * oc new-app https-test

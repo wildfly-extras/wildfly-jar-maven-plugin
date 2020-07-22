@@ -5,13 +5,13 @@ A WildFly bootable jar contains both the server and your packaged application (a
 Once the application has been built and packaged as a bootable jar, you can start the application using the following command:
 
 ```
-java -jar target/myapp-wildfly.jar
+java -jar target/myapp-bootable.jar
 ```
 
 To get the list of the startup arguments:
 
 ```
-java -jar target/myapp-wildfly.jar --help
+java -jar target/myapp-bootable.jar --help
 ```
 
 A WildFly bootable jar behave in a way that is similar to a WildFly server installed on file system:

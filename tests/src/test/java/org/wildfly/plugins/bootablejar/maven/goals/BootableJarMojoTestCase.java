@@ -49,7 +49,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
     private static final String WILDFLY_VERSION = "version.wildfly";
     private static final String TEST_REPLACE = "TEST_REPLACE";
-
+    private static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
     private static Path TEST_DIR = null;
     private static Path setupProject(String pomFileName, boolean copyWar, String provisioning, String... cli) throws IOException {
         File pom = getTestFile("src/test/resources/poms/" + pomFileName);
@@ -288,7 +288,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(mojo);
             System.setProperty("dev", "");
             mojo.execute();
-            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly.jar")));
+            assertFalse(Files.exists(dir.resolve("target").resolve(TEST_FILE)));
             assertTrue(Files.exists(dir.resolve("target").resolve("deployments").resolve("ROOT.war")));
         } finally {
             System.clearProperty("dev");
@@ -305,7 +305,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
             assertNotNull(mojo);
             assertTrue(mojo.skip);
             mojo.execute();
-            assertFalse(Files.exists(dir.resolve("target").resolve("test-wildfly.jar")));
+            assertFalse(Files.exists(dir.resolve("target").resolve(TEST_FILE)));
         } finally {
             BuildBootableJarMojo.deleteDir(dir);
         }
@@ -353,9 +353,9 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     private void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
             String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
-        Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-wildfly");
+        Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX);
         try {
-            Path jar = dir.resolve("target").resolve("test-wildfly.jar");
+            Path jar = dir.resolve("target").resolve(TEST_FILE);
             assertTrue(Files.exists(jar));
 
             ZipUtils.unzip(jar, tmpDir);
@@ -444,7 +444,7 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
     }
 
     private void startServer(Path dir, String fileName, String... args) throws Exception {
-        String[] cmd = {"java", "-jar", dir.resolve("target").resolve(fileName == null ? "test-wildfly.jar" : fileName).toString()};
+        String[] cmd = {"java", "-jar", dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toString()};
         List<String> arguments = new ArrayList<>();
         arguments.addAll(Arrays.asList(cmd));
         arguments.addAll(Arrays.asList(args));

@@ -99,7 +99,7 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  */
 class AbstractBuildBootableJarMojo extends AbstractMojo {
 
-    public static final String BOOTABLE_SUFFIX = "wildfly";
+    public static final String BOOTABLE_SUFFIX = "bootable";
     public static final String JAR = "jar";
     public static final String WAR = "war";
     private static final String MODULE_ID_JAR_RUNTIME = "org.wildfly.bootable-jar";
@@ -224,7 +224,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     boolean skip;
 
     /**
-     * By default the generated jar is ${project.build.finalName}-wildfly.jar
+     * By default the generated jar is ${project.build.finalName}-bootable.jar
      */
     @Parameter(alias = "output-file-name", property = "wildfly.bootable.package.output.file.name")
     String outputFileName;

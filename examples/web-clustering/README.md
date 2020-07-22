@@ -1,8 +1,8 @@
 # Web session sharing between multiple bootable JAR instances example
 
 * To build: mvn package
-* To run first instance: java -jar target/web-clustering-wildfly.jar -Djboss.socket.binding.port-offset=10 -Djboss.node.name=node1
-* To run second instance: java -jar target/web-clustering-wildfly.jar -Djboss.node.name=node2
+* To run first instance: java -jar target/web-clustering-bootable.jar -Djboss.socket.binding.port-offset=10 -Djboss.node.name=node1
+* To run second instance: java -jar target/web-clustering-bootable.jar -Djboss.node.name=node2
 * Access the application running in the first instance: http://127.0.0.1:8080
 * Note sessionID and user creation time.
 * Kill first instance
@@ -20,7 +20,7 @@ Openshift binary build and deployment
 
 Steps:
 * mvn package -Popenshift
-* mkdir os && cp target/web-clustering-wildfly.jar os/
+* mkdir os && cp target/web-clustering-bootable.jar os/
 * oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default
 * oc new-build --strategy source --binary --image-stream openjdk11 --name web-clustering
 * oc start-build web-clustering --from-dir ./os/

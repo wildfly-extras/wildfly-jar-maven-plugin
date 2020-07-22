@@ -7,7 +7,7 @@ NB: postgresql server must be deployed in the cluster.
 
 Steps: 
 * mvn package -Popenshift
-* mkdir os && cp target/postgresql-wildfly.jar os/
+* mkdir os && cp target/postgresql-bootable.jar os/
 * oc new-build --strategy source --binary --image-stream openjdk11 --name wf-postgresql
 * oc start-build wf-postgresql --from-dir ./os/
 * oc new-app wf-postgresql
