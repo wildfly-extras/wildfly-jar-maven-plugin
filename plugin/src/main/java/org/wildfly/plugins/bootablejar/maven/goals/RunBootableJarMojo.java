@@ -57,13 +57,20 @@ public final class RunBootableJarMojo extends AbstractMojo {
     @Parameter(defaultValue = "false", property = "wildfly.bootable.run.skip")
     private boolean skip;
 
+    /**
+     * In case a custom jar file name was specified during build, set this option
+     * to this jar file name. That is required for the plugin to retrieve the jar file to run.
+     */
+    @Parameter(alias = "jar-file-name", property = "wildfly.bootable.run.jar.file.name")
+    String jarFileName;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-        Utils.startBootableJar(Utils.getBootableJarPath(project, "run"), jvmArguments, arguments, true,
+        Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, "run"), jvmArguments, arguments, true,
                 false, null, -1);
     }
 }

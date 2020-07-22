@@ -79,6 +79,13 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.start.id")
     private String id;
 
+    /**
+     * In case a custom jar file name was specified during build, set this option
+     * to this jar file name. That is required for the plugin to retrieve the jar file to start.
+     */
+    @Parameter(alias = "jar-file-name", property = "wildfly.bootable.start.jar.file.name")
+    String jarFileName;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         doExecute(project);
@@ -94,7 +101,7 @@ public class StartBootableJarMojo extends AbstractServerConnection {
             client = createClient();
         }
         try {
-            Utils.startBootableJar(Utils.getBootableJarPath(project, goal()), jvmArguments, arguments, false,
+            Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, goal()), jvmArguments, arguments, false,
                     checkStarted, client, startupTimeout);
         } finally {
             if (client != null) {

@@ -333,6 +333,23 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
+    @Test
+    public void testCustomFileName()
+            throws Exception {
+        Path dir = setupProject("test11-pom.xml", true, null);
+        try {
+            BuildBootableJarMojo mojo = (BuildBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "package");
+            assertNotNull(mojo);
+            assertNotNull(mojo.outputFileName);
+            mojo.execute();
+            Path jar = dir.resolve("target").resolve("foo.jar");
+            assertTrue(Files.exists(jar));
+            checkDeployment(dir, "foo.jar", true);
+        } finally {
+            BuildBootableJarMojo.deleteDir(dir);
+        }
+    }
+
     private void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
             String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
@@ -384,28 +401,32 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
+    private void checkDeployment(Path dir, String fileName, boolean isRoot) throws Exception {
+        checkURL(dir, fileName, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true);
+    }
+
     private void checkDeployment(Path dir, boolean isRoot) throws Exception {
-        checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true);
+        checkURL(dir, null, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true);
     }
 
     private void checkDeployment(Path dir, boolean isRoot, String... args) throws Exception {
-        checkURL(dir, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true, args);
+        checkURL(dir, null, "http://127.0.0.1:8080/" + (isRoot ? "" : "test"), true, args);
     }
 
     private void checkManagementItf(Path dir, boolean start) throws Exception {
-        checkURL(dir, "http://127.0.0.1:9990/management", start);
+        checkURL(dir, null, "http://127.0.0.1:9990/management", start);
     }
 
     private void checkMetrics(Path dir, boolean start) throws Exception {
-        checkURL(dir, "http://127.0.0.1:9990/metrics", start);
+        checkURL(dir, null, "http://127.0.0.1:9990/metrics", start);
     }
 
-    private void checkURL(Path dir, String url, boolean start, String... args) throws Exception {
+    private void checkURL(Path dir, String fileName, String url, boolean start, String... args) throws Exception {
         int timeout = 30000;
         long sleep = 1000;
         boolean success = false;
         if (start) {
-            startServer(dir, args);
+            startServer(dir, fileName, args);
         }
         while (timeout > 0) {
             if (checkURL(url)) {
@@ -422,8 +443,8 @@ public class BootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
         }
     }
 
-    private void startServer(Path dir, String... args) throws Exception {
-        String[] cmd = {"java", "-jar", dir.resolve("target").resolve("test-wildfly.jar").toString()};
+    private void startServer(Path dir, String fileName, String... args) throws Exception {
+        String[] cmd = {"java", "-jar", dir.resolve("target").resolve(fileName == null ? "test-wildfly.jar" : fileName).toString()};
         List<String> arguments = new ArrayList<>();
         arguments.addAll(Arrays.asList(cmd));
         arguments.addAll(Arrays.asList(args));
