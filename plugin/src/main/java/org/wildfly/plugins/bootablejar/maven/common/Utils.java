@@ -34,9 +34,12 @@ import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
  */
 public class Utils {
 
-    public static String getBootableJarPath(MavenProject project, String goal) throws MojoExecutionException {
-        String finalName = project.getBuild().getFinalName();
-        String jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
+    public static String getBootableJarPath(String jarFileName, MavenProject project, String goal) throws MojoExecutionException {
+        String jarName = jarFileName;
+        if (jarName == null) {
+            String finalName = project.getBuild().getFinalName();
+            jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
+        }
         String path = project.getBuild().getDirectory() + File.separator + jarName;
         if (!Files.exists(Paths.get(path))) {
             throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
