@@ -45,8 +45,7 @@
     <module>docs</module>
     <module>plugin</module>
     <module>tests</module>
-    <!-- disable extension until core support them -->
-    <!--<module>extensions</module>-->
+    <module>extensions</module>
   </modules>
 
   <properties>
@@ -56,8 +55,7 @@
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
     <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.jboss.galleon>4.2.5.Final</version.org.jboss.galleon>
-    <!-- we can't yet upgrade to latest WildFly core due to WFCORE-5030, stay on 11 -->
-    <version.org.wildfly.core.wildfly-core>11.0.0.Final</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>13.0.0.Beta2</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.11</version.org.apache.httpcomponents.httpclient>
@@ -105,12 +103,11 @@
   <dependencyManagement>
     <dependencies>
         
-      <!-- Disable extension waiting for core to contain it.
      <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>wildfly-jar-cloud-extension</artifactId>
         <version>${project.version}</version>
-      </dependency> -->
+      </dependency>
         
       <dependency>
         <groupId>org.wildfly.core</groupId>
