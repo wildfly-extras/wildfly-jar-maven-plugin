@@ -10,7 +10,7 @@ configure the application
 == Run the application locally
 
 * To build: `mvn package`
-* To run: `CONFIG1="Value comes from the env" java -jar target/microprofile-config-wildfly.jar`
+* To run: `CONFIG1="Value comes from the env" java -jar target/microprofile-config-bootable.jar`
 * Access the application: http://localhost:8080/
 
 [source,bash]
@@ -28,7 +28,7 @@ config3 = Default value for config3 comes from my code
 [source,bash]
 ----
 $ mvn package -Popenshift
-$ mkdir target/openshift && cp target/microprofile-config-wildfly.jar target/openshift
+$ mkdir target/openshift && cp target/microprofile-config-bootable.jar target/openshift
 # Import the OpenJDK 11 image to run the Java application
 $ oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
 $ oc new-build --strategy source --binary --image-stream openjdk-11 --name microprofile-config-app

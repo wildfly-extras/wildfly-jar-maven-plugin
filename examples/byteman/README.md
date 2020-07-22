@@ -6,6 +6,6 @@ add -Djboss.modules.system.pkgs=org.jboss.byteman when launching the bootable ja
 * Download and install byteman
 * cd jaxrs
 * mvn clean package
-* java -javaagent:${BYTEMAN_HOME}/lib/byteman.jar=script:../byteman/byteman.btm -Djboss.modules.system.pkgs=org.jboss.byteman -jar target/jaxrs-wildfly.jar
+* java -javaagent:${BYTEMAN_HOME}/lib/byteman.jar=script:../byteman/byteman.btm -Djboss.modules.system.pkgs=org.jboss.byteman -jar target/jaxrs-bootable.jar
 * Access to the application: http://127.0.0.1:8080/hello
 * Instrumented class logs are printed.
