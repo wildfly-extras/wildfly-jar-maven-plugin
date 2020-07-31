@@ -3,6 +3,7 @@ target/
 
 # Ignore Eclipse files
 .settings/
+.checkstyle
 .classpath
 .project
 

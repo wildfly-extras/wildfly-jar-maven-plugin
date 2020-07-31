@@ -1,9 +1,8 @@
 #SSL
-if (outcome == success) of /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:read-resource
-  /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:remove
-end-if
-/core-service=management/security-realm=ApplicationRealm/server-identity=ssl:add(keystore-path="${keystore.path}", keystore-password="${keystore.password}")
+/subsystem=elytron/key-store=keystore:add(path="${keystore.path}", credential-reference={clear-text=${keystore.password}})
+/subsystem=elytron/key-manager=key-manager:add(key-store=keystore, credential-reference={clear-text=${keystore.password}})
+/subsystem=elytron/server-ssl-context=server-ssl-context:add(key-manager=key-manager)
 #HTTPS
-# Disable HTTP
+# Disable http
 /subsystem=undertow/server=${undertow.server}/http-listener=default:write-attribute(name=enabled, value=false)
-/subsystem=undertow/server=${undertow.server}/https-listener=https:add(security-realm=ApplicationRealm, socket-binding=https, proxy-address-forwarding=true)
+/subsystem=undertow/server=${undertow.server}/https-listener=https:add(ssl-context=server-ssl-context, socket-binding=https, proxy-address-forwarding=true)
