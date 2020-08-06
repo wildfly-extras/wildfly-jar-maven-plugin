@@ -93,6 +93,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <!--
+                    This is required for tests to run successfully on Windows and run properly in general. The issue
+                    being is the MOJO will initialize JBoss Modules in the JVM. Once this happens and a module is loaded
+                    the module, JAR file in this case, is an open resource and cannot be freed. On some OS's, like
+                    Windows, this means the resource cannot be deleted. By executing each test in a new JVM this will
+                    release the resource allowing the modules to be deleted for the next test.
+                -->
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                </configuration>
                 <executions>
                     <!-- Enable the default tests (which the parent pom turns off for this profile) -->
                     <execution>
