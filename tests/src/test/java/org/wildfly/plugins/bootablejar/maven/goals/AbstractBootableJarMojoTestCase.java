@@ -28,6 +28,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -77,6 +78,9 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     @Before
     public void before() throws Exception {
+        // Set the test.name property for the logging.properties. This must be done here as the super.setUp() creates
+        // a logger which initializes the log manager
+        System.setProperty("test.name", getClass().getCanonicalName());
         super.setUp();
         setupProject();
     }
@@ -256,10 +260,15 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     protected Process startServer(Path dir, String fileName, String... args) throws Exception {
         List<String> cmd = new ArrayList<>();
         cmd.add(getJavaCommand());
+        cmd.addAll(getJvmArgs());
         cmd.add("-jar");
         cmd.add(dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toAbsolutePath().toString());
         cmd.addAll(Arrays.asList(args));
-        final Path out = TestEnvironment.createTempPath(getClass().getName() + "-process.txt");
+        final Path out = TestEnvironment.createTempPath("logs", getClass().getName() + "-process.txt");
+        final Path parent = out.getParent();
+        if (parent != null && Files.notExists(parent)) {
+            Files.createDirectories(parent);
+        }
         return new ProcessBuilder(cmd)
                 .redirectErrorStream(true)
                 .redirectOutput(out.toFile())
@@ -337,5 +346,19 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
         }
         return cmd;
+    }
+
+    private static Collection<String> getJvmArgs() {
+        final Collection<String> result = new ArrayList<>();
+        final String defaultArgs = System.getProperty("test.jvm.args");
+        if (defaultArgs != null) {
+            final String[] defaults = defaultArgs.split("\\s+");
+            for (String arg : defaults) {
+                if (arg != null && !arg.trim().isEmpty()) {
+                    result.add(arg);
+                }
+            }
+        }
+        return result;
     }
 }
