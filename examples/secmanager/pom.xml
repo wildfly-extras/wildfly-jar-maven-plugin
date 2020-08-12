@@ -31,7 +31,7 @@
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
                         <layer>security-manager</layer>
-                        <layer>web-server</layer>
+                        <layer>jaxrs</layer>
                     </layers>
                 </configuration>
                 <executions>
