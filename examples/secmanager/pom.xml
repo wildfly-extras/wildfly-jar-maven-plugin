@@ -29,16 +29,6 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration >
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
-                    <cli-sessions>
-                        <cli-session>
-                            <properties-file>
-                                ../scripts/cli.properties
-                            </properties-file>
-                            <script-files>
-                                <script>../scripts/deployment-permissions.cli</script>
-                            </script-files>
-                        </cli-session>
-                    </cli-sessions>
                 </configuration>
                 <executions>
                     <execution>
