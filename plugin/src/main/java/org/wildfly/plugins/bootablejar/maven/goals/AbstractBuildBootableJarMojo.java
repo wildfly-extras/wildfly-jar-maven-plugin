@@ -243,6 +243,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "extra-server-content-dirs", property = "wildfly.bootable.package.extra.server.content.dirs")
     List<String> extraServerContent = Collections.emptyList();
 
+    /**
+     * The path to the {@code provisioning.xml} file to use. Note that this cannot be used with the {@code feature-packs}
+     * or {@code layers} configuration parameters.
+     */
+    @Parameter(alias = "provisioning-file", property = "wildfly.bootable.provisioning.file", defaultValue = "${project.basedir}/galleon/provisioning.xml")
+    private File provisioningFile;
+
     private Set<String> extraLayers = new HashSet<>();
 
     private Path wildflyDir;
@@ -525,7 +532,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     protected Path getProvisioningFile() {
-        return Paths.get(project.getBasedir().getAbsolutePath()).resolve("galleon").resolve("provisioning.xml");
+        return provisioningFile.toPath();
     }
 
     protected boolean hasLayers() {
