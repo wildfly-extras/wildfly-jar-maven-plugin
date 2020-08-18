@@ -30,7 +30,7 @@
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
-                        <layer>core-security-realms</layer>
+                        <layer>elytron</layer>
                         <layer>web-server</layer>
                     </layers>
                     <excluded-layers>
