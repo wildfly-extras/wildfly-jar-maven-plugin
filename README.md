@@ -38,7 +38,7 @@ to familiarize yourself with the maven plugin. A good example to start with is t
 [jaxrs](https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/jaxrs) example.
 
 Some of these examples are targeting deployment of the bootable jar in OpenShift. 
-For example: [mp-config](https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/mp-config) and 
+For example: [microprofile-config](https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/microprofile-config) and 
 [postgresql](https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/postgresql).
 
 Deployment inside a [JIB](https://github.com/GoogleContainerTools/jib) container is 
