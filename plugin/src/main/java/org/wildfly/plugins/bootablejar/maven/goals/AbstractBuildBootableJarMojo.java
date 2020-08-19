@@ -54,14 +54,9 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptorBuilder;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.shared.artifact.ArtifactCoordinate;
-import org.apache.maven.shared.artifact.resolve.ArtifactResolver;
-import org.apache.maven.shared.artifact.resolve.ArtifactResolverException;
-import org.apache.maven.shared.artifact.resolve.ArtifactResult;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -79,7 +74,6 @@ import org.jboss.galleon.maven.plugin.util.ConfigurationId;
 import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.maven.plugin.util.MvnMessageWriter;
-import org.jboss.galleon.repo.RepositoryArtifactResolver;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
@@ -108,9 +102,6 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     @Component
     RepositorySystem repoSystem;
-
-    @Component
-    ArtifactResolver artifactResolver;
 
     @Component
     MavenProjectHelper projectHelper;
@@ -254,12 +245,18 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private Path wildflyDir;
 
+    private MavenRepoManager artifactResolver;
+
     public Path getJBossHome() {
         return wildflyDir;
     }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+
+        MavenRepositoriesEnricher.enrich(session, project, repositories);
+        artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+                : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
 
         if (outputFileName == null) {
             outputFileName = this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR;
@@ -548,10 +545,6 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private Artifact provisionServer(Path home) throws ProvisioningException, MojoExecutionException {
-        MavenRepositoriesEnricher.enrich(session, project, repositories);
-        final RepositoryArtifactResolver artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
-                : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
-
         final Path provisioningFile = getProvisioningFile();
         ProvisioningConfig.Builder state = null;
         ProvisioningConfig config;
@@ -582,7 +575,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if (fp.getNormalizedPath() != null) {
                         fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
                     } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
-                        Path path = resolveMaven(fp, (MavenRepoManager) artifactResolver);
+                        Path path = resolveMaven(fp);
                         fpl = pm.getLayoutFactory().addLocal(path, false);
                     } else {
                         fpl = FeaturePackLocation.fromString(fp.getLocation());
@@ -796,13 +789,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private void buildJar(Path contentDir, Path jarFile, Artifact artifact) throws MojoExecutionException, IOException {
-        try {
-            Path rtJarFile = resolveArtifact(artifact);
-            ZipUtils.unzip(rtJarFile, contentDir);
-            ZipUtils.zip(contentDir, jarFile);
-        } catch (PlexusConfigurationException | UnsupportedEncodingException e) {
-            throw new MojoExecutionException("Failed to resolve rt jar ", e);
-        }
+        Path rtJarFile = resolveArtifact(artifact);
+        ZipUtils.unzip(rtJarFile, contentDir);
+        ZipUtils.zip(contentDir, jarFile);
     }
 
     public String retrievePluginVersion() throws UnsupportedEncodingException, PlexusConfigurationException, MojoExecutionException {
@@ -822,19 +811,18 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                             new DefaultArtifactHandler(JAR)));
     }
 
-    private Path resolveArtifact(Artifact artifact) throws UnsupportedEncodingException,
-            PlexusConfigurationException, MojoExecutionException {
-        final ProjectBuildingRequest buildingRequest = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
-        buildingRequest.setLocalRepository(session.getLocalRepository());
-        buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
-
+    private Path resolveArtifact(Artifact artifact) throws MojoExecutionException {
+        MavenArtifact mavenArtifact = new MavenArtifact();
+        mavenArtifact.setGroupId(artifact.getGroupId());
+        mavenArtifact.setArtifactId(artifact.getArtifactId());
+        mavenArtifact.setVersion(artifact.getVersion());
+        mavenArtifact.setClassifier(artifact.getClassifier());
+        mavenArtifact.setExtension(artifact.getType());
         try {
-            final ArtifactResult result = artifactResolver.resolveArtifact(buildingRequest,
-                    artifact);
-            return result.getArtifact().getFile().toPath();
-        } catch (ArtifactResolverException ex) {
-            throw new MojoExecutionException("Can't resolve boot artifact "
-                    + artifact + " no support for bootable jar packaging", ex);
+            artifactResolver.resolve(mavenArtifact);
+            return mavenArtifact.getPath();
+        } catch (MavenUniverseException ex) {
+            throw new MojoExecutionException(ex.toString(), ex);
         }
     }
 
@@ -883,14 +871,14 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private Path resolveMaven(ArtifactCoordinate coordinate, MavenRepoManager resolver) throws MavenUniverseException {
+    private Path resolveMaven(ArtifactCoordinate coordinate) throws MavenUniverseException {
         final MavenArtifact artifact = new MavenArtifact()
                 .setGroupId(coordinate.getGroupId())
                 .setArtifactId(coordinate.getArtifactId())
                 .setVersion(coordinate.getVersion())
                 .setExtension(coordinate.getExtension())
                 .setClassifier(coordinate.getClassifier());
-        resolver.resolve(artifact);
+        artifactResolver.resolve(artifact);
         return artifact.getPath();
     }
 }

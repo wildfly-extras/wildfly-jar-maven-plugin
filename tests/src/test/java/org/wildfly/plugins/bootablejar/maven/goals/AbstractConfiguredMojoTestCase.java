@@ -64,12 +64,12 @@ public abstract class AbstractConfiguredMojoTestCase extends AbstractMojoTestCas
             // Add remote repositories required to resolve provisioned artifacts.
             ArtifactRepositoryPolicy snapshot = new ArtifactRepositoryPolicy(false, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER, ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE);
             ArtifactRepositoryPolicy release = new ArtifactRepositoryPolicy(true, ArtifactRepositoryPolicy.UPDATE_POLICY_DAILY, ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE);
+
+            // Take into account maven.repo.local
+            String path = System.getProperty("maven.repo.local", request.getLocalRepository().getBasedir());
             repoSession.setLocalRepositoryManager(
                     new SimpleLocalRepositoryManagerFactory().newInstance(repoSession,
-                            new LocalRepository(request.getLocalRepository().getBasedir())));
-            repoSession.setLocalRepositoryManager(
-                    new SimpleLocalRepositoryManagerFactory().newInstance(repoSession,
-                            new LocalRepository(request.getLocalRepository().getBasedir())));
+                            new LocalRepository(path)));
             request.addRemoteRepository(new MavenArtifactRepository("jboss", "https://repository.jboss.org/nexus/content/groups/public/",
                     new DefaultRepositoryLayout(), snapshot, release));
             request.addRemoteRepository(new MavenArtifactRepository("redhat-ga", "https://maven.repository.redhat.com/ga/",
