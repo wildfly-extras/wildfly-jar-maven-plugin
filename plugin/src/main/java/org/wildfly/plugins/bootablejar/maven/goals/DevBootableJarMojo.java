@@ -64,7 +64,8 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
     }
 
     private void configureScanner(Path deployments, List<String> commands) {
+        String deploymentPath = deployments.toString().replaceAll("\\x5c", "/");
         commands.add("/subsystem=deployment-scanner/scanner=" + DEPLOYMENT_SCANNER_NAME + ":add(scan-interval=1000,auto-deploy-exploded=false,"
-                + "path=\"" + deployments + "\")");
+                + "path=\"" + deploymentPath + "\")");
     }
 }
