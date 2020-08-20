@@ -160,6 +160,9 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             Path zippedWildfly = tmpDir.resolve("wildfly.zip");
             assertTrue(Files.exists(zippedWildfly));
 
+            Path provisioningFile = tmpDir.resolve("provisioning.xml");
+            assertTrue(Files.exists(provisioningFile));
+
             ZipUtils.unzip(zippedWildfly, wildflyHome);
             if (expectDeployment) {
                 assertEquals(1, Files.list(wildflyHome.resolve("standalone/data/content")).count());
