@@ -17,19 +17,17 @@
 package org.wildfly.plugins.bootablejar.maven.common;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+
+import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.jboss.as.controller.client.ModelControllerClient;
-import org.wildfly.plugin.core.ServerHelper;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
- *
  * @author jdenise
  */
 public class Utils {
@@ -47,50 +45,23 @@ public class Utils {
         return path;
     }
 
-    public static void startBootableJar(String jarPath, List<String> jvmArguments,
-            List<String> arguments, boolean waitFor,
-            boolean checkStart,
-            ModelControllerClient client, long timeout) throws MojoExecutionException {
-        List<String> cmd = new ArrayList<>();
-        cmd.add(getJava());
-        cmd.addAll(jvmArguments);
-        cmd.add("-jar");
-        cmd.add(jarPath);
-        cmd.addAll(arguments);
-        ProcessBuilder builder = new ProcessBuilder(cmd).inheritIO();
-        try {
-            Process p = builder.start();
-            if (waitFor) {
-                p.waitFor();
-            } else {
-                if (checkStart) {
-                    checkStarted(client, timeout);
-                }
-            }
-        } catch (Exception ex) {
-            throw new MojoExecutionException(ex.getLocalizedMessage(), ex);
+    /**
+     * Creates a temporary file in the {@linkplain Build#getDirectory() target} directory.
+     *
+     * @param project the project to get the target directory for
+     * @param paths   the paths to resolve
+     *
+     * @return the temporary file
+     *
+     * @throws IOException if the parent paths of the file cannot be created
+     */
+    public static Path createTemporaryFile(final MavenProject project, final String... paths) throws IOException {
+        final Path result = Paths.get(project.getBuild().getDirectory(), paths);
+        final Path parent = result.getParent();
+        if (parent != null && Files.notExists(parent)) {
+            Files.createDirectories(parent);
         }
-    }
-
-    private static void checkStarted(ModelControllerClient client, long timeout) throws Exception {
-        ServerHelper.waitForStandalone(null, client, timeout);
-    }
-
-    private static String getJava() {
-        String exe = "java";
-        if (isWindows()) {
-            exe = "java.exe";
-        }
-        String javaHome = System.getenv("JAVA_HOME");
-        if (javaHome == null) {
-            return exe;
-        } else {
-            return javaHome + File.separator + "bin" + File.separator + exe;
-        }
-    }
-
-    private static boolean isWindows() {
-        return System.getProperty("os.name", null).toLowerCase(Locale.ENGLISH).contains("windows");
+        return result;
     }
 
 }

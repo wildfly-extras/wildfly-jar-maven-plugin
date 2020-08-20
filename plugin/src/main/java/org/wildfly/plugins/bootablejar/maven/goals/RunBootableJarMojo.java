@@ -26,6 +26,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.wildfly.core.launcher.BootableJarCommandBuilder;
+import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
@@ -97,8 +99,14 @@ public final class RunBootableJarMojo extends AbstractMojo {
                 this.arguments.add(args.nextToken());
             }
         }
-
-        Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, "run"), jvmArguments, arguments, true,
-                false, null, -1);
+        try {
+            final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, "run"))
+                    .addJavaOptions(jvmArguments)
+                    .addServerArgument(argumentsProps);
+            final Process process = Launcher.of(commandBuilder).launch();
+            process.waitFor();
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getLocalizedMessage(), e);
+        }
     }
 }

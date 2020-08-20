@@ -56,6 +56,10 @@
             <artifactId>wildfly-cli</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wildfly.core</groupId>
+            <artifactId>wildfly-launcher</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-plugin-core</artifactId>
         </dependency>
