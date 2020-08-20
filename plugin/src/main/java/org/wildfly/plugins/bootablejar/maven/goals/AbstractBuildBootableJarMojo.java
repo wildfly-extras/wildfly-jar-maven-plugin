@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,6 +44,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
@@ -83,6 +85,7 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
+import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
@@ -293,8 +296,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         Artifact bootArtifact = null;
         try {
-            bootArtifact = provisionServer(wildflyDir);
-        } catch (ProvisioningException ex) {
+            bootArtifact = provisionServer(wildflyDir, contentDir.resolve("provisioning.xml"));
+        } catch (ProvisioningException | IOException | XMLStreamException ex) {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
         try {
@@ -544,7 +547,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return excludedLayers;
     }
 
-    private Artifact provisionServer(Path home) throws ProvisioningException, MojoExecutionException {
+    private Artifact provisionServer(Path home, Path outputProvisioningFile) throws ProvisioningException, MojoExecutionException, IOException, XMLStreamException {
         final Path provisioningFile = getProvisioningFile();
         ProvisioningConfig.Builder state = null;
         ProvisioningConfig config;
@@ -703,6 +706,11 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
+
+            // store provisioning.xml
+            try(FileWriter writer = new FileWriter(outputProvisioningFile.toFile())) {
+                ProvisioningXmlWriter.getInstance().write(config, writer);
+            }
 
             ProvisioningRuntime rt = pm.getRuntime(config);
             Artifact bootArtifact = null;
