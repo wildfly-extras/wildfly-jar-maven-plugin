@@ -1,0 +1,3 @@
+/subsystem=elytron/properties-realm=bootable-realm:add(users-properties={relative-to=jboss.server.config.dir, path=bootable-users.properties, plain-text=true}, groups-properties={relative-to=jboss.server.config.dir, path=bootable-groups.properties})
+/subsystem=elytron/security-domain=BootableDomain:add(default-realm=bootable-realm, permission-mapper=default-permission-mapper, realms=[{realm=bootable-realm, role-decoder=groups-to-roles}])
+/subsystem=undertow/application-security-domain=other:add(security-domain=BootableDomain)
