@@ -95,6 +95,7 @@
     </dependencyManagement>
 
     <modules>
+        <module>authentication</module>
         <module>byteman</module>
         <module>dev-mode</module>
         <module>hollow-jar</module>
