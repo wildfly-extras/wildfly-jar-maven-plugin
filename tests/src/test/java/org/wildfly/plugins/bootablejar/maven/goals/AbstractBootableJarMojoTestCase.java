@@ -44,6 +44,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -83,6 +84,11 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         System.setProperty("test.name", getClass().getCanonicalName());
         super.setUp();
         setupProject();
+    }
+
+    @After
+    public void shutdownServer() throws Exception {
+        shutdown();
     }
 
     Path getTestDir() {
@@ -247,7 +253,10 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                 Thread.sleep(sleep);
                 timeout -= sleep;
             }
-            shutdownServer(dir);
+            if (process != null) {
+                assertTrue(process.isAlive());
+            }
+            shutdown();
             // If the process is not null wait for it to shutdown
             if (process != null) {
                 assertTrue("The process has failed to shutdown", process.waitFor(TestEnvironment.getTimeout(), TimeUnit.SECONDS));
@@ -279,11 +288,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         // We can't use start in tests, breaks maven test execution.
         //StartBootableJarMojo mojo = (StartBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
         //mojo.execute();
-    }
-
-    protected void shutdownServer(Path dir) throws Exception {
-        ShutdownBootableJarMojo mojo = (ShutdownBootableJarMojo) lookupConfiguredMojo(dir.resolve("client-pom.xml").toFile(), "shutdown");
-        mojo.execute();
     }
 
     protected boolean checkURL(String url) {
@@ -363,5 +367,13 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
         }
         return result;
+    }
+
+    private static void shutdown() throws IOException {
+        try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(), TestEnvironment.getManagementPort())) {
+            if (ServerHelper.isStandaloneRunning(client)) {
+                ServerHelper.shutdownStandalone(client, TestEnvironment.getTimeout());
+            }
+        }
     }
 }
