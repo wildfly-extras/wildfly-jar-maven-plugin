@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-extensions-parent</artifactId>
-        <version>2.0.0.Beta2</version>
+        <version>2.0.0.Beta3-SNAPSHOT</version>
     </parent>
 
     <artifactId>wildfly-jar-cloud-extension</artifactId>
