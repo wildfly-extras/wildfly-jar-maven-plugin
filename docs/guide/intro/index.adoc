@@ -102,7 +102,8 @@ NB: The list of feature-packs can't be used in conjunction with link:#featurePac
 #### Providing a Galleon provisioning.xml file
 
 For advanced use cases you can fully control the Galleon provisioning by defining the file _galleon/provisioning.xml_. 
-_galleon_ directory must be located in the root directory of your maven project. 
+_galleon_ directory must be located in the root directory of your maven project. A custom file location can be set 
+thanks to the option _provisioning-file_. 
 
 
 ### Specifying the set of Galleon layers to use
