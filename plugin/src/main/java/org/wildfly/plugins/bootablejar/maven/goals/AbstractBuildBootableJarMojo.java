@@ -170,8 +170,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     /**
      * To make the war registered under root resource path ('/').
      */
-    @Parameter(alias = "root-url-path", defaultValue = "true", property = "wildfly.bootable.root.url")
-    boolean rootUrlPath;
+    @Parameter(alias = "context-root", defaultValue = "true", property = "wildfly.bootable.context.root")
+    boolean contextRoot;
 
     /**
      * The WildFly galleon feature-pack location to use if no provisioning.xml
@@ -347,7 +347,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         String fileName = f.getName();
         if (project.getPackaging().equals(WAR) || fileName.endsWith(WAR)) {
-            if (rootUrlPath) {
+            if (contextRoot) {
                 fileName = "ROOT." + WAR;
             }
         }
@@ -784,7 +784,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         String runtimeName = f.getName();
         if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
-            if (rootUrlPath) {
+            if (contextRoot) {
                 runtimeName = "ROOT." + WAR;
             }
         }

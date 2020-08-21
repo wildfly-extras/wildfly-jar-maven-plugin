@@ -33,7 +33,7 @@ public class ProvisioningConfigurationTestCase extends AbstractBootableJarMojoTe
     public void testProvisioningConfiguration() throws Exception {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
-        assertFalse(mojo.rootUrlPath);
+        assertFalse(mojo.contextRoot);
         mojo.recordState = true;
         mojo.execute();
         String[] layers = {"web-server", "management"};

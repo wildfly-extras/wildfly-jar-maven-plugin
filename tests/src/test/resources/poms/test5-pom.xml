@@ -25,7 +25,7 @@
                     <excluded-layers>
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
-                    <root-url-path>false</root-url-path>
+                    <context-root>false</context-root>
                 </configuration>
                 
             </plugin>

@@ -136,7 +136,7 @@ it can be excluded:
 
 ## URL context path of deployed application
 
-By default, a war deployed inside a bootable jar is located in the root context ('/'). This can be changed to the war file name by using the link:#rootUrlPath[root-url-path] configuration element.
+By default, a war deployed inside a bootable jar is located in the root context ('/'). This can be changed to the war file name by using the link:#contextRoot[context-root] configuration element.
 
 
 ## Hollow bootable jar
