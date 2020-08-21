@@ -203,7 +203,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             if (configTokens != null) {
                 String str = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
                 for (String token : configTokens) {
-                    assertTrue(str.contains(token));
+                    assertTrue(str, str.contains(token));
                 }
             }
         } finally {

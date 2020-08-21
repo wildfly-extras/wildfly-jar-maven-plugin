@@ -25,6 +25,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.jboss.galleon.config.ConfigId;
 
 /**
  * Build a bootable jar containing application and provisioned server
@@ -51,6 +52,7 @@ public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             return;
         }
         if (cloud != null) {
+            getLog().info("Cloud support is enabled");
             cloud.validate();
             for(String layer : cloud.getExtraLayers(this)) {
                 addExtraLayer(layer);
@@ -67,6 +69,15 @@ public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
+        }
+    }
+
+    @Override
+    protected ConfigId getDefaultConfig() {
+        if(cloud == null) {
+            return super.getDefaultConfig();
+        } else {
+            return new ConfigId("standalone", "standalone-microprofile-ha.xml");
         }
     }
 

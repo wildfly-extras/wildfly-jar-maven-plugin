@@ -8,10 +8,10 @@
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <artifactId>jaxrs-hollow-server</artifactId>
+    <artifactId>default-hollow-jar</artifactId>
     <packaging>pom</packaging>
     
-    <name>WildFly bootable jar Jaxrs hollow server</name>
+    <name>WildFly bootable JAR default Eclipse Microprofile configuration hollow JAR</name>
    
    
     <build>
@@ -22,13 +22,6 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>   
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
-                    <layers>
-                        <layer>jaxrs</layer>
-                        <layer>management</layer>
-                    </layers>
-                    <excluded-layers>
-                        <layer>deployment-scanner</layer>
-                    </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>
                 <executions>
@@ -41,4 +34,21 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <configuration>
+                            <cloud/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
