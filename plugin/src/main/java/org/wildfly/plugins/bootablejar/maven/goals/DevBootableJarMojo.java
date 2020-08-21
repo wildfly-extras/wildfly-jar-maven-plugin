@@ -18,12 +18,18 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.wildfly.core.launcher.BootableJarCommandBuilder;
+import org.wildfly.core.launcher.Launcher;
+import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
  * Build and start a bootable jar for dev mode
@@ -35,6 +41,18 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
     private static final String DEPLOYMENT_SCANNER_LAYER = "deployment-scanner";
 
     public static final String DEPLOYMENT_SCANNER_NAME = "wildfly-jar-for-dev-mode";
+
+    /**
+     * Additional JVM options.
+     */
+    @Parameter(alias = "jvmArguments")
+    public List<String> jvmArguments = new ArrayList<>();
+
+    /**
+     * Bootable jar server arguments.
+     */
+    @Parameter(alias = "arguments")
+    public List<String> arguments = new ArrayList<>();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -55,7 +73,20 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
         }
         hollowJar = true;
         super.execute();
-        new StartBootableJarMojo().startDevMode(project);
+
+        final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
+                .addJavaOptions(jvmArguments)
+                .addServerArguments(arguments);
+        try {
+            final Path stdout = Utils.createTemporaryFile(project, "wildfly-jar-dev-stdout.log");
+            getLog().info(String.format("The stdout and stderr for the process are being logged to %s", stdout));
+            Launcher.of(commandBuilder)
+                    .setRedirectErrorStream(true)
+                    .redirectOutput(stdout)
+                    .launch();
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getLocalizedMessage(), e);
+        }
     }
 
     @Override

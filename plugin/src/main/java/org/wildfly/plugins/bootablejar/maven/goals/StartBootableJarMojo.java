@@ -16,7 +16,6 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -27,7 +26,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.wildfly.core.launcher.BootableJarCommandBuilder;
+import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugin.common.AbstractServerConnection;
+import org.wildfly.plugin.core.ServerHelper;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
@@ -110,10 +112,6 @@ public class StartBootableJarMojo extends AbstractServerConnection {
             getLog().debug(String.format("Skipping " + goal() + " of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-        ModelControllerClient client = null;
-        if (checkStarted) {
-            client = createClient();
-        }
 
         if (jvmArgumentsProps != null) {
             StringTokenizer args = new StringTokenizer(jvmArgumentsProps);
@@ -128,23 +126,19 @@ public class StartBootableJarMojo extends AbstractServerConnection {
                 this.arguments.add(args.nextToken());
             }
         }
-
+        final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, goal()))
+                .addJavaOptions(jvmArguments)
+                .addServerArguments(arguments);
         try {
-            Utils.startBootableJar(Utils.getBootableJarPath(jarFileName, project, goal()), jvmArguments, arguments, false,
-                    checkStarted, client, startupTimeout);
-        } finally {
-            if (client != null) {
-                try {
-                    client.close();
-                } catch (IOException ex) {
-                    throw new MojoExecutionException(ex.getMessage(), ex);
+            final Process process = Launcher.of(commandBuilder).launch();
+            if (checkStarted) {
+                try (ModelControllerClient client = createClient()) {
+                    ServerHelper.waitForStandalone(process, client, startupTimeout);
                 }
             }
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getLocalizedMessage(), e);
         }
-    }
-
-    void startDevMode(MavenProject project) throws MojoExecutionException, MojoFailureException {
-        doExecute(project);
     }
 
     @Override

@@ -16,17 +16,16 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author jdenise
  */
-@Ignore("Can't run, we can't call start from the mvn tests, break tests.")
 public class DevServerTestCase extends AbstractBootableJarMojoTestCase {
 
     public DevServerTestCase() {
@@ -41,11 +40,11 @@ public class DevServerTestCase extends AbstractBootableJarMojoTestCase {
         assertEquals("deployment-scanner", mojo.excludedLayers.get(0));
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, false, false, null, null, "target/deployments");
+        checkJar(dir, false, false, null, null, "target" + File.separator + "deployments");
         Path config = dir.resolve("target").resolve("bootable-jar-build-artifacts").
                 resolve("wildfly").resolve("standalone").resolve("configuration").resolve("standalone.xml");
         assertTrue(Files.exists(config));
-        String content = new String(Files.readAllBytes(dir), StandardCharsets.UTF_8);
+        String content = new String(Files.readAllBytes(config), StandardCharsets.UTF_8);
         assertTrue(content.contains(DevBootableJarMojo.DEPLOYMENT_SCANNER_NAME));
         checkManagementItf(dir, false);
     }

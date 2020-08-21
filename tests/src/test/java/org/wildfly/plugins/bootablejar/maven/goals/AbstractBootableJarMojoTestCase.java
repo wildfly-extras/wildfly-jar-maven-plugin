@@ -173,7 +173,11 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             if (expectDeployment) {
                 assertEquals(1, Files.list(wildflyHome.resolve("standalone/data/content")).count());
             } else {
-                assertFalse(Files.exists(wildflyHome.resolve("standalone/data/content")));
+                // The directory should be empty if no deployment is expected, however in some cases it may not even be
+                // created.
+                if (Files.exists(wildflyHome.resolve("standalone/data/content"))) {
+                    assertEquals(0, Files.list(wildflyHome.resolve("standalone/data/content")).count());
+                }
             }
             Path history = wildflyHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
             assertFalse(Files.exists(history));
@@ -197,8 +201,8 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                 }
             }
             if (configTokens != null) {
+                String str = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
                 for (String token : configTokens) {
-                    String str = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
                     assertTrue(str.contains(token));
                 }
             }
