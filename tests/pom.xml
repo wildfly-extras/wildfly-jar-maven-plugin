@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-parent</artifactId>
-        <version>2.0.0.Beta2-SNAPSHOT</version>
+        <version>2.0.0.Beta2</version>
     </parent>
 
     <artifactId>wildfly-jar-maven-plugin-tests</artifactId>
@@ -32,7 +32,7 @@
     <name>WildFly Bootable Jar Maven Plugin tests</name>
 
     <properties>
-        <test.jvm.args/>
+        <test.jvm.args />
     </properties>
 
     <dependencies>
