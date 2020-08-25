@@ -45,7 +45,7 @@ public class DefaultCloudConfigurationTestCase extends AbstractBootableJarMojoTe
         assertFalse(mojo.offline);
         assertFalse(mojo.recordState);
         assertFalse(mojo.skip);
-        assertTrue(mojo.rootUrlPath);
+        assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
         checkJar(dir, true, true, null, null, "org.jboss.as.clustering.jgroups");
