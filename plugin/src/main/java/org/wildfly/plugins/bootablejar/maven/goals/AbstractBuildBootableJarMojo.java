@@ -69,6 +69,7 @@ import org.jboss.as.cli.impl.CommandContextConfiguration;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -308,6 +309,14 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             configureCli(commands);
             if (!commands.isEmpty()) {
                 executeCliScript(wildflyDir, commands, null, false, "Server configuration");
+                // Store generated commands to file in build artifacts.
+                Path genCliScript = contentRoot.resolve("generated-cli-script.txt");
+                try (FileWriter writer = new FileWriter(genCliScript.toFile())) {
+                    for(String str: commands) {
+                        writer.write(str + System.lineSeparator());
+                    }
+                }
+                getLog().info("Stored CLI script executed to update server configuration in " + genCliScript + " file.");
             }
             userScripts(wildflyDir);
             cleanupServer(wildflyDir);
@@ -676,20 +685,21 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                                 + "you must set a feature-pack-location.");
                     }
                     ConfigModel.Builder configBuilder = null;
+                    ConfigId defaultConfigId = getDefaultConfig();
                     if (!extraLayers.isEmpty()) {
                         configBuilder = ConfigModel.
-                                builder("standalone", "standalone-microprofile.xml");
+                                builder(defaultConfigId.getModel(), defaultConfigId.getName());
                         for (String layer : extraLayers) {
                             configBuilder.includeLayer(layer);
                         }
                     }
                     FeaturePackConfig dependency = FeaturePackConfig.
                             builder(FeaturePackLocation.fromString(featurePackLocation)).
-                            setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig("standalone", "standalone-microprofile.xml").build();
+                            setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(defaultConfigId.getModel(), defaultConfigId.getName()).build();
                     ProvisioningConfig.Builder provBuilder = ProvisioningConfig.builder().addFeaturePackDep(dependency).addOptions(pluginOptions);
                     // Create a config to merge options to name the config standalone.xml
                     if (configBuilder == null) {
-                        configBuilder = ConfigModel.builder("standalone", "standalone-microprofile.xml");
+                        configBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
                     }
                     configBuilder.setProperty("--server-config", "standalone.xml");
                     provBuilder.addConfig(configBuilder.build());
@@ -743,6 +753,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             pm.provision(rt.getLayout());
             return bootArtifact;
         }
+    }
+
+    protected ConfigId getDefaultConfig() {
+        return new ConfigId("standalone", "standalone-microprofile.xml");
     }
 
     static Artifact getArtifact(String str) {
