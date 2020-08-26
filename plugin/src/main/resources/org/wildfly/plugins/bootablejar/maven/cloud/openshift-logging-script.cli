@@ -1,0 +1,19 @@
+# Logging changes
+
+if (outcome == success) of /subsystem=logging/root-logger=ROOT:read-resource
+  /subsystem=logging/root-logger=ROOT:write-attribute(name=level,value=INFO)
+  /subsystem=logging/root-logger=ROOT:write-attribute(name=handlers,value=[CONSOLE])
+end-if
+
+if (outcome == success) of /subsystem=logging/periodic-rotating-file-handler=FILE:read-resource
+  /subsystem=logging/periodic-rotating-file-handler=FILE:remove
+end-if
+
+if (outcome == success) of /subsystem=logging/pattern-formatter=PATTERN:read-resource
+  /subsystem=logging/pattern-formatter=PATTERN:remove
+end-if
+
+if (outcome == success) of /subsystem=logging/console-handler=CONSOLE:read-resource
+  /subsystem=logging/console-handler=CONSOLE:undefine-attribute(name=level)
+end-if
+
