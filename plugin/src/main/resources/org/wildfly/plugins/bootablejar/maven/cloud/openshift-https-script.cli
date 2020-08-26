@@ -1,0 +1,10 @@
+# HTTPS changes
+
+if (outcome == success) of /subsystem=undertow/server=default-server/https-listener=https:read-resource
+  /subsystem=undertow/server=default-server/https-listener=https:remove
+end-if
+
+if (outcome == success) of /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:read-resource
+  /core-service=management/security-realm=ApplicationRealm/server-identity=ssl:remove
+end-if
+

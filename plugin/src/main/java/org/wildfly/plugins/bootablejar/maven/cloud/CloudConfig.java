@@ -111,6 +111,13 @@ public class CloudConfig {
             commands.addAll(lines);
         }
 
+        try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-https-script.cli")) {
+            List<String> lines
+                    = new BufferedReader(new InputStreamReader(stream,
+                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+            commands.addAll(lines);
+        }
+
         try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-tx-script.cli")) {
             List<String> lines
                     = new BufferedReader(new InputStreamReader(stream,
