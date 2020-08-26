@@ -74,7 +74,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         this.copyWar = copyWar;
         this.provisioning = provisioning;
         this.cli = cli;
-        testDir = createTestDirectory();
+        testDir = createTestDirectory("bootable-jar-test");
     }
 
     @Before
@@ -155,7 +155,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         Files.copy(clientPom.toPath(), clientPomFile);
     }
 
-    protected void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
+    protected Path checkAndGetWildFlyHome(Path dir, boolean expectDeployment, boolean isRoot,
                             String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
         Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX);
@@ -209,7 +209,19 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
         } finally {
             BuildBootableJarMojo.deleteDir(tmpDir);
-            BuildBootableJarMojo.deleteDir(wildflyHome);
+        }
+        return wildflyHome;
+    }
+
+    protected void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
+            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
+        Path wildflyHome = null;
+        try {
+            wildflyHome = checkAndGetWildFlyHome(dir, expectDeployment, isRoot, layers, excludedLayers, configTokens);
+        } finally {
+            if (wildflyHome != null) {
+                BuildBootableJarMojo.deleteDir(wildflyHome);
+            }
         }
     }
 
@@ -310,8 +322,8 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         }
     }
 
-    private static Path createTestDirectory() {
-        final Path dir = TestEnvironment.createTempPath("bootable-jar-test");
+    static Path createTestDirectory(final String... paths) {
+        final Path dir = TestEnvironment.createTempPath(paths);
         try {
             if (Files.exists(dir)) {
                 Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
@@ -328,7 +340,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                     }
                 });
             }
-            Files.createDirectory(dir);
+            Files.createDirectories(dir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

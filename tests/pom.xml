@@ -33,6 +33,7 @@
 
     <properties>
         <test.jvm.args />
+        <jbossas.dist>${basedir}/target/wildfly-full</jbossas.dist>
     </properties>
 
     <dependencies>
@@ -90,10 +91,53 @@
             <artifactId>slf4j-jboss-logging</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wildfly.core</groupId>
+            <artifactId>wildfly-patching</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-impl-base</artifactId>
+            <scope>test</scope>
+      </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- provision a full server to be used as patching distribution source -->
+            <plugin>
+                <groupId>org.jboss.galleon</groupId>
+                <artifactId>galleon-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>server-provisioning-for-patching</id>
+                        <goals>
+                            <goal>provision</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <install-dir>${jbossas.dist}</install-dir>
+                            <record-state>false</record-state>
+                            <plugin-options>
+                                <jboss-fork-embedded>true</jboss-fork-embedded>
+                            </plugin-options>
+                            <feature-packs>
+                                <feature-pack>
+                                    <groupId>org.wildfly</groupId>
+                                    <artifactId>wildfly-galleon-pack</artifactId>
+                                    <version>${version.wildfly}</version>
+                                </feature-pack>
+                            </feature-packs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -120,6 +164,10 @@
                                 <property>
                                     <name>version.wildfly</name>
                                     <value>${version.wildfly}</value>
+                                </property>
+                                <property>
+                                    <name>jbossas.dist</name>
+                                    <value>${jbossas.dist}</value>
                                 </property>
                             </systemProperties>
                             <redirectTestOutputToFile>true</redirectTestOutputToFile>
