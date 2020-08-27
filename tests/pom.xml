@@ -122,6 +122,7 @@
                                     <value>${version.wildfly}</value>
                                 </property>
                             </systemProperties>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         </configuration>
                     </execution>
                 </executions>
