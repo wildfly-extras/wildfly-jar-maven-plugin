@@ -1,0 +1,6 @@
+# Undertow changes
+
+if (outcome == success) of /subsystem=undertow/server=default-server/http-listener=default:read-resource
+  /subsystem=undertow/server=default-server/http-listener=default:write-attribute(name=proxy-address-forwarding, value=true)
+end-if
+
