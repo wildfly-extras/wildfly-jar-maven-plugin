@@ -1,0 +1,6 @@
+# Management changes
+
+if (outcome == success) of /core-service=management/management-interface=http-interface:read-resource
+  /core-service=management/management-interface=http-interface:write-attribute(name=console-enabled,value=false)
+end-if
+

@@ -48,6 +48,15 @@ public class CloudConfig {
 
     private boolean enableJgroupsPassword = false;
 
+    private static final String[] CLI_SCRIPTS = {
+        "openshift-management-script.cli",
+        "openshift-logging-script.cli",
+        "openshift-interfaces-script.cli",
+        "openshift-https-script.cli",
+        "openshift-undertow-script.cli",
+        "openshift-tx-script.cli",
+        "openshift-clustering-script.cli"};
+
     //Can be openshift or kubernetes
     String type = OPENSHIFT;
 
@@ -64,7 +73,7 @@ public class CloudConfig {
             if (OPENSHIFT.equals(type) || KUBERNETES.equals(type)) {
                 return;
             } else {
-                throw new MojoExecutionException("Invalid clud type " + type + ". Can be " + OPENSHIFT + "or" + KUBERNETES);
+                throw new MojoExecutionException("Invalid cloud type " + type + ". Can be " + OPENSHIFT + "or" + KUBERNETES);
             }
         } else {
             type = OPENSHIFT;
@@ -97,31 +106,19 @@ public class CloudConfig {
     }
 
     public void addCLICommands(BuildBootableJarMojo mojo, List<String> commands) throws Exception {
-        try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-interfaces-script.cli")) {
-            List<String> lines
-                    = new BufferedReader(new InputStreamReader(stream,
-                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-            commands.addAll(lines);
-        }
-
-        try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-tx-script.cli")) {
-            List<String> lines
-                    = new BufferedReader(new InputStreamReader(stream,
-                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-            commands.addAll(lines);
-        }
         // Must be done first before to modify the config with static script
         if (enableJgroupsPassword) {
             Path p = mojo.getJBossHome();
             Path config = p.resolve("standalone").resolve("configuration").resolve("standalone.xml");
             commands.addAll(JGroupsUtil.getAuthProtocolCommands(config));
         }
-        // Add clustering static content
-        try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-clustering-script.cli")) {
-            List<String> lines
-                    = new BufferedReader(new InputStreamReader(stream,
-                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-            commands.addAll(lines);
+        for (String script : CLI_SCRIPTS) {
+            try (InputStream stream = CloudConfig.class.getResourceAsStream(script)) {
+                List<String> lines
+                        = new BufferedReader(new InputStreamReader(stream,
+                                StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+                commands.addAll(lines);
+            }
         }
     }
 }
