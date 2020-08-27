@@ -48,7 +48,7 @@ public class DefaultCloudConfigurationTestCase extends AbstractBootableJarMojoTe
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, "org.jboss.as.clustering.jgroups", "proxy-address-forwarding=\"true\"");
+        checkJar(dir, true, true, null, null, "org.jboss.as.clustering.jgroups", "proxy-address-forwarding=\"true\"", "bindall");
         checkDeployment(dir, true);
     }
 }

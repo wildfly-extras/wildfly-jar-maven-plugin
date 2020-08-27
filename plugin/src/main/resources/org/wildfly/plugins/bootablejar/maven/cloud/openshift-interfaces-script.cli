@@ -1,7 +1,9 @@
-# Management interfaces
+# Private interface
 if (outcome == success) of /interface=private:read-resource
 /interface=private:write-attribute(name=inet-address,value=${jboss.bind.address.private,env.HOSTNAME:127.0.0.1})
 end-if
+
+# Public interface
 if (outcome == success) of /interface=public:read-resource
 /interface=public:write-attribute(name=inet-address,value=${jboss.bind.address,env.HOSTNAME:127.0.0.1})
 end-if
@@ -10,3 +12,18 @@ end-if
 if (outcome == success) of /interface=management:read-resource
 /interface=management:write-attribute(name=inet-address,value=${jboss.bind.address.management:0.0.0.0})
 end-if
+
+# http and https are bound to this interface
+if (outcome != success) of /interface=bindall:read-resource
+  /interface=bindall:add(inet-address=0.0.0.0)
+end-if
+
+#socket binding
+if (outcome == success) of /socket-binding-group=standard-sockets/socket-binding=http:read-resource
+  /socket-binding-group=standard-sockets/socket-binding=http:write-attribute(name=interface,value=bindall)
+end-if
+
+if (outcome == success) of /socket-binding-group=standard-sockets/socket-binding=https:read-resource
+  /socket-binding-group=standard-sockets/socket-binding=https:write-attribute(name=interface,value=bindall)
+end-if
+
