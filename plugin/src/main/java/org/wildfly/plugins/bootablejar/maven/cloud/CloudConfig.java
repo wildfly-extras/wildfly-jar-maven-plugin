@@ -97,6 +97,13 @@ public class CloudConfig {
     }
 
     public void addCLICommands(BuildBootableJarMojo mojo, List<String> commands) throws Exception {
+        try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-management-script.cli")) {
+            List<String> lines
+                    = new BufferedReader(new InputStreamReader(stream,
+                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+            commands.addAll(lines);
+        }
+
         try (InputStream stream = CloudConfig.class.getResourceAsStream("openshift-logging-script.cli")) {
             List<String> lines
                     = new BufferedReader(new InputStreamReader(stream,
