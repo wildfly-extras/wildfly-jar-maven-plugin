@@ -8,7 +8,7 @@ coordinates of the Maven plugin artifact are
 <dependency>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-maven-plugin</artifactId>
-    <version>2.0.0.Beta3-SNAPSHOT</version>
+    <version>2.0.0.Beta3</version>
 </dependency>
 ----
 
