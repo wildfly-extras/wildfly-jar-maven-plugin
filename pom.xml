@@ -69,7 +69,10 @@
     <linkXRef>false</linkXRef>
     <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
     <bootable-jar.repo.scm.connection>git@github.com:wildfly-extras/wildfly-jar-maven-plugin.git</bootable-jar.repo.scm.connection>
-    <bootable-jar.repo.scm.url>https://github.com/wildfly-extras/wildfly-jar-maven-plugin</bootable-jar.repo.scm.url>   
+    <bootable-jar.repo.scm.url>https://github.com/wildfly-extras/wildfly-jar-maven-plugin</bootable-jar.repo.scm.url>
+
+    <maven.test.skip>false</maven.test.skip>
+    <skipTests>${maven.test.skip}</skipTests>
   </properties>
 
   <repositories>
