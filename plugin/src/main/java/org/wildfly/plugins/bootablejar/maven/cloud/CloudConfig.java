@@ -54,7 +54,8 @@ public class CloudConfig {
         "openshift-https-script.cli",
         "openshift-undertow-script.cli",
         "openshift-tx-script.cli",
-        "openshift-clustering-script.cli"};
+        "openshift-clustering-script.cli",
+        "openshift-webservices-script.cli"};
 
     //Can be openshift or kubernetes
     String type = OPENSHIFT;
