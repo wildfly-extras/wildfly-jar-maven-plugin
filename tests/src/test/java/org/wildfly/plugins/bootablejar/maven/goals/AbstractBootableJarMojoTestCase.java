@@ -102,14 +102,15 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     @Override
     protected Mojo lookupConfiguredMojo(File pom, String goal) throws Exception {
-        Mojo mojo = super.lookupConfiguredMojo(pom, goal);
-        if (mojo instanceof AbstractBuildBootableJarMojo) {
-            AbstractBuildBootableJarMojo buildMojo = (AbstractBuildBootableJarMojo) mojo;
-            if (buildMojo.featurePackLocation != null) {
-                int i = buildMojo.featurePackLocation.lastIndexOf("#");
-                buildMojo.featurePackLocation = buildMojo.featurePackLocation.substring(0, i + 1) + System.getProperty(WILDFLY_VERSION);
+        StringBuilder content = new StringBuilder();
+        for (String s : Files.readAllLines(pom.toPath())) {
+            if (s.contains(TEST_REPLACE)) {
+                s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_VERSION));
             }
+            content.append(s).append(System.lineSeparator());
         }
+        Files.write(pom.toPath(), content.toString().getBytes());
+        Mojo mojo = super.lookupConfiguredMojo(pom, goal);
         return mojo;
     }
 

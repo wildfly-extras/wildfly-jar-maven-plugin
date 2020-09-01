@@ -73,8 +73,6 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.FeaturePackConfig;
 import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.maven.plugin.util.ConfigurationId;
-import org.jboss.galleon.maven.plugin.util.FeaturePack;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.maven.plugin.util.MvnMessageWriter;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
@@ -87,6 +85,7 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
+import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
@@ -567,6 +566,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setRecordState(recordState)
                 .build()) {
 
+            ConfigModel.Builder configBuilder = null;
+            ConfigId defaultConfig = null;
             if (!featurePacks.isEmpty()) {
                 if (Files.exists(provisioningFile)) {
                     getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + provisioningFile);
@@ -593,30 +594,24 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                         fpl = FeaturePackLocation.fromString(fp.getLocation());
                     }
 
-                    final FeaturePackConfig.Builder fpConfig = fp.isTransitive() ? FeaturePackConfig.transitiveBuilder(fpl)
-                            : FeaturePackConfig.builder(fpl);
-                    if (fp.isInheritConfigs() != null) {
-                        fpConfig.setInheritConfigs(fp.isInheritConfigs());
-                    }
+                    final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl);
+                    fpConfig.setInheritConfigs(false);
                     if (fp.isInheritPackages() != null) {
                         fpConfig.setInheritPackages(fp.isInheritPackages());
                     }
 
-                    if (!fp.getExcludedConfigs().isEmpty()) {
-                        for (ConfigurationId configId : fp.getExcludedConfigs()) {
-                            if (configId.isModelOnly()) {
-                                fpConfig.excludeConfigModel(configId.getId().getModel());
-                            } else {
-                                fpConfig.excludeDefaultConfig(configId.getId());
-                            }
-                        }
-                    }
-                    if (!fp.getIncludedConfigs().isEmpty()) {
-                        for (ConfigurationId configId : fp.getIncludedConfigs()) {
-                            if (configId.isModelOnly()) {
-                                fpConfig.includeConfigModel(configId.getId().getModel());
-                            } else {
-                                fpConfig.includeDefaultConfig(configId.getId());
+                    if (fp.getIncludedDefaultConfig() != null) {
+                        ConfigId configId = new ConfigId("standalone", fp.getIncludedDefaultConfig());
+                        fpConfig.includeDefaultConfig(configId);
+                        if (defaultConfig == null) {
+                            defaultConfig = configId;
+                            configBuilder = ConfigModel.
+                                    builder(defaultConfig.getModel(), defaultConfig.getName());
+                            // Must enforce the config name
+                            configBuilder.setProperty("--server-config", "standalone.xml");
+                        } else {
+                            if (!defaultConfig.getName().equals(fp.getIncludedDefaultConfig())) {
+                                throw new ProvisioningException("Feature-packs are not including the same default config");
                             }
                         }
                     }
@@ -636,15 +631,20 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
 
-            if (!layers.isEmpty()) {
+            // We could be in a case where we are only excluding layers from the included default config.
+            // So no layers included thanks to the <layers> element.
+            if (!layers.isEmpty() || !excludedLayers.isEmpty()) {
                 if (featurePackLocation == null && state == null) {
                     throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
                 }
                 if (Files.exists(provisioningFile)) {
                     getLog().warn("Layers defined in pom.xml override provisioning file located in " + provisioningFile);
                 }
-                ConfigModel.Builder configBuilder = ConfigModel.
-                        builder("standalone", "standalone.xml");
+                // if not null means a default config has been included.
+                if (configBuilder == null) {
+                    configBuilder = ConfigModel.
+                            builder("standalone", "standalone.xml");
+                }
 
                 for (String layer : layers) {
                     configBuilder.includeLayer(layer);
@@ -659,6 +659,9 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 for (String layer : excludedLayers) {
                     configBuilder.excludeLayer(layer);
                 }
+                // passive+ in all cases
+                // For included default config not based on layers, default packages
+                // must be included.
                 if (pluginOptions.isEmpty()) {
                     pluginOptions = Collections.
                             singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
@@ -684,13 +687,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                         throw new ProvisioningException("No server feature-pack location to provision microprofile standalone configuration, "
                                 + "you must set a feature-pack-location.");
                     }
-                    ConfigModel.Builder configBuilder = null;
+                    ConfigModel.Builder defaultConfigBuilder = null;
                     ConfigId defaultConfigId = getDefaultConfig();
                     if (!extraLayers.isEmpty()) {
-                        configBuilder = ConfigModel.
+                        defaultConfigBuilder = ConfigModel.
                                 builder(defaultConfigId.getModel(), defaultConfigId.getName());
                         for (String layer : extraLayers) {
-                            configBuilder.includeLayer(layer);
+                            defaultConfigBuilder.includeLayer(layer);
                         }
                     }
                     FeaturePackConfig dependency = FeaturePackConfig.
@@ -698,11 +701,11 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                             setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(defaultConfigId.getModel(), defaultConfigId.getName()).build();
                     ProvisioningConfig.Builder provBuilder = ProvisioningConfig.builder().addFeaturePackDep(dependency).addOptions(pluginOptions);
                     // Create a config to merge options to name the config standalone.xml
-                    if (configBuilder == null) {
-                        configBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
+                    if (defaultConfigBuilder == null) {
+                        defaultConfigBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
                     }
-                    configBuilder.setProperty("--server-config", "standalone.xml");
-                    provBuilder.addConfig(configBuilder.build());
+                    defaultConfigBuilder.setProperty("--server-config", "standalone.xml");
+                    provBuilder.addConfig(defaultConfigBuilder.build());
                     // The microprofile config is fully expressed with galleon layers, we can trim it.
                     pluginOptions = Collections.
                             singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
