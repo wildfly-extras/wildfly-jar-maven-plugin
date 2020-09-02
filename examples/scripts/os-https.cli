@@ -1,5 +1,6 @@
 #SSL
-/subsystem=elytron/key-store=keystore:add(path="${keystore.path}", credential-reference={clear-text=${keystore.password}})
+# When the keystore file doesn't exist (will exist in the POD), we need to set required=false and type attributes.
+/subsystem=elytron/key-store=keystore:add(path="${keystore.path}", required=false, type=JKS, credential-reference={clear-text=${keystore.password}})
 /subsystem=elytron/key-manager=key-manager:add(key-store=keystore, credential-reference={clear-text=${keystore.password}})
 /subsystem=elytron/server-ssl-context=server-ssl-context:add(key-manager=key-manager)
 #HTTPS
