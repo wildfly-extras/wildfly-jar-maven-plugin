@@ -17,6 +17,7 @@
 package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,6 +87,7 @@ import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
+import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
@@ -244,6 +246,35 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "provisioning-file", property = "wildfly.bootable.provisioning.file", defaultValue = "${project.basedir}/galleon/provisioning.xml")
     private File provisioningFile;
 
+    /**
+     * Path to a CLI script that applies legacy patches. Content of such script
+     * should be composed of 'patch apply [path to zip file] [patch apply
+     * options]' commands. Due to the nature of a bootable JAR trimmed with
+     * Galleon, part of the content of the patch can be missing. In order to
+     * force the patch to apply use the '--override-all' option. The
+     * '--distribution' option is not needed, System property 'jboss.home.dir'
+     * is automatically set to the server that will be packaged in the bootable
+     * JAR. NB: The server is patched with a legacy patch right after the server
+     * has been provisioned with Galleon.
+     */
+    @Parameter(alias = "legacy-patch-cli-script")
+    String legacyPatchCliScript;
+
+    /**
+     * Set to true to enable patch cleanup. When cleanup is enabled, unused
+     * added modules, patched modules original directories, unused overlay
+     * directories and .installation/patches directory are deleted.
+     */
+    @Parameter(alias = "legacy-patch-clean-up", defaultValue = "false")
+    boolean legacyPatchCleanUp;
+
+    /**
+     * By default executed CLI scripts output is not shown if execution is
+     * successful. In order to display the CLI output, set this option to true.
+     */
+    @Parameter(alias = "display-cli-scripts-output")
+    boolean displayCliScriptsOutput;
+
     private Set<String> extraLayers = new HashSet<>();
 
     private Path wildflyDir;
@@ -300,24 +331,32 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         } catch (ProvisioningException | IOException | XMLStreamException ex) {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
+
         try {
+            // Legacy Patching point
+            legacyPatching();
             copyExtraContentInternal(wildflyDir, contentDir);
             copyExtraContent(wildflyDir);
             List<String> commands = new ArrayList<>();
             deploy(commands);
-            configureCli(commands);
+            List<String> serverConfigCommands = new ArrayList<>();
+            configureCli(serverConfigCommands);
+            commands.addAll(serverConfigCommands);
             if (!commands.isEmpty()) {
-                executeCliScript(wildflyDir, commands, null, false, "Server configuration");
-                // Store generated commands to file in build artifacts.
-                Path genCliScript = contentRoot.resolve("generated-cli-script.txt");
-                try (FileWriter writer = new FileWriter(genCliScript.toFile())) {
-                    for(String str: commands) {
-                        writer.write(str + System.lineSeparator());
+                executeCliScript(wildflyDir, commands, null, false, "Server configuration", true);
+                if (!serverConfigCommands.isEmpty()) {
+                    // Store generated commands to file in build artifacts.
+                    Path genCliScript = contentRoot.resolve("generated-cli-script.txt");
+                    try (BufferedWriter writer = Files.newBufferedWriter(genCliScript, StandardCharsets.UTF_8)) {
+                        for (String str : serverConfigCommands) {
+                            writer.write(str);
+                            writer.newLine();
+                        }
                     }
+                    getLog().info("Stored CLI script executed to update server configuration in " + genCliScript + " file.");
                 }
-                getLog().info("Stored CLI script executed to update server configuration in " + genCliScript + " file.");
             }
-            userScripts(wildflyDir);
+            userScripts(wildflyDir, cliSessions, true);
             cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile, bootArtifact);
@@ -326,6 +365,33 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    private void legacyPatching() throws Exception {
+        if (legacyPatchCliScript != null) {
+            LegacyPatchCleaner patchCleaner = null;
+            if (legacyPatchCleanUp) {
+                patchCleaner = new LegacyPatchCleaner(wildflyDir, getLog());
+            }
+            String prop = "jboss.home.dir";
+            System.setProperty(prop, wildflyDir.toAbsolutePath().toString());
+            try {
+                List<CliSession> cliPatchingSessions = new ArrayList<>();
+                List<String> files = new ArrayList<>();
+                files.add(legacyPatchCliScript);
+                CliSession patchingSession = new CliSession();
+                patchingSession.setResolveExpressions(true);
+                patchingSession.setScriptFiles(files);
+                cliPatchingSessions.add(patchingSession);
+                getLog().info("Patching server with " + legacyPatchCliScript + " CLI script.");
+                userScripts(wildflyDir, cliPatchingSessions, false);
+                if (patchCleaner != null) {
+                    patchCleaner.clean();
+                }
+            } finally {
+                System.clearProperty(prop);
+            }
+        }
     }
 
     private void copyExtraContent(Path wildflyDir) throws Exception {
@@ -384,8 +450,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return f;
     }
 
-    private void userScripts(Path wildflyDir) throws Exception {
-        for (CliSession session : cliSessions) {
+    private void userScripts(Path wildflyDir, List<CliSession> sessions, boolean startEmbedded) throws Exception {
+        for (CliSession session : sessions) {
             List<String> commands = new ArrayList<>();
             for (String path : session.getScriptFiles()) {
                 File f = new File(path);
@@ -406,19 +472,21 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
             if(!commands.isEmpty()) {
-                executeCliScript(wildflyDir, commands, session.getPropertiesFile(), session.getResolveExpression(), session.toString());
+                executeCliScript(wildflyDir, commands, session.getPropertiesFile(),
+                        session.getResolveExpression(), session.toString(), startEmbedded);
             }
         }
     }
 
-    private void executeCliScript(Path jbossHome, List<String> commands, String propertiesFile, boolean resolveExpression, String message) throws Exception {
+    private void executeCliScript(Path jbossHome, List<String> commands, String propertiesFile,
+            boolean resolveExpression, String message, boolean startEmbedded) throws Exception {
         getLog().info("Executing CLI, " + message);
         Properties props = null;
         if (propertiesFile != null) {
             props = loadProperties(propertiesFile);
         }
         try {
-            processCLI(jbossHome, commands, resolveExpression);
+            processCLI(jbossHome, commands, resolveExpression, startEmbedded);
         } finally {
             if (props != null) {
                 for (String key : props.stringPropertyNames()) {
@@ -428,7 +496,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private void processCLI(Path jbossHome, List<String> commands, boolean resolveExpression) throws Exception {
+    private void processCLI(Path jbossHome, List<String> commands, boolean resolveExpression, boolean startEmbedded) throws Exception {
         Level level = disableLog();
         Path config = jbossHome.resolve("bin").resolve("jboss-cli.xml");
         String origConfig = System.getProperty("jboss.cli.config");
@@ -445,20 +513,24 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
 
             try {
-                cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
+                if (startEmbedded) {
+                    cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
+                }
                 for (String line : commands) {
                     cmdCtx.handle(line.trim());
                 }
             } catch (Exception ex) {
                 originalException = ex;
             } finally {
-                try {
-                    cmdCtx.handle("stop-embedded-server");
-                } catch (Exception ex2) {
-                    if (originalException != null) {
-                        ex2.addSuppressed(originalException);
+                if (startEmbedded) {
+                    try {
+                        cmdCtx.handle("stop-embedded-server");
+                    } catch (Exception ex2) {
+                        if (originalException != null) {
+                            ex2.addSuppressed(originalException);
+                        }
+                        throw ex2;
                     }
-                    throw ex2;
                 }
             }
             if (originalException != null) {
@@ -472,6 +544,10 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (originalException != null) {
                 getLog().error("Error executing CLI script " + originalException.getLocalizedMessage());
                 getLog().error(out.toString());
+            } else {
+                if (displayCliScriptsOutput) {
+                    getLog().info(out.toString());
+                }
             }
 
         }
