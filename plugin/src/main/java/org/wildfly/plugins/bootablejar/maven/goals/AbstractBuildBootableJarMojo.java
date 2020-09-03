@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
@@ -33,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +47,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -64,9 +67,11 @@ import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.jboss.as.cli.CliInitializationException;
 import org.jboss.as.cli.CommandContext;
 import org.jboss.as.cli.CommandContextFactory;
 import org.jboss.as.cli.impl.CommandContextConfiguration;
+import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -275,6 +280,20 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "display-cli-scripts-output")
     boolean displayCliScriptsOutput;
 
+    /**
+     * Overrides the default {@code logging.properties} the container uses when booting.
+     * <br/>
+     * In most cases this should not be required. The use-case is when the generated {@code logging.properties} causes
+     * boot errors or you do not use the logging subsystem and would like to use a custom logging configuration.
+     * <br/>
+     * An example of a boot error would be using a log4j appender as a {@code custom-handler}.
+     */
+    @Parameter(alias = "boot-logging-config", property = "wildfly.bootable.logging.config")
+    private File bootLoggingConfig;
+
+    @Inject
+    private BootLoggingConfiguration bootLoggingConfiguration;
+
     private Set<String> extraLayers = new HashSet<>();
 
     private Path wildflyDir;
@@ -357,10 +376,26 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
             userScripts(wildflyDir, cliSessions, true);
+            if (bootLoggingConfig == null) {
+                generateLoggingConfig(wildflyDir);
+            } else {
+                // Copy the user overridden logging.properties
+                final Path loggingConfig = bootLoggingConfig.toPath();
+                if (Files.notExists(loggingConfig)) {
+                    throw new MojoExecutionException(String.format("The bootLoggingConfig %s does not exist.", bootLoggingConfig));
+                }
+                final Path target = getJBossHome().resolve("standalone").resolve("configuration").resolve("logging.properties");
+                Files.copy(loggingConfig, target, StandardCopyOption.REPLACE_EXISTING);
+            }
             cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile, bootArtifact);
         } catch (Exception ex) {
+            if (ex instanceof MojoExecutionException) {
+                throw (MojoExecutionException) ex;
+            } else if (ex instanceof MojoFailureException) {
+                throw (MojoFailureException) ex;
+            }
             throw new MojoExecutionException("Packaging wildfly failed", ex);
         }
 
@@ -496,6 +531,45 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
+    private void generateLoggingConfig(final Path wildflyDir) throws Exception {
+        CommandContext cmdCtx = null;
+        Exception toThrow = null;
+        final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        try {
+            cmdCtx = createCommandContext(stdout, false);
+            try {
+                // Start the embedded server
+                cmdCtx.handle("embed-server --jboss-home=" + wildflyDir + " --std-out=discard");
+                // Get the client used to execute the management operations
+                final ModelControllerClient client = cmdCtx.getModelControllerClient();
+                // Update the bootable logging config
+                final Path configDir = wildflyDir.resolve("standalone").resolve("configuration");
+                bootLoggingConfiguration.generate(configDir, client);
+            } catch (Exception e) {
+                toThrow = e;
+            } finally {
+                try {
+                    // Always stop the embedded server
+                    cmdCtx.handle("stop-embedded-server");
+                } catch (Exception e) {
+                    if (toThrow != null) {
+                        e.addSuppressed(toThrow);
+                    }
+                    toThrow = e;
+                }
+            }
+            // Check if an error has been thrown and throw it.
+            if (toThrow != null) {
+                getLog().error("Failed to generate logging configuration: " + stdout.toString());
+                throw toThrow;
+            }
+        } finally {
+            if (cmdCtx != null){
+                cmdCtx.terminateSession();
+            }
+        }
+    }
+
     private void processCLI(Path jbossHome, List<String> commands, boolean resolveExpression, boolean startEmbedded) throws Exception {
         Level level = disableLog();
         Path config = jbossHome.resolve("bin").resolve("jboss-cli.xml");
@@ -506,11 +580,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Exception originalException = null;
         try {
-            CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
-            builder.setEchoCommand(true);
-            builder.setResolveParameterValues(resolveExpression);
-            builder.setConsoleOutput(out);
-            CommandContext cmdCtx = CommandContextFactory.getInstance().newCommandContext(builder.build());
+            CommandContext cmdCtx = createCommandContext(out, resolveExpression);
 
             try {
                 if (startEmbedded) {
@@ -552,6 +622,14 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         }
         getLog().info("CLI scripts execution done.");
+    }
+
+    private CommandContext createCommandContext(final OutputStream out, final boolean resolveExpression) throws CliInitializationException {
+        CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
+        builder.setEchoCommand(true);
+        builder.setResolveParameterValues(resolveExpression);
+        builder.setConsoleOutput(out);
+        return CommandContextFactory.getInstance().newCommandContext(builder.build());
     }
 
     private Level disableLog() {
