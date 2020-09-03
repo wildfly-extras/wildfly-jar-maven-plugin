@@ -92,7 +92,7 @@ public class CloudConfig {
         try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
             props.store(s, type + " properties");
         }
-        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", mojo.retrievePluginVersion());
+        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
         ZipUtils.unzip(extensionJar, contentDir);
     }
 
