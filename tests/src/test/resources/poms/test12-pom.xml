@@ -18,7 +18,7 @@
                 <configuration>
                     <feature-packs>
                         <feature-pack>
-                            <location>wildfly@maven(org.jboss.universe:community-universe)#TEST_REPLACE</location>
+                            <location>TEST_REPLACE</location>
                             <included-default-config>standalone-microprofile.xml</included-default-config>
                         </feature-pack>
                     </feature-packs>

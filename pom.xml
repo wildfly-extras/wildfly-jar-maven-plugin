@@ -75,6 +75,12 @@
 
     <maven.test.skip>false</maven.test.skip>
     <skipTests>${maven.test.skip}</skipTests>
+    
+    <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
+    <test.patch.product>WildFly Full</test.patch.product>
+    <test.patch.version>${version.wildfly}</test.patch.version>
+    <wildfly.artifactId>wildfly-galleon-pack</wildfly.artifactId>
+    <wildfly.groupId>org.wildfly</wildfly.groupId>
   </properties>
 
   <repositories>
@@ -326,6 +332,23 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+      <profile>
+          <id>xp</id>
+          <activation>
+              <property>
+                  <name>xp</name>
+              </property>
+          </activation>
+          <properties>
+            <wildfly.groupId>org.jboss.eap</wildfly.groupId>
+            <version.wildfly>2.0.0.GA-redhat-SNAPSHOT</version.wildfly>
+            <test.fpl>${wildfly.groupId}:${wildfly.artifactId}:${version.wildfly}</test.fpl>
+            <test.patch.product>JBoss EAP</test.patch.product>
+            <test.patch.version>7.3.3.GA</test.patch.version>
+          </properties>
+      </profile>
+  </profiles>
   <scm>
       <connection>scm:git:${bootable-jar.repo.scm.connection}</connection>
       <developerConnection>scm:git:${bootable-jar.repo.scm.connection}</developerConnection>

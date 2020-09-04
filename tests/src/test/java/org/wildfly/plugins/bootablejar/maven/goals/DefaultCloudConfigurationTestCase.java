@@ -35,7 +35,7 @@ public class DefaultCloudConfigurationTestCase extends AbstractBootableJarMojoTe
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         assertTrue(mojo.cliSessions.isEmpty());
-        assertTrue(mojo.featurePackLocation.startsWith("wildfly@maven(org.jboss.universe:community-universe)#"));
+        assertTrue(mojo.featurePackLocation.equals(System.getProperty(WILDFLY_FPL)));
         assertNotNull(mojo.projectBuildDir);
         assertTrue(mojo.excludedLayers.isEmpty());
         assertTrue(mojo.layers.isEmpty());

@@ -95,8 +95,8 @@ public class PatchingTestUtil {
     public static final File BASE_MODULE_DIRECTORY = newFile(LAYERS_DIRECTORY, BASE);
     public static final boolean DO_CLEANUP = Boolean.getBoolean("cleanup.tmp");
 
-    public static final String AS_VERSION = System.getProperty("version.wildfly");
-    public static final String PRODUCT = "WildFly Full";
+    public static final String AS_VERSION = System.getProperty("test.patch.version");
+    public static final String PRODUCT = System.getProperty("test.patch.product");
 
     public static String randomString() {
         return UUID.randomUUID().toString();

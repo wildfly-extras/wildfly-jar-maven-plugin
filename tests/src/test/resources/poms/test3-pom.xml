@@ -16,15 +16,13 @@
             <plugin>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
-                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#TEST_REPLACE</feature-pack-location>
+                    <feature-pack-location>TEST_REPLACE</feature-pack-location>
                      <layers>
                         <layer>cloud-profile</layer>
                         <layer>management</layer>
                     </layers>
                     <excluded-layers>
                         <layer>ee-security</layer>
-                        <layer>observability</layer>
-                        <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                 </configuration>

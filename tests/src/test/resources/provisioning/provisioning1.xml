@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <installation xmlns="urn:jboss:galleon:provisioning:3.0">
-    <feature-pack location="wildfly@maven(org.jboss.universe:community-universe)#TEST_REPLACE">
+    <feature-pack location="TEST_REPLACE">
          <default-configs inherit="false"/>
             <packages inherit="false"/>
     </feature-pack>

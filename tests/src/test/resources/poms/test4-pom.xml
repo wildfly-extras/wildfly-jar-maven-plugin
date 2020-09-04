@@ -16,7 +16,7 @@
             <plugin>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
-                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#TEST_REPLACE</feature-pack-location>
+                    <feature-pack-location>TEST_REPLACE</feature-pack-location>
                     <context-root>false</context-root>
                 </configuration>
                 
