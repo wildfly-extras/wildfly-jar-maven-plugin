@@ -18,7 +18,6 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -26,7 +25,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
@@ -67,10 +65,6 @@ import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.jboss.as.cli.CliInitializationException;
-import org.jboss.as.cli.CommandContext;
-import org.jboss.as.cli.CommandContextFactory;
-import org.jboss.as.cli.impl.CommandContextConfiguration;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
@@ -300,6 +294,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private MavenRepoManager artifactResolver;
 
+    private final Set<Artifact> cliArtifacts = new HashSet<>();
+
     public Path getJBossHome() {
         return wildflyDir;
     }
@@ -397,6 +393,11 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                 throw (MojoFailureException) ex;
             }
             throw new MojoExecutionException("Packaging wildfly failed", ex);
+        } finally {
+            // Although cli and embedded are run in their own classloader,
+            // the module.path system property has been set and needs to be cleared for
+            // in same JVM next execution.
+            System.clearProperty("module.path");
         }
 
         attachJar(jarFile);
@@ -532,11 +533,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private void generateLoggingConfig(final Path wildflyDir) throws Exception {
-        CommandContext cmdCtx = null;
         Exception toThrow = null;
-        final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        try {
-            cmdCtx = createCommandContext(stdout, false);
+        try (CLIExecutor cmdCtx = new CLIExecutor(wildflyDir, cliArtifacts, this, false)) {
             try {
                 // Start the embedded server
                 cmdCtx.handle("embed-server --jboss-home=" + wildflyDir + " --std-out=discard");
@@ -560,79 +558,55 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
             // Check if an error has been thrown and throw it.
             if (toThrow != null) {
-                getLog().error("Failed to generate logging configuration: " + stdout.toString());
+                getLog().error("Failed to generate logging configuration: " + cmdCtx.getOutput());
                 throw toThrow;
-            }
-        } finally {
-            if (cmdCtx != null){
-                cmdCtx.terminateSession();
             }
         }
     }
 
-    private void processCLI(Path jbossHome, List<String> commands, boolean resolveExpression, boolean startEmbedded) throws Exception {
-        Level level = disableLog();
-        Path config = jbossHome.resolve("bin").resolve("jboss-cli.xml");
-        String origConfig = System.getProperty("jboss.cli.config");
-        if (Files.exists(config)) {
-            System.setProperty("jboss.cli.config", config.toString());
-        }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Exception originalException = null;
-        try {
-            CommandContext cmdCtx = createCommandContext(out, resolveExpression);
+    private void processCLI(Path jbossHome, List<String> commands,
+            boolean resolveExpression, boolean startEmbedded) throws Exception {
 
+        Exception toThrow = null;
+        try (CLIExecutor executor = new CLIExecutor(jbossHome, cliArtifacts, this, resolveExpression)) {
             try {
                 if (startEmbedded) {
-                    cmdCtx.handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
+                    executor.handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
                 }
                 for (String line : commands) {
-                    cmdCtx.handle(line.trim());
+                    executor.handle(line.trim());
                 }
             } catch (Exception ex) {
-                originalException = ex;
+                toThrow = ex;
             } finally {
-                if (startEmbedded) {
-                    try {
-                        cmdCtx.handle("stop-embedded-server");
-                    } catch (Exception ex2) {
-                        if (originalException != null) {
-                            ex2.addSuppressed(originalException);
+                try {
+                    if (startEmbedded) {
+                        try {
+                            executor.handle("stop-embedded-server");
+                        } catch (Exception ex2) {
+                            if (toThrow != null) {
+                                ex2.addSuppressed(toThrow);
+                            }
+                            toThrow = ex2;
                         }
-                        throw ex2;
+                    }
+                } finally {
+                    if (toThrow != null) {
+                        getLog().error("Error executing CLI script " + toThrow.getLocalizedMessage());
+                        getLog().error(executor.getOutput());
+                        throw toThrow;
+                    } else {
+                        if (displayCliScriptsOutput) {
+                            getLog().info(executor.getOutput());
+                        }
                     }
                 }
             }
-            if (originalException != null) {
-                throw originalException;
-            }
-        } finally {
-            enableLog(level);
-            if (origConfig != null) {
-                System.setProperty("jboss.cli.config", origConfig);
-            }
-            if (originalException != null) {
-                getLog().error("Error executing CLI script " + originalException.getLocalizedMessage());
-                getLog().error(out.toString());
-            } else {
-                if (displayCliScriptsOutput) {
-                    getLog().info(out.toString());
-                }
-            }
-
         }
         getLog().info("CLI scripts execution done.");
     }
 
-    private CommandContext createCommandContext(final OutputStream out, final boolean resolveExpression) throws CliInitializationException {
-        CommandContextConfiguration.Builder builder = new CommandContextConfiguration.Builder();
-        builder.setEchoCommand(true);
-        builder.setResolveParameterValues(resolveExpression);
-        builder.setConsoleOutput(out);
-        return CommandContextFactory.getInstance().newCommandContext(builder.build());
-    }
-
-    private Level disableLog() {
+    Level disableLog() {
         Logger l = Logger.getLogger("");
         Level level = l.getLevel();
         // Only disable logging if debug is not ebnabled.
@@ -642,7 +616,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return level;
     }
 
-    private void enableLog(Level level) {
+    void enableLog(Level level) {
         Logger l = Logger.getLogger("");
         l.setLevel(level);
     }
@@ -901,7 +875,54 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                             break;
                         }
                     }
-                    break;
+                }
+                // Lookup artifacts to retrieve the required dependencies for isolated CLI execution
+                Path artifactProps = fprt.getResource("wildfly/artifact-versions.properties");
+                final Map<String, String> propsMap = new HashMap<>();
+                try {
+                    readProperties(artifactProps, propsMap);
+                } catch (Exception ex) {
+                    throw new MojoExecutionException("Error reading artifact versions", ex);
+                }
+                for (Entry<String, String> entry : propsMap.entrySet()) {
+                    String value = entry.getValue();
+                    Artifact a = getArtifact(value);
+                    if ("wildfly-cli".equals(a.getArtifactId())
+                            && "org.wildfly.core".equals(a.getGroupId())) {
+                        // We got it.
+                        getLog().debug("Found cli artifact " + a + " in " + fprt.getFPID());
+                        cliArtifacts.add(new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "provided", JAR,
+                                "client", new DefaultArtifactHandler(JAR)));
+                        continue;
+                    }
+                    if ("wildfly-patching".equals(a.getArtifactId())
+                            && "org.wildfly.core".equals(a.getGroupId())) {
+                        // We got it.
+                        getLog().debug("Found patching artifact " + a + " in " + fprt.getFPID());
+                        cliArtifacts.add(a);
+                        continue;
+                    }
+                    // All the following ones are patching required dependencies:
+                    if ("wildfly-controller".equals(a.getArtifactId())
+                            && "org.wildfly.core".equals(a.getGroupId())) {
+                        // We got it.
+                        getLog().debug("Found controller artifact " + a + " in " + fprt.getFPID());
+                        cliArtifacts.add(a);
+                        continue;
+                    }
+                    if ("wildfly-version".equals(a.getArtifactId())
+                            && "org.wildfly.core".equals(a.getGroupId())) {
+                        // We got it.
+                        getLog().debug("Found version artifact " + a + " in " + fprt.getFPID());
+                        cliArtifacts.add(a);
+                    }
+                    if ("vdx-core".equals(a.getArtifactId())
+                            && "org.projectodd.vdx".equals(a.getGroupId())) {
+                        // We got it.
+                        getLog().debug("Found vdx-core artifact " + a + " in " + fprt.getFPID());
+                        cliArtifacts.add(a);
+                    }
+                    // End patching dependencies.
                 }
             }
             if (bootArtifact == null) {
@@ -983,14 +1004,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return pluginDescriptor.getVersion();
     }
 
-    public Path resolveArtifact(String groupId, String artifactId, String version) throws UnsupportedEncodingException,
+    public Path resolveArtifact(String groupId, String artifactId, String classifier, String version) throws UnsupportedEncodingException,
             PlexusConfigurationException, MojoExecutionException {
         return resolveArtifact(new DefaultArtifact(groupId, artifactId, version,
-                            "provided", JAR, null,
-                            new DefaultArtifactHandler(JAR)));
+                "provided", JAR, classifier, new DefaultArtifactHandler(JAR)));
     }
 
-    private Path resolveArtifact(Artifact artifact) throws MojoExecutionException {
+    Path resolveArtifact(Artifact artifact) throws MojoExecutionException {
         MavenArtifact mavenArtifact = new MavenArtifact();
         mavenArtifact.setGroupId(artifact.getGroupId());
         mavenArtifact.setArtifactId(artifact.getArtifactId());

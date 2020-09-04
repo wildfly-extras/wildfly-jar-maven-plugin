@@ -92,6 +92,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+          <groupId>org.wildfly.common</groupId>
+          <artifactId>wildfly-common</artifactId>
+          <scope>test</scope>
+      </dependency>
+        <dependency>
             <groupId>org.wildfly.core</groupId>
             <artifactId>wildfly-patching</artifactId>
             <scope>test</scope>
