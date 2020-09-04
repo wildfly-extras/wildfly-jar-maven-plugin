@@ -59,7 +59,7 @@ import org.wildfly.plugin.core.ServerHelper;
 @SuppressWarnings("SameParameterValue")
 public abstract class AbstractBootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
-    private static final String WILDFLY_VERSION = "version.wildfly";
+    static final String WILDFLY_FPL = "test.fpl";
     private static final String TEST_REPLACE = "TEST_REPLACE";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
 
@@ -105,7 +105,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         StringBuilder content = new StringBuilder();
         for (String s : Files.readAllLines(pom.toPath())) {
             if (s.contains(TEST_REPLACE)) {
-                s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_VERSION));
+                s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_FPL));
             }
             content.append(s).append(System.lineSeparator());
         }
@@ -137,7 +137,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             StringBuilder content = new StringBuilder();
             for (String s : Files.readAllLines(prov.toPath())) {
                 if (s.contains(TEST_REPLACE)) {
-                    s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_VERSION));
+                    s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_FPL));
                 }
                 content.append(s);
             }

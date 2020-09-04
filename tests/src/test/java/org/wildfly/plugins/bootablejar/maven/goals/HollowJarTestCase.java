@@ -37,10 +37,8 @@ public class HollowJarTestCase extends AbstractBootableJarMojoTestCase {
         assertEquals(2, mojo.layers.size());
         assertEquals("cloud-profile", mojo.layers.get(0));
         assertEquals("management", mojo.layers.get(1));
-        assertEquals(3, mojo.excludedLayers.size());
+        assertEquals(1, mojo.excludedLayers.size());
         assertEquals("ee-security", mojo.excludedLayers.get(0));
-        assertEquals("observability", mojo.excludedLayers.get(1));
-        assertEquals("deployment-scanner", mojo.excludedLayers.get(2));
         mojo.recordState = true;
         mojo.execute();
         String[] layers = {"cloud-profile", "management"};

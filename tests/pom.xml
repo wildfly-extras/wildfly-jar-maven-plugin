@@ -134,8 +134,8 @@
                             </plugin-options>
                             <feature-packs>
                                 <feature-pack>
-                                    <groupId>org.wildfly</groupId>
-                                    <artifactId>wildfly-galleon-pack</artifactId>
+                                    <groupId>${wildfly.groupId}</groupId>
+                                    <artifactId>${wildfly.artifactId}</artifactId>
                                     <version>${version.wildfly}</version>
                                 </feature-pack>
                             </feature-packs>
@@ -167,8 +167,16 @@
                         <configuration>
                             <systemProperties>
                                 <property>
-                                    <name>version.wildfly</name>
-                                    <value>${version.wildfly}</value>
+                                    <name>test.fpl</name>
+                                    <value>${test.fpl}</value>
+                                </property>
+                                <property>
+                                    <name>test.patch.version</name>
+                                    <value>${test.patch.version}</value>
+                                </property>
+                                <property>
+                                    <name>test.patch.product</name>
+                                    <value>${test.patch.product}</value>
                                 </property>
                                 <property>
                                     <name>jbossas.dist</name>
