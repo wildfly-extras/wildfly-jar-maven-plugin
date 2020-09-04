@@ -25,17 +25,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import org.jboss.as.controller.client.ModelControllerClient;
@@ -51,7 +52,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.wildfly.common.expression.Expression;
 import org.wildfly.core.launcher.Launcher;
 import org.wildfly.core.launcher.StandaloneCommandBuilder;
 import org.wildfly.plugin.core.ServerHelper;
@@ -509,6 +509,7 @@ public class BootLoggingConfigurationTestCase {
         expectedProperties.setProperty("test.pretty.print", "true");
         expectedProperties.setProperty("test.exception-output-type", "formatted");
         expectedProperties.setProperty("test.zone.id", "UTC");
+        expectedProperties.setProperty("test.dir", System.getProperty("java.io.tmpdir"));
 
         // Add the system properties
         for (String key : expectedProperties.stringPropertyNames()) {
@@ -516,13 +517,11 @@ public class BootLoggingConfigurationTestCase {
             final ModelNode op = Operations.createAddOperation(address);
             op.get("value").set(expectedProperties.getProperty(key));
             builder.addStep(op);
-            tearDownOps.add(Operations.createRemoveOperation(address));
         }
         // Add a path and set this after
-        final String tmpDir = System.getProperty("java.io.tmpdir");
         final ModelNode tmpPathAddress = Operations.createAddress("path", "custom.log.dir");
         ModelNode op = Operations.createAddOperation(tmpPathAddress);
-        op.get("path").set(tmpDir);
+        op.get("path").set("${test.dir}");
         builder.addStep(op);
 
         final ModelNode logPathAddress = Operations.createAddress("path", "test.log.dir");
@@ -530,8 +529,6 @@ public class BootLoggingConfigurationTestCase {
         op.get("relative-to").set("custom.log.dir");
         op.get("path").set("logs");
         builder.addStep(op);
-        expectedProperties.setProperty("custom.log.dir", tmpDir);
-        expectedProperties.setProperty("test.log.dir", "logs");
 
         // Add one property that won't be used so it shouldn't end up in the boot-config.properties
         final ModelNode sysPropAddress = Operations.createAddress("system-property", "unused.property");
@@ -559,6 +556,9 @@ public class BootLoggingConfigurationTestCase {
         file.get("relative-to").set("test.log.dir");
         file.get("path").set("test.log");
         builder.addStep(op);
+        // We don't actually expect the custom.log.dir property here as it should be written to the file as
+        // ${test.dir}/${test.log.dir}/test.log
+        expectedProperties.setProperty("test.log.dir", "logs");
 
         // Create a logger
         final ModelNode loggerAddress = createLoggingAddress("logger", "org.wildfly.core");
@@ -575,6 +575,14 @@ public class BootLoggingConfigurationTestCase {
         tearDownOps.add(Operations.createRemoveOperation(formatterAddress));
         tearDownOps.add(Operations.createRemoveOperation(logPathAddress));
         tearDownOps.add(Operations.createRemoveOperation(tmpPathAddress));
+
+        // Remove all the properties last
+        for (String name : expectedProperties.stringPropertyNames()) {
+            // test.log.dir isn't an actual system property
+            if ("test.log.dir".equals(name)) continue;
+            final ModelNode address = Operations.createAddress("system-property", name);
+            tearDownOps.addLast(Operations.createRemoveOperation(address));
+        }
 
         generateAndTest(expectedProperties);
     }
@@ -620,6 +628,36 @@ public class BootLoggingConfigurationTestCase {
         generateAndTest(expectedProperties);
     }
 
+    @Test
+    public void testMultiKeyExpression() throws Exception {
+        final CompositeOperationBuilder builder = CompositeOperationBuilder.create();
+
+        // Create some expected properties
+        final Properties expectedProperties = new Properties();
+        expectedProperties.setProperty("test.prod.level", "INFO");
+        expectedProperties.setProperty("test.min.level", "WARN");
+
+        // Add the system properties
+        for (String key : expectedProperties.stringPropertyNames()) {
+            final ModelNode address = Operations.createAddress("system-property", key);
+            final ModelNode op = Operations.createAddOperation(address);
+            op.get("value").set(expectedProperties.getProperty(key));
+            builder.addStep(op);
+            tearDownOps.add(Operations.createRemoveOperation(address));
+        }
+
+        // Create a logger to set the level on
+        final ModelNode address = createLoggingAddress("logger", BootLoggingConfigurationTestCase.class.getName());
+        final ModelNode op = Operations.createAddOperation(address);
+        op.get("level").set("${test.dev.level,test.prod.level,test.min.level:DEBUG}");
+        builder.addStep(op);
+
+        executeOperation(builder.build());
+        tearDownOps.add(Operations.createRemoveOperation(address));
+
+        generateAndTest(expectedProperties);
+    }
+
     private void generateAndTest() throws Exception {
         generateAndTest(null);
     }
@@ -655,7 +693,7 @@ public class BootLoggingConfigurationTestCase {
         final Path serverLogConfig = TestEnvironment.getJBossHome().resolve("standalone").resolve("configuration")
                 .resolve("logging.properties");
         Assert.assertTrue("Could find config file " + serverLogConfig, Files.exists(serverLogConfig));
-        return Files.copy(serverLogConfig, tmpDir.resolve("server-logging.properties"));
+        return Files.copy(serverLogConfig, tmpDir.resolve("server-logging.properties"), StandardCopyOption.REPLACE_EXISTING);
     }
 
     private static ModelNode createLoggingAddress(final String... parts) {
@@ -792,10 +830,13 @@ public class BootLoggingConfigurationTestCase {
     private static Path resolvePath(final String path) throws IOException {
         Path resolved = Paths.get(path);
         if (EXPRESSION_PATTERN.matcher(path).matches()) {
-            final AtomicReference<String> p = new AtomicReference<>();
-            Expression.compile(path)
-                    .evaluate((context, builder) -> p.set(context.getKey()));
-            final ModelNode op = Operations.createOperation("path-info", Operations.createAddress("path", p.get()));
+            // For testing purposes we're just going to use the last entry which should be a path entry
+            final LinkedList<Expression> expressions = new LinkedList<>(Expression.parse(path));
+            Assert.assertFalse("The path could not be resolved: " + path, expressions.isEmpty());
+            final Expression expression = expressions.getLast();
+            // We're assuming we only have one key entry which for testing purposes should be okay
+            final ModelNode op = Operations.createOperation("path-info",
+                    Operations.createAddress("path", expression.getKeys().get(0)));
             final ModelNode result = client.execute(op);
             if (!Operations.isSuccessfulOutcome(result)) {
                 Assert.fail(Operations.getFailureDescription(result).asString());

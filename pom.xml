@@ -147,13 +147,15 @@
         <artifactId>wildfly-patching</artifactId>
         <version>${version.org.wildfly.core.wildfly-core}</version>
       </dependency>
-      
+
+      <!-- Required by controller-client which is used in tests -->
       <dependency>
           <groupId>org.wildfly.common</groupId>
           <artifactId>wildfly-common</artifactId>
           <version>${version.org.wildfly.common}</version>
+          <scope>test</scope>
       </dependency>
-      
+
       <dependency>
         <groupId>org.jboss.shrinkwrap</groupId>
         <artifactId>shrinkwrap-api</artifactId>
