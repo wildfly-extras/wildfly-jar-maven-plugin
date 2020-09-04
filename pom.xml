@@ -28,7 +28,7 @@
 
   <groupId>org.wildfly.plugins</groupId>
   <artifactId>wildfly-jar-parent</artifactId>
-  <version>2.0.0.Beta4-SNAPSHOT</version>
+  <version>2.0.0.Beta4</version>
   <packaging>pom</packaging>
 
   <name>WildFly Bootable Jar Plugin Parent</name>
@@ -353,6 +353,6 @@
       <connection>scm:git:${bootable-jar.repo.scm.connection}</connection>
       <developerConnection>scm:git:${bootable-jar.repo.scm.connection}</developerConnection>
       <url>${bootable-jar.repo.scm.url}</url>
-      <tag>HEAD</tag>
+      <tag>2.0.0.Beta4</tag>
   </scm>
 </project>

@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-parent</artifactId>
-        <version>2.0.0.Beta4-SNAPSHOT</version>
+        <version>2.0.0.Beta4</version>
     </parent>
 
     <artifactId>wildfly-jar-maven-plugin</artifactId>
@@ -218,7 +218,7 @@
                             <log-time>${galleon.log.time}</log-time>
                             <offline>${galleon.offline}</offline>
                             <plugin-options>
-                                <jboss-maven-dist/>
+                                <jboss-maven-dist />
                                 <jboss-fork-embedded>${galleon.fork.embedded}</jboss-fork-embedded>
                                 <optional-packages>passive+</optional-packages>`
                             </plugin-options>
