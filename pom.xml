@@ -63,7 +63,6 @@
     <version.org.apache.httpcomponents.httpclient>4.5.11</version.org.apache.httpcomponents.httpclient>
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
     <version.org.jboss.logging.slf4j-jboss-logging>1.1.0.Final</version.org.jboss.logging.slf4j-jboss-logging>
-    <version.org.jboss.logmanager>2.1.17.Final</version.org.jboss.logmanager>
     <version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
     </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
     <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
@@ -245,11 +244,6 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jboss.logmanager</groupId>
-          <artifactId>jboss-logmanager</artifactId>
-          <version>${version.org.jboss.logmanager}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
