@@ -37,10 +37,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.Operation;
+import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.as.controller.client.helpers.Operations.CompositeOperationBuilder;
 import org.jboss.dmr.ModelNode;
@@ -62,6 +64,7 @@ import org.wildfly.plugin.core.ServerHelper;
 public class BootLoggingConfigurationTestCase {
 
     private static final Pattern EXPRESSION_PATTERN = Pattern.compile(".*\\$\\{.*}.*");
+    private static final Pattern GENERATED_FORMATTER_PATTERN = Pattern.compile("formatter\\..*-wfcore-pattern-formatter.*");
     private static Process currentProcess;
     private static Path stdout;
     private static ModelControllerClient client;
@@ -105,17 +108,16 @@ public class BootLoggingConfigurationTestCase {
         if (Files.notExists(tmpDir)) {
             Files.createDirectories(tmpDir);
         }
-        // TODO (jrp) The reload and wait can be removed once https://issues.redhat.com/browse/WFCORE-5113 is resolved
-        executeOperation(Operations.createOperation("reload"));
-        ServerHelper.waitForStandalone(currentProcess, client, TestEnvironment.getTimeout());
     }
 
     @After
     public void cleanUp() throws Exception {
+        final CompositeOperationBuilder builder = CompositeOperationBuilder.create();
         ModelNode op;
         while ((op = tearDownOps.pollFirst()) != null) {
-            executeOperation(op);
+            builder.addStep(op);
         }
+        executeOperation(builder.build());
     }
 
     @Test
@@ -167,7 +169,7 @@ public class BootLoggingConfigurationTestCase {
         // Just do a raw add which will add the default formatter rather than a named-formatter
         executeOperation(Operations.createAddOperation(address));
         tearDownOps.add(Operations.createRemoveOperation(address));
-        generateAndTest();
+        generateAndTest(false);
     }
 
     @Test
@@ -659,20 +661,29 @@ public class BootLoggingConfigurationTestCase {
     }
 
     private void generateAndTest() throws Exception {
-        generateAndTest(null);
+        generateAndTest(true);
+    }
+
+    private void generateAndTest(final boolean ignoreGeneratedFormatters) throws Exception {
+        generateAndTest(null, ignoreGeneratedFormatters);
     }
 
     private void generateAndTest(final Properties expectedBootConfig) throws Exception {
+        generateAndTest(expectedBootConfig, true);
+    }
+
+    private void generateAndTest(final Properties expectedBootConfig, final boolean ignoreGeneratedFormatters) throws Exception {
         final BootLoggingConfiguration config = new BootLoggingConfiguration();
         config.enableLogging(TestLogger.getLogger(BootLoggingConfigurationTestCase.class));
         config.generate(tmpDir, client);
-        compare(load(findLoggingConfig(), true, true), load(tmpDir.resolve("logging.properties"), false, true));
+        compare(load(findLoggingConfig(), true, true),
+                load(tmpDir.resolve("logging.properties"), false, true), true, ignoreGeneratedFormatters);
         final Path bootConfig = tmpDir.resolve("boot-config.properties");
         if (expectedBootConfig == null) {
             // The file should not exist
             Assert.assertTrue("Expected " + bootConfig + " not to exist", Files.notExists(bootConfig));
         } else {
-            compare(expectedBootConfig, load(bootConfig, false, false), false);
+            compare(expectedBootConfig, load(bootConfig, false, false), false, ignoreGeneratedFormatters);
         }
     }
 
@@ -713,6 +724,21 @@ public class BootLoggingConfigurationTestCase {
         if (!Operations.isSuccessfulOutcome(result)) {
             Assert.fail(String.format("Operation %s failed: %s", op.getOperation(), Operations.getFailureDescription(result).asString()));
         }
+        // Reload if required
+        if (result.hasDefined(ClientConstants.RESPONSE_HEADERS)) {
+            final ModelNode responseHeaders = result.get(ClientConstants.RESPONSE_HEADERS);
+            if (responseHeaders.hasDefined("process-state")) {
+                if (ClientConstants.CONTROLLER_PROCESS_STATE_RELOAD_REQUIRED.equals(responseHeaders.get("process-state").asString())) {
+                    executeOperation(Operations.createOperation("reload"));
+                    try {
+                        ServerHelper.waitForStandalone(currentProcess, client, TestEnvironment.getTimeout());
+                    } catch (InterruptedException | TimeoutException e) {
+                        e.printStackTrace();
+                        Assert.fail("Reloading the server failed: " + e.getLocalizedMessage());
+                    }
+                }
+            }
+        }
         return Operations.readResult(result);
     }
 
@@ -722,18 +748,18 @@ public class BootLoggingConfigurationTestCase {
         return result.toString();
     }
 
-    private static void compare(final Properties expected, final Properties found) throws IOException {
-        compare(expected, found, true);
+    private static void compare(final Properties expected, final Properties found, final boolean resolveExpressions,
+                                final boolean ignoreGeneratedFormatters) throws IOException {
+        compareKeys(expected, found, ignoreGeneratedFormatters);
+        compareValues(expected, found, resolveExpressions, ignoreGeneratedFormatters);
     }
 
-    private static void compare(final Properties expected, final Properties found, final boolean resolveExpressions) throws IOException {
-        compareKeys(expected, found);
-        compareValues(expected, found, resolveExpressions);
-    }
-
-    private static void compareKeys(final Properties expected, final Properties found) {
+    private static void compareKeys(final Properties expected, final Properties found,
+                                    final boolean ignoreGeneratedFormatters) {
         final Set<String> expectedKeys = new TreeSet<>(expected.stringPropertyNames());
         final Set<String> foundKeys = new TreeSet<>(found.stringPropertyNames());
+        // TODO (jrp) This can be removed once https://issues.redhat.com/browse/WFCORE-5113 is resolved
+        expectedKeys.removeIf(key -> ignoreGeneratedFormatters && GENERATED_FORMATTER_PATTERN.matcher(key).matches());
         // Find the missing expected keys
         final Set<String> missing = new TreeSet<>(expectedKeys);
         missing.removeAll(foundKeys);
@@ -747,9 +773,14 @@ public class BootLoggingConfigurationTestCase {
                 missing.isEmpty());
     }
 
-    private static void compareValues(final Properties expected, final Properties found, final boolean resolveExpressions) throws IOException {
+    private static void compareValues(final Properties expected, final Properties found, final boolean resolveExpressions,
+                                      final boolean ignoreGeneratedFormatters) throws IOException {
         final Set<String> keys = new TreeSet<>(expected.stringPropertyNames());
         for (String key : keys) {
+            // TODO (jrp) This can be removed once https://issues.redhat.com/browse/WFCORE-5113 is resolved
+            if (ignoreGeneratedFormatters && GENERATED_FORMATTER_PATTERN.matcher(key).matches()) {
+                continue;
+            }
             final String expectedValue = expected.getProperty(key);
             final String foundValue = found.getProperty(key);
             if (key.endsWith("fileName")) {
