@@ -285,6 +285,16 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "boot-logging-config", property = "wildfly.bootable.logging.config")
     private File bootLoggingConfig;
 
+    /**
+     * By default, when building a bootable jar, the plugin extracts build artifacts in the directory
+     * 'bootable-jar-build-artifacts'. You can use this property to change this directory name. In most cases
+     * this should not be required. The use-case is when building multiple bootable JARs in the same project
+     * on Windows Platform. In this case, each execution should have its own directory, the plugin being
+     * unable to delete the directory due to some references to JBoss module files.
+     */
+    @Parameter(alias = "bootable-jar-build-artifacts", property = "wildfly.bootable.jar.build.artifacts", defaultValue = "bootable-jar-build-artifacts")
+    private String bootableJarBuildArtifacts;
+
     @Inject
     private BootLoggingConfiguration bootLoggingConfiguration;
 
@@ -324,7 +334,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
             return;
         }
-        Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve("bootable-jar-build-artifacts");
+        Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve(bootableJarBuildArtifacts);
         if (Files.exists(contentRoot)) {
             deleteDir(contentRoot);
         }

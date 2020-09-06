@@ -25,6 +25,7 @@
                         <!-- force exclusion, dev mode must re-include it -->
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
+                    <bootableJarBuildArtifacts>build-artifacts</bootableJarBuildArtifacts>
                 </configuration>
                 
             </plugin>

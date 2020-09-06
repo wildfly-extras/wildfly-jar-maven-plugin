@@ -41,7 +41,7 @@ public class DevServerTestCase extends AbstractBootableJarMojoTestCase {
         mojo.execute();
         final Path dir = getTestDir();
         checkJar(dir, false, false, null, null, "target" + File.separator + "deployments");
-        Path config = dir.resolve("target").resolve("bootable-jar-build-artifacts").
+        Path config = dir.resolve("target").resolve("build-artifacts").
                 resolve("wildfly").resolve("standalone").resolve("configuration").resolve("standalone.xml");
         assertTrue(Files.exists(config));
         String content = new String(Files.readAllBytes(config), StandardCharsets.UTF_8);
