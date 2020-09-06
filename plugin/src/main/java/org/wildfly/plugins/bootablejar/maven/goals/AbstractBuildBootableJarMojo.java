@@ -288,7 +288,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Inject
     private BootLoggingConfiguration bootLoggingConfiguration;
 
-    private Set<String> extraLayers = new HashSet<>();
+    private final Set<String> extraLayers = new HashSet<>();
 
     private Path wildflyDir;
 
@@ -340,7 +340,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         } catch (IOException ex) {
             throw new MojoExecutionException("Packaging wildfly failed", ex);
         }
-        Artifact bootArtifact = null;
+        Artifact bootArtifact;
         try {
             bootArtifact = provisionServer(wildflyDir, contentDir.resolve("provisioning.xml"));
         } catch (ProvisioningException | IOException | XMLStreamException ex) {
@@ -632,19 +632,12 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
         }
         final Properties props = new Properties();
-        InputStreamReader inputStreamReader = null;
-        try {
-            inputStreamReader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
+        try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(f),
+            StandardCharsets.UTF_8)) {
             props.load(inputStreamReader);
-        } catch (java.io.IOException e) {
-            throw new Exception("Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());
-        } finally {
-            if (inputStreamReader != null) {
-                try {
-                    inputStreamReader.close();
-                } catch (java.io.IOException e) {
-                }
-            }
+        } catch (IOException e) {
+            throw new Exception(
+                "Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());
         }
         for (String key : props.stringPropertyNames()) {
             WildFlySecurityManager.setPropertyPrivileged(key, props.getProperty(key));
@@ -955,7 +948,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
             String line = reader.readLine();
             while (line != null) {
                 line = line.trim();
-                if (line.charAt(0) != '#' && !line.isEmpty()) {
+                if (!line.isEmpty() && line.charAt(0) != '#') {
                     final int i = line.indexOf('=');
                     if (i < 0) {
                         throw new Exception("Failed to parse property " + line + " from " + propsFile);
@@ -967,7 +960,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private void deploy(List<String> commands) throws IOException, MojoExecutionException {
+    private void deploy(List<String> commands) throws MojoExecutionException {
         if (hollowJar) {
             getLog().info("Hollow jar, No application deployment added to server.");
             return;
@@ -994,13 +987,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         ZipUtils.zip(contentDir, jarFile);
     }
 
-    public String retrievePluginVersion() throws UnsupportedEncodingException, PlexusConfigurationException, MojoExecutionException {
+    public String retrievePluginVersion() throws PlexusConfigurationException, MojoExecutionException {
         InputStream is = getClass().getResourceAsStream("/META-INF/maven/plugin.xml");
         if (is == null) {
             throw new MojoExecutionException("Can't retrieve plugin descriptor");
         }
         PluginDescriptorBuilder builder = new PluginDescriptorBuilder();
-        PluginDescriptor pluginDescriptor = builder.build(new InputStreamReader(is, "UTF-8"));
+        PluginDescriptor pluginDescriptor = builder.build(new InputStreamReader(is, StandardCharsets.UTF_8));
         return pluginDescriptor.getVersion();
     }
 

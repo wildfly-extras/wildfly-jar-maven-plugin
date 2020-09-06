@@ -21,7 +21,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,19 +68,21 @@ public class CloudConfig {
     }
 
     public void validate() throws MojoExecutionException {
-        if (type != null) {
-            if (OPENSHIFT.equals(type) || KUBERNETES.equals(type)) {
-                return;
-            } else {
-                throw new MojoExecutionException("Invalid cloud type " + type + ". Can be " + OPENSHIFT + "or" + KUBERNETES);
-            }
-        } else {
+        if (type == null) {
             type = OPENSHIFT;
+        } else {
+            switch (type) {
+                case OPENSHIFT:
+                case KUBERNETES:
+                    return;
+                default:
+                    throw new MojoExecutionException("Invalid cloud type " + type + ". Can be " + OPENSHIFT + " or " + KUBERNETES);
+            }
         }
     }
 
     public void copyExtraContent(BuildBootableJarMojo mojo, Path wildflyDir, Path contentDir)
-            throws IOException, UnsupportedEncodingException, PlexusConfigurationException, MojoExecutionException {
+            throws IOException, PlexusConfigurationException, MojoExecutionException {
         try (InputStream stream = CloudConfig.class.getResourceAsStream("logging.properties")) {
             Path target = wildflyDir.resolve("standalone").resolve("configuration").resolve("logging.properties");
             Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
