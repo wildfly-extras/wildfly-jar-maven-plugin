@@ -102,9 +102,9 @@ public class BootLoggingConfigurationTestCase {
     @Before
     public void setup() throws Exception {
         tmpDir = TestEnvironment.createTempPath("test-config", testName.getMethodName());
-        if (Files.notExists(tmpDir)) {
-            Files.createDirectories(tmpDir);
-        }
+        AbstractBuildBootableJarMojo.deleteDir(tmpDir);
+        Files.createDirectories(tmpDir);
+
         // TODO (jrp) The reload and wait can be removed once https://issues.redhat.com/browse/WFCORE-5113 is resolved
         executeOperation(Operations.createOperation("reload"));
         ServerHelper.waitForStandalone(currentProcess, client, TestEnvironment.getTimeout());
