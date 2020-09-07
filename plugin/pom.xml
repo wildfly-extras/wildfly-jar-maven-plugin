@@ -97,20 +97,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.wildfly.common</groupId>
-            <artifactId>wildfly-common</artifactId>
-        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logmanager</groupId>
-            <artifactId>jboss-logmanager</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -165,8 +156,7 @@
                                         <exclude>org.wildfly.core:wildfly-cli</exclude>
                                         <exclude>org.wildfly.core:wildfly-embedded</exclude>
                                         <exclude>org.wildfly.core:wildfly-patching</exclude>
-                                        <!-- should be banned but needed by tests -->
-                                        <!--<exclude>org.jboss.logmanager:jboss-logmanager</exclude>-->
+                                        <exclude>org.jboss.logmanager:jboss-logmanager</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>

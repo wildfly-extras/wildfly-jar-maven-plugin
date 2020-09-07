@@ -22,8 +22,6 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
-import org.jboss.logmanager.ExtLogRecord;
-
 /**
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
  */
@@ -53,7 +51,7 @@ public class TestFilter implements Filter {
     @Override
     public boolean isLoggable(final LogRecord record) {
         if (isLoggable) {
-            final StringBuilder newMsg = new StringBuilder(ExtLogRecord.wrap(record).getFormattedMessage());
+            final StringBuilder newMsg = new StringBuilder(record.getMessage());
             if (constructorText != null) {
                 newMsg.append(constructorText);
             }

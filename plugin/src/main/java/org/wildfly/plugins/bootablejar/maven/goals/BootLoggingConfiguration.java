@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -48,7 +47,6 @@ import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.dmr.Property;
-import org.jboss.dmr.ValueExpression;
 
 /**
  * Generates a new {@code logging.properties} file based on the logging subsystem model.
@@ -703,10 +701,17 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
     private String toEnumString(final ModelNode value) {
         final StringBuilder result = new StringBuilder();
         if (value.getType() == ModelType.EXPRESSION) {
-            final Expression expression = Expression.of(value.asExpression());
-            usedProperties.put(expression.getKey(), value.asString());
-            result.append("${").append(expression.getKey());
-            if (expression.hasDefault()) {
+            final Collection<Expression> expressions = Expression.parse(value.asExpression());
+            for (Expression expression : expressions) {
+                addUsedProperties(expression, value.asString());
+                result.append("${");
+                final Iterator<String> iter = expression.getKeys().iterator();
+                while (iter.hasNext()) {
+                    result.append(iter.next());
+                    if (iter.hasNext()) {
+                        result.append(',');
+                    }
+                }
                 if (expression.hasDefault()) {
                     result.append(':');
                     final String dft = expression.getDefaultValue();
@@ -743,8 +748,8 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
             return modelToMap(value);
         } else {
             if (value.getType() == ModelType.EXPRESSION) {
-                final Expression expression = Expression.of(value.asExpression());
-                usedProperties.put(expression.getKey(), value.asString());
+                final Collection<Expression> expressions = Expression.parse(value.asExpression());
+                addUsedProperties(expressions, value.asString());
             }
             return value.asString();
         }
@@ -755,8 +760,8 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
         // This requires some special handling as we need the resolved value.
         if (value.getType() == ModelType.EXPRESSION) {
             // We need update the usedProperties
-            final Expression expression = Expression.of(value.asExpression());
-            usedProperties.put(expression.getKey(), value.asString());
+            final Collection<Expression> expressions = Expression.parse(value.asExpression());
+            addUsedProperties(expressions, value.asString());
             // Now we need to resolve the expression
             final ModelNode op = Operations.createOperation("resolve-expression");
             op.get("expression").set(value.asString());
@@ -830,12 +835,17 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
             if (path.hasDefined("path")) {
                 final ModelNode pathEntry = path.get("path");
                 if (pathEntry.getType() == ModelType.EXPRESSION) {
-                    final Expression expression = Expression.of(pathEntry.asExpression());
-                    if (!properties.containsKey(expression.getKey())) {
-                        getLogger().warn(String.format("The path %s is an undefined property. If not set at boot time unexpected results may occur.", pathEntry.asString()));
-                    } else {
-                        usedProperties.put(expression.getKey(), properties.get(expression.getKey()));
-                        expression.appendTo(builder);
+                    final Collection<Expression> expressions = Expression.parse(pathEntry.asExpression());
+                    for (Expression expression : expressions) {
+                        for (String key : expression.getKeys()) {
+                            if (!properties.containsKey(key)) {
+                                getLogger().warn(String.format("The path %s is an undefined property. If not set at boot time unexpected results may occur.", pathEntry.asString()));
+                            } else {
+                                // We use the property name and value directly rather than referencing the path
+                                usedProperties.put(key, properties.get(key));
+                                expression.appendTo(builder);
+                            }
+                        }
                     }
                 } else {
                     if (!IGNORED_PROPERTIES.contains(relativeTo)) {
@@ -850,6 +860,18 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
             // Use a Linux style path separator as we can't use a Windows one on Linux, but we
             // can use a Linux one on Windows.
             builder.append('/');
+        }
+    }
+
+    private void addUsedProperties(final Collection<Expression> expressions, final String value) {
+        for (Expression expression : expressions) {
+            addUsedProperties(expression, value);
+        }
+    }
+
+    private void addUsedProperties(final Expression expression, final String value) {
+        for (String key : expression.getKeys()) {
+            usedProperties.put(key, value);
         }
     }
 
@@ -1052,55 +1074,6 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
                     sb.append(c);
                 }
             }
-        }
-    }
-
-    private static class Expression {
-        private final String key;
-        private final String defaultValue;
-
-        private Expression(final String key, final String defaultValue) {
-            this.key = key;
-            this.defaultValue = defaultValue;
-        }
-
-        static Expression of(final ValueExpression value) {
-            final String expression = value.getExpressionString();
-            final AtomicReference<String> keyRef = new AtomicReference<>();
-            final AtomicReference<String> dftRef = new AtomicReference<>();
-            org.wildfly.common.expression.Expression.compile(expression)
-                    .evaluate((context, builder) -> {
-                        keyRef.set(context.getKey());
-                        if (context.hasDefault()) {
-                            dftRef.set(context.getExpandedDefault());
-                        }
-                    });
-            return new Expression(keyRef.get(), dftRef.get());
-        }
-
-        String getKey() {
-            return key;
-        }
-
-        boolean hasDefault() {
-            return defaultValue != null;
-        }
-
-        String getDefaultValue() {
-            return defaultValue;
-        }
-
-        void appendTo(final StringBuilder builder) {
-            builder.append("${").append(key);
-            if (hasDefault()) {
-                builder.append(':').append(defaultValue);
-            }
-            builder.append('}');
-        }
-
-        @Override
-        public String toString() {
-            return "${" + key + (defaultValue != null ? ":" + defaultValue + "}" : "}");
         }
     }
 }
