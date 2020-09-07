@@ -148,12 +148,11 @@
         <version>${version.org.wildfly.core.wildfly-core}</version>
       </dependency>
 
-      <!-- Required by controller-client which is used in tests -->
+      <!-- Required by controller-client and Galleon provisioning -->
       <dependency>
           <groupId>org.wildfly.common</groupId>
           <artifactId>wildfly-common</artifactId>
           <version>${version.org.wildfly.common}</version>
-          <scope>test</scope>
       </dependency>
 
       <dependency>
