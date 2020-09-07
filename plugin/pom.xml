@@ -97,7 +97,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <!-- Required by Galleon during provisioning --> 
+        <dependency>
+            <groupId>org.wildfly.common</groupId>
+            <artifactId>wildfly-common</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
