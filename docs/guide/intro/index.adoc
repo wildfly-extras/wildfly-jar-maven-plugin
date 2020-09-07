@@ -166,6 +166,12 @@ The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/mast
 
 NB: The configuration changes applied during packaging are persisted in the server configuration.
 
+IMPORTANT: Using a log4j appender as a `custom-handler` in the logging subsystem is not supported with the bootable JAR.
+           This only applies to custom handlers defined on the root of the logging subsystem. Logging profiles and
+           log4j configuration files located in your deployment will still work as expected.
+
+You can workaround this by supplying your own `logging.properties` and defining the path in the `boot-logging-config` configuration property.
+
 ### WildFly CLI execution during packaging
 
 Part of WildFly CLI command line tool has been integrated in the Maven plugin. The plugin supports execution of CLI script files with a limited set of CLI configuration items.
