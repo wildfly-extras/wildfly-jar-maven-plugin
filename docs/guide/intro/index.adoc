@@ -259,6 +259,13 @@ Configure for kubernetes execution:
 </cloud>
 ```
 
+### OpenShift Deployment using Eclipse JKube
+
+JKube maven plugin contains support for WildFly bootable JAR. The 
+https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/jkube[jkube] example shows how to combine
+WildFly bootable JAR and JKube Maven plugins in order to deploy an application on OpenShift. 
+
+
 ### WildFly OpenShift operator
 
 The WildFly OpenShift operator can be used to manage deployments based on image containing a WildFly bootable JAR.

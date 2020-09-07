@@ -12,6 +12,7 @@
     <properties>
         <version.bootable.jar>2.0.0.Beta5-SNAPSHOT</version.bootable.jar>
         <version.wildfly>20.0.0.Final</version.wildfly>
+        <version.jkube>1.0.0-rc-1</version.jkube>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -119,6 +120,11 @@
                     <groupId>org.wildfly.plugins</groupId>
                     <artifactId>wildfly-jar-maven-plugin</artifactId>
                     <version>${version.bootable.jar}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.jkube</groupId>
+                    <artifactId>openshift-maven-plugin</artifactId>
+                    <version>${version.jkube}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
