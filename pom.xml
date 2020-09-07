@@ -267,6 +267,12 @@
         <version>${project.version}</version>
       </plugin>
       
+      <plugin>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-maven-plugin</artifactId>
+          <version>${version.org.jboss.galleon}</version>
+      </plugin>
+
         <!-- Checkstyle -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
