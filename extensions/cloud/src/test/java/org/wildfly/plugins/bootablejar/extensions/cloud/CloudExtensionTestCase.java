@@ -38,7 +38,7 @@ public class CloudExtensionTestCase {
         extension.doBoot(args, p, "abcdefghijklmnopqrstvuwxyz");
         assertTrue(args.size() == 2);
         assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(0)));
-        assertTrue(args.toString(), "-Djboss.node.name=abcdefghijkB4FAF216ADB2".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.node.name=defghijklmnopqrstvuwxyz".equals(args.get(1)));
     }
 
     @Test

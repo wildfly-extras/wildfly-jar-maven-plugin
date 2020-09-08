@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.MessageDigest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -115,15 +114,14 @@ public class CloudExtension implements RuntimeExtension {
                     if (hostname.length() > 23) {
                         String originalHostName = hostname;
                         StringBuilder builder = new StringBuilder();
-                        //Prefix
-                        builder.append(hostname.substring(0, 11));
-                        String suffix = hostname.substring(11);
-                        suffix = checksum(suffix).substring(0, 12);
-
-                        builder.append(suffix);
+                        char[] chars = hostname.toCharArray();
+                        for (int i = 1; i <= 23; i++) {
+                            char c = chars[hostname.length() - i];
+                            builder.insert(0, c);
+                        }
                         hostname = builder.toString();
                         System.out.println("The HOSTNAME env variable used to set "
-                                + "jboss.node.name islonger than 23 bytes. "
+                                + "jboss.node.name is longer than 23 bytes. "
                                 + "jboss.node.name value was adjusted to 23 bytes long string "
                                 + hostname + " from the original value " + originalHostName);
                     }
@@ -131,18 +129,5 @@ public class CloudExtension implements RuntimeExtension {
                 }
             }
         }
-    }
-
-    static String checksum(String value) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(value.getBytes());
-
-        byte[] digest = md.digest();
-        final StringBuilder buffer = new StringBuilder(2 * digest.length);
-        for (int i = 0; i < digest.length; i++) {
-            buffer.append(Character.forDigit((digest[i] >> 4) & 0xF, 16));
-            buffer.append(Character.forDigit((digest[i] & 0xF), 16));
-        }
-        return buffer.toString().toUpperCase();
     }
 }
