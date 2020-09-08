@@ -238,7 +238,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected void checkManagementItf(Path dir, boolean start) throws Exception {
-        checkURL(dir, null, createUrl(TestEnvironment.getManagementPort(), "management"), start);
+        checkURL(dir, null, null, start);
     }
 
     protected void checkMetrics(Path dir, boolean start) throws Exception {
@@ -253,22 +253,27 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         try {
             if (start) {
                 process = startServer(dir, fileName, args);
-                try (
-                        ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(),
-                                TestEnvironment.getManagementPort())
-                ) {
-                    // Wait for the server to start
-                    ServerHelper.waitForStandalone(process, client, TestEnvironment.getTimeout());
-                }
             }
-            while (timeout > 0) {
-                if (checkURL(url)) {
-                    System.out.println("Successfully connected to " + url);
-                    success = true;
-                    break;
+            // Check the server state in all cases. All test cases are provisioning the manager layer.
+            try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(),
+                    TestEnvironment.getManagementPort())) {
+                // Wait for the server to start, this calls into the management interface.
+                ServerHelper.waitForStandalone(process, client, TestEnvironment.getTimeout());
+            }
+
+            if (url == null) {
+                // Checking for the server state is enough.
+                success = true;
+            } else {
+                while (timeout > 0) {
+                    if (checkURL(url)) {
+                        System.out.println("Successfully connected to " + url);
+                        success = true;
+                        break;
+                    }
+                    Thread.sleep(sleep);
+                    timeout -= sleep;
                 }
-                Thread.sleep(sleep);
-                timeout -= sleep;
             }
             if (process != null) {
                 assertTrue(process.isAlive());
@@ -302,9 +307,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                 .redirectErrorStream(true)
                 .redirectOutput(out.toFile())
                 .start();
-        // We can't use start in tests, breaks maven test execution.
-        //StartBootableJarMojo mojo = (StartBootableJarMojo) lookupConfiguredMojo(dir.resolve("pom.xml").toFile(), "start");
-        //mojo.execute();
     }
 
     protected boolean checkURL(String url) {
