@@ -674,7 +674,8 @@ public class BootLoggingConfigurationTestCase {
 
     private void generateAndTest(final Properties expectedBootConfig, final boolean ignoreGeneratedFormatters) throws Exception {
         final BootLoggingConfiguration config = new BootLoggingConfiguration();
-        config.enableLogging(TestLogger.getLogger(BootLoggingConfigurationTestCase.class));
+        // @TODO, we can't use AbstractLogEnabled, it is not in the maven plugin classloader.
+        //config.enableLogging(TestLogger.getLogger(BootLoggingConfigurationTestCase.class));
         config.generate(tmpDir, client);
         compare(load(findLoggingConfig(), true, true),
                 load(tmpDir.resolve("logging.properties"), false, true), true, ignoreGeneratedFormatters);

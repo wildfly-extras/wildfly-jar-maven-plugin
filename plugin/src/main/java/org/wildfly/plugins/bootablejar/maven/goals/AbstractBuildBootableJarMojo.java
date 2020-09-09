@@ -65,7 +65,6 @@ import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -85,6 +84,9 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
+import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
+import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
+import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
@@ -95,7 +97,7 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  *
  * @author jfdenise
  */
-class AbstractBuildBootableJarMojo extends AbstractMojo {
+public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     public static final String BOOTABLE_SUFFIX = "bootable";
     public static final String JAR = "jar";
@@ -123,7 +125,15 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     MavenSession session;
 
     /**
-     * Arbitrary Galleon options used when provisioning the server.
+     * Arbitrary Galleon options used when provisioning the server. In case you
+     * are building a large amount of bootable JAR in the same maven session, it
+     * is strongly advised to set 'jboss-fork-embedded' option to 'true' in
+     * order to fork Galleon provisioning and CLI scripts execution in dedicated
+     * processes. For example:
+     * <br/>
+     * &lt;plugin-options&gt;<br/>
+     * &lt;jboss-fork-embedded&gt;true&lt;/jboss-fork-embedded&gt;<br/>
+     * &lt;/plugin-options&gt;
      */
     @Parameter(alias = "plugin-options", required = false)
     Map<String, String> pluginOptions = Collections.emptyMap();
@@ -306,6 +316,8 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private final Set<Artifact> cliArtifacts = new HashSet<>();
 
+    private boolean forkCli;
+
     public Path getJBossHome() {
         return wildflyDir;
     }
@@ -358,6 +370,11 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         try {
+            // We are forking CLI executions in order to avoid JBoss Modules static references to ModuleLoaders.
+            forkCli = Boolean.parseBoolean(pluginOptions.getOrDefault("jboss-fork-embedded", "false"));
+            if (forkCli) {
+                getLog().info("CLI executions are done in forked process");
+            }
             // Legacy Patching point
             legacyPatching();
             copyExtraContentInternal(wildflyDir, contentDir);
@@ -543,33 +560,13 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private void generateLoggingConfig(final Path wildflyDir) throws Exception {
-        Exception toThrow = null;
-        try (CLIExecutor cmdCtx = new CLIExecutor(wildflyDir, cliArtifacts, this, false)) {
+        try (CLIExecutor cmdCtx = forkCli ? new RemoteCLIExecutor(wildflyDir, getCLIArtifacts(), this, false)
+                : new LocalCLIExecutor(wildflyDir, getCLIArtifacts(), this, false, bootLoggingConfiguration)) {
             try {
-                // Start the embedded server
-                cmdCtx.handle("embed-server --jboss-home=" + wildflyDir + " --std-out=discard");
-                // Get the client used to execute the management operations
-                final ModelControllerClient client = cmdCtx.getModelControllerClient();
-                // Update the bootable logging config
-                final Path configDir = wildflyDir.resolve("standalone").resolve("configuration");
-                bootLoggingConfiguration.generate(configDir, client);
+                cmdCtx.generateBootLoggingConfig();
             } catch (Exception e) {
-                toThrow = e;
-            } finally {
-                try {
-                    // Always stop the embedded server
-                    cmdCtx.handle("stop-embedded-server");
-                } catch (Exception e) {
-                    if (toThrow != null) {
-                        e.addSuppressed(toThrow);
-                    }
-                    toThrow = e;
-                }
-            }
-            // Check if an error has been thrown and throw it.
-            if (toThrow != null) {
                 getLog().error("Failed to generate logging configuration: " + cmdCtx.getOutput());
-                throw toThrow;
+                throw e;
             }
         }
     }
@@ -577,46 +574,44 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
     private void processCLI(Path jbossHome, List<String> commands,
             boolean resolveExpression, boolean startEmbedded) throws Exception {
 
-        Exception toThrow = null;
-        try (CLIExecutor executor = new CLIExecutor(jbossHome, cliArtifacts, this, resolveExpression)) {
+        List<String> allCommands = new ArrayList<>();
+        if (startEmbedded) {
+            allCommands.add("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
+        }
+        for (String line : commands) {
+            allCommands.add(line.trim());
+        }
+        if (startEmbedded) {
+            allCommands.add("stop-embedded-server");
+        }
+        try (CLIExecutor executor = forkCli ? new RemoteCLIExecutor(jbossHome, getCLIArtifacts(), this, resolveExpression)
+                : new LocalCLIExecutor(jbossHome, getCLIArtifacts(), this, resolveExpression, bootLoggingConfiguration)) {
+
             try {
-                if (startEmbedded) {
-                    executor.handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
-                }
-                for (String line : commands) {
-                    executor.handle(line.trim());
-                }
+                executor.execute(allCommands);
             } catch (Exception ex) {
-                toThrow = ex;
-            } finally {
-                try {
-                    if (startEmbedded) {
-                        try {
-                            executor.handle("stop-embedded-server");
-                        } catch (Exception ex2) {
-                            if (toThrow != null) {
-                                ex2.addSuppressed(toThrow);
-                            }
-                            toThrow = ex2;
-                        }
-                    }
-                } finally {
-                    if (toThrow != null) {
-                        getLog().error("Error executing CLI script " + toThrow.getLocalizedMessage());
-                        getLog().error(executor.getOutput());
-                        throw toThrow;
-                    } else {
-                        if (displayCliScriptsOutput) {
-                            getLog().info(executor.getOutput());
-                        }
-                    }
-                }
+                getLog().error("Error executing CLI script " + ex.getLocalizedMessage());
+                getLog().error(executor.getOutput());
+                throw ex;
+            }
+            if (displayCliScriptsOutput) {
+                getLog().info(executor.getOutput());
             }
         }
         getLog().info("CLI scripts execution done.");
     }
 
-    Level disableLog() {
+    private List<Path> getCLIArtifacts() throws MojoExecutionException {
+        getLog().debug("CLI artifacts " + cliArtifacts);
+        List<Path> paths = new ArrayList<>();
+        paths.add(wildflyDir.resolve("jboss-modules.jar"));
+        for (Artifact a : cliArtifacts) {
+            paths.add(resolveArtifact(a));
+        }
+        return paths;
+    }
+
+    public Level disableLog() {
         Logger l = Logger.getLogger("");
         Level level = l.getLevel();
         // Only disable logging if debug is not ebnabled.
@@ -626,7 +621,7 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
         return level;
     }
 
-    void enableLog(Level level) {
+    public void enableLog(Level level) {
         Logger l = Logger.getLogger("");
         l.setLevel(level);
     }
@@ -827,6 +822,12 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                             defaultConfigBuilder.includeLayer(layer);
                         }
                     }
+                    if (pluginOptions.isEmpty()) {
+                        pluginOptions = Collections.
+                                singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+                    } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
+                        pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+                    }
                     FeaturePackConfig dependency = FeaturePackConfig.
                             builder(FeaturePackLocation.fromString(featurePackLocation)).
                             setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(defaultConfigId.getModel(), defaultConfigId.getName()).build();
@@ -837,10 +838,6 @@ class AbstractBuildBootableJarMojo extends AbstractMojo {
                     }
                     defaultConfigBuilder.setProperty("--server-config", "standalone.xml");
                     provBuilder.addConfig(defaultConfigBuilder.build());
-                    // The microprofile config is fully expressed with galleon layers, we can trim it.
-                    pluginOptions = Collections.
-                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-                    provBuilder.addOptions(pluginOptions);
                     config = provBuilder.build();
                 }
             } else {
