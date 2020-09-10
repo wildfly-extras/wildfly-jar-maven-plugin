@@ -14,51 +14,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.plugins.bootablejar.maven.goals;
+package org.wildfly.plugins.bootablejar.maven.cli;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.logging.Level;
-import org.apache.maven.artifact.Artifact;
+import java.util.Objects;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.wildfly.plugins.bootablejar.maven.goals.BootLoggingConfiguration;
 
 /**
- * A CLI executor, resolving CLI classes from an URL Classloader. We can't have
- * cli/embedded/jboss modules in plugin classpath, it causes issue because we
- * are sharing the same jboss module classes between execution run inside the
+ * A CLI executor, resolving CLI classes from the provided Classloader. We can't
+ * have cli/embedded/jboss modules in plugin classpath, it causes issue because
+ * we are sharing the same jboss module classes between execution run inside the
  * same JVM.
  *
  * CLI dependencies are retrieved from provisioned server artifacts list and
  * resolved using maven. In addition jboss-modules.jar located in the
- * provisioned server * is added.
+ * provisioned server is added.
  *
  * @author jdenise
  */
-class CLIExecutor implements AutoCloseable {
+public class CLIWrapper implements AutoCloseable {
 
-    private final Level level;
     private final Object ctx;
     private final Method handle;
     private final Method terminateSession;
     private final Method getModelControllerClient;
-    private final ClassLoader originalCl;
-    private final URLClassLoader cliCl;
-    private final String origConfig;
-    private final AbstractBuildBootableJarMojo mojo;
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private final String origConfig;
+    private final Path jbossHome;
+    private final BootLoggingConfiguration bootLoggingConfiguration;
 
-    CLIExecutor(Path jbossHome, Set<Artifact> cliArtifacts,
-            AbstractBuildBootableJarMojo mojo, boolean resolveExpression) throws Exception {
-        this.mojo = mojo;
-        level = mojo.disableLog();
+    public CLIWrapper(Path jbossHome, boolean resolveExpression, ClassLoader loader) throws Exception {
+        this(jbossHome, resolveExpression, loader, null);
+    }
+
+    public CLIWrapper(Path jbossHome, boolean resolveExpression, ClassLoader loader, BootLoggingConfiguration bootLoggingConfiguration) throws Exception {
+        this.jbossHome = jbossHome;
         Path config = jbossHome.resolve("bin").resolve("jboss-cli.xml");
         origConfig = System.getProperty("jboss.cli.config");
         if (Files.exists(config)) {
@@ -66,19 +61,7 @@ class CLIExecutor implements AutoCloseable {
         }
 
 
-        final URL[] cp = new URL[cliArtifacts.size() + 1];
-        cp[0] = jbossHome.resolve("jboss-modules.jar").toUri().toURL();
-        mojo.getLog().debug("CLI artifacts " + cliArtifacts);
-        Iterator<Artifact> it = cliArtifacts.iterator();
-        int i = 1;
-        while (it.hasNext()) {
-            cp[i] = mojo.resolveArtifact(it.next()).toUri().toURL();
-            i += 1;
-        }
-        originalCl = Thread.currentThread().getContextClassLoader();
-        cliCl = new URLClassLoader(cp, originalCl);
-        Thread.currentThread().setContextClassLoader(cliCl);
-        final Object builder = cliCl.loadClass("org.jboss.as.cli.impl.CommandContextConfiguration$Builder").newInstance();
+        final Object builder = loader.loadClass("org.jboss.as.cli.impl.CommandContextConfiguration$Builder").newInstance();
         final Method setEchoCommand = builder.getClass().getMethod("setEchoCommand", boolean.class);
         setEchoCommand.invoke(builder, true);
         final Method setResolve = builder.getClass().getMethod("setResolveParameterValues", boolean.class);
@@ -86,19 +69,20 @@ class CLIExecutor implements AutoCloseable {
         final Method setOutput = builder.getClass().getMethod("setConsoleOutput", OutputStream.class);
         setOutput.invoke(builder, out);
         Object ctxConfig = builder.getClass().getMethod("build").invoke(builder);
-        Object factory = cliCl.loadClass("org.jboss.as.cli.CommandContextFactory").getMethod("getInstance").invoke(null);
-        final Class<?> configClass = cliCl.loadClass("org.jboss.as.cli.impl.CommandContextConfiguration");
+        Object factory = loader.loadClass("org.jboss.as.cli.CommandContextFactory").getMethod("getInstance").invoke(null);
+        final Class<?> configClass = loader.loadClass("org.jboss.as.cli.impl.CommandContextConfiguration");
         ctx = factory.getClass().getMethod("newCommandContext", configClass).invoke(factory, ctxConfig);
         handle = ctx.getClass().getMethod("handle", String.class);
         terminateSession = ctx.getClass().getMethod("terminateSession");
         getModelControllerClient = ctx.getClass().getMethod("getModelControllerClient");
+        this.bootLoggingConfiguration = bootLoggingConfiguration;
     }
 
-    void handle(String command) throws Exception {
+    public void handle(String command) throws Exception {
         handle.invoke(ctx, command);
     }
 
-    String getOutput() {
+    public String getOutput() {
         return out.toString();
     }
 
@@ -107,19 +91,43 @@ class CLIExecutor implements AutoCloseable {
         try {
             terminateSession.invoke(ctx);
         } finally {
-            Thread.currentThread().setContextClassLoader(originalCl);
-            try {
-                cliCl.close();
-            } catch (IOException e) {
-            }
-            mojo.enableLog(level);
             if (origConfig != null) {
                 System.setProperty("jboss.cli.config", origConfig);
             }
         }
     }
 
-    ModelControllerClient getModelControllerClient() throws Exception {
+    private ModelControllerClient getModelControllerClient() throws Exception {
         return (ModelControllerClient) getModelControllerClient.invoke(ctx);
+    }
+
+    public void generateBootLoggingConfig() throws Exception {
+        Objects.requireNonNull(bootLoggingConfiguration);
+        Exception toThrow = null;
+        try {
+            // Start the embedded server
+            handle("embed-server --jboss-home=" + jbossHome + " --std-out=discard");
+            // Get the client used to execute the management operations
+            final ModelControllerClient client = getModelControllerClient();
+            // Update the bootable logging config
+            final Path configDir = jbossHome.resolve("standalone").resolve("configuration");
+            bootLoggingConfiguration.generate(configDir, client);
+        } catch (Exception e) {
+            toThrow = e;
+        } finally {
+            try {
+                // Always stop the embedded server
+                handle("stop-embedded-server");
+            } catch (Exception e) {
+                if (toThrow != null) {
+                    e.addSuppressed(toThrow);
+                }
+                toThrow = e;
+            }
+        }
+        // Check if an error has been thrown and throw it.
+        if (toThrow != null) {
+            throw toThrow;
+        }
     }
 }

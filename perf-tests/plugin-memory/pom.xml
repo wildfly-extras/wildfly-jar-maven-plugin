@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2020 Red Hat, Inc. and/or its affiliates
+    and other contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-maven-plugin-perf-tests-parent</artifactId>
+        <version>2.0.0.Beta6-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>wildfly-jar-maven-plugin-memory-tests</artifactId>
+    <packaging>pom</packaging>
+
+    <name>WildFly Bootable Jar Maven Plugin memory consumption tests</name>
+
+    <build>
+        <plugins>
+            <!-- provision a full server to be used as patching distribution source -->
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <configuration>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
+                    <feature-packs>
+                        <feature-pack>
+                            <groupId>${wildfly.groupId}</groupId>
+                            <artifactId>${wildfly.artifactId}</artifactId>
+                            <version>${version.wildfly}</version>
+                        </feature-pack>
+                    </feature-packs>
+                    <layers>
+                        <layer>jaxrs-server</layer>
+                    </layers>
+                    <hollowJar>true</hollowJar>
+                    <cloud/>
+                    <skip>${skip.perf.tests}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bootable JAR 1</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest1.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest1</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 2</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest2.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest2</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 3</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest3.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest3</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 4</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest4.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest4</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 5</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest5.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest5</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 6</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest6.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest6</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 7</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest7.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest7</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 8</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest8.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest8</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 9</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest9.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest9</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 10</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest10.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest10</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 11</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest11.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest11</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 12</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest12.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest12</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 13</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest13.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest13</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 14</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest14.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest14</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 15</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest15.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest15</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 16</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest16.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest16</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 17</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest17.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest17</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 18</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest18.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest18</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 19</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest19.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest19</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 20</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest20.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest20</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 21</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest21.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest21</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 22</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest22.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest22</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 23</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest23.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest23</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 24</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest24.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest24</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 25</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest25.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest25</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 26</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest26.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest26</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 27</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest27.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest27</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 28</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest28.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest28</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 29</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest29.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest29</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>bootable JAR 30</id>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>perftest30.jar</outputFileName>
+                            <bootableJarBuildArtifacts>perftest30</bootableJarBuildArtifacts>
+                        </configuration>
+                    </execution>
+                    
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

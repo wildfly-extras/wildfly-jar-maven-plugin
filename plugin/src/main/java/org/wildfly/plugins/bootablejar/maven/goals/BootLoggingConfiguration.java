@@ -39,8 +39,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.controller.client.helpers.Operations;
@@ -72,7 +70,8 @@ import org.jboss.dmr.Property;
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
  */
 @Named
-public class BootLoggingConfiguration extends AbstractLogEnabled {
+// @TODO, we can't use AbstractLogEnabled, it is not in the maven plugin classloader.
+public class BootLoggingConfiguration { //extends AbstractLogEnabled {
 
     private static final Pattern SIZE_PATTERN = Pattern.compile("(\\d+)([kKmMgGbBtT])?");
     private static final String NEW_LINE = System.lineSeparator();
@@ -109,7 +108,7 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
         additionalPatternFormatters = new LinkedHashMap<>();
     }
 
-    void generate(final Path configDir, final ModelControllerClient client) throws IOException, MojoExecutionException {
+    public void generate(final Path configDir, final ModelControllerClient client) throws Exception {
         properties.clear();
         usedProperties.clear();
         additionalPatternFormatters.clear();
@@ -119,8 +118,8 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
         op.get(ClientConstants.CHILD_TYPE).set("subsystem");
         ModelNode result = client.execute(op);
         if (!Operations.isSuccessfulOutcome(result)) {
-            throw new MojoExecutionException("Could not determine if the logging subsystem was present: " +
-                    Operations.getFailureDescription(result).asString());
+            throw new Exception("Could not determine if the logging subsystem was present: "
+                    +                    Operations.getFailureDescription(result).asString());
         } else {
             if (Operations.readResult(result)
                     .asList()
@@ -142,8 +141,8 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
 
         result = client.execute(builder.build());
         if (!Operations.isSuccessfulOutcome(result)) {
-            throw new MojoExecutionException("Failed to determine the logging configuration: " +
-                    Operations.getFailureDescription(result).asString());
+            throw new Exception("Failed to determine the logging configuration: "
+                    +                    Operations.getFailureDescription(result).asString());
         }
         result = Operations.readResult(result);
         // step-1 is the subsystem, step-2 is the system properties and step-3 is the paths
@@ -170,7 +169,7 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
                 writeFormatters(writer, subsystem);
                 writeFilters(writer, subsystem);
             } catch (IOException e) {
-                throw new MojoExecutionException("Failed to write the logging configuration file to " + configDir.toAbsolutePath(), e);
+                throw new Exception("Failed to write the logging configuration file to " + configDir.toAbsolutePath(), e);
             }
 
             // Collect the properties we need at boot
@@ -182,8 +181,11 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
                 if (properties.containsKey(key)) {
                     requiredProperties.put(key, properties.get(key));
                 } else {
-                    getLogger().warn(String.format("The value for the expression \"%s\" could not be resolved " +
-                            "and may not be set at boot if no default value is available.", entry.getValue()));
+                    // @TODO, we can't use AbstractLogEnabled, it is not in the maven plugin classloader.
+                    // getLogger().warn(String.format("The value for the expression \"%s\" could not be resolved " +
+                    //       "and may not be set at boot if no default value is available.", entry.getValue()));
+                    System.err.println(String.format("The value for the expression \"%s\" could not be resolved "
+                            + "and may not be set at boot if no default value is available.", entry.getValue()));
                 }
                 iter.remove();
             }
@@ -194,7 +196,7 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
                 try (BufferedWriter writer = Files.newBufferedWriter(configDir.resolve("boot-config.properties"))) {
                     requiredProperties.store(writer, "Bootable JAR boot properties required by the log manager.");
                 } catch (IOException e) {
-                    throw new MojoExecutionException("Failed to write the system properties required by the logging configuration file to "
+                    throw new Exception("Failed to write the system properties required by the logging configuration file to "
                             + configDir.toAbsolutePath(), e);
                 }
             }
@@ -839,7 +841,9 @@ public class BootLoggingConfiguration extends AbstractLogEnabled {
                     for (Expression expression : expressions) {
                         for (String key : expression.getKeys()) {
                             if (!properties.containsKey(key)) {
-                                getLogger().warn(String.format("The path %s is an undefined property. If not set at boot time unexpected results may occur.", pathEntry.asString()));
+                                // @TODO, we can't use AbstractLogEnabled, it is not in the maven plugin classloader.
+                                //getLogger().warn(String.format("The path %s is an undefined property. If not set at boot time unexpected results may occur.", pathEntry.asString()));
+                                System.err.println(String.format("The path %s is an undefined property. If not set at boot time unexpected results may occur.", pathEntry.asString()));
                             } else {
                                 // We use the property name and value directly rather than referencing the path
                                 usedProperties.put(key, properties.get(key));
