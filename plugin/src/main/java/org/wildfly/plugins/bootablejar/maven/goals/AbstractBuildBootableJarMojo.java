@@ -95,7 +95,7 @@ import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
- * Build a bootable jar containing application and provisioned server
+ * Build a bootable JAR containing application and provisioned server
  *
  * @author jfdenise
  */
@@ -159,14 +159,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     boolean logTime;
 
     /**
-     * A list of galleon layers to provision. Can be used when
+     * A list of Galleon layers to provision. Can be used when
      * feature-pack-location or feature-packs are set.
      */
     @Parameter(alias = "layers", required = false)
     List<String> layers = Collections.emptyList();
 
     /**
-     * A list of galleon layers to exclude. Can be used when
+     * A list of Galleon layers to exclude. Can be used when
      * feature-pack-location or feature-packs are set.
      */
     @Parameter(alias = "excluded-layers", required = false)
@@ -185,13 +185,13 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     String projectBuildDir;
 
     /**
-     * To make the war registered under root resource path ('/').
+     * To make the WAR deployment registered under root resource path ('/').
      */
     @Parameter(alias = "context-root", defaultValue = "true", property = "wildfly.bootable.context.root")
     boolean contextRoot;
 
     /**
-     * The WildFly galleon feature-pack location to use if no provisioning.xml
+     * The WildFly Galleon feature-pack location to use if no provisioning.xml
      * file found. Can't be used in conjunction with feature-packs.
      */
     @Parameter(alias = "feature-pack-location", required = false,
@@ -222,7 +222,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     List<CliSession> cliSessions = Collections.emptyList();
 
     /**
-     * Hollow jar. Create a bootable jar that doesn't contain application.
+     * Hollow JAR. Create a bootable JAR that doesn't contain application.
      */
     @Parameter(alias = "hollow-jar", property = "wildfly.bootable.hollow")
     boolean hollowJar;
@@ -235,7 +235,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     boolean skip;
 
     /**
-     * By default the generated jar is ${project.build.finalName}-bootable.jar
+     * By default the generated JAR is ${project.build.finalName}-bootable.jar
      */
     @Parameter(alias = "output-file-name", property = "wildfly.bootable.package.output.file.name")
     String outputFileName;
@@ -302,8 +302,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private File bootLoggingConfig;
 
     /**
-     * By default, when building a bootable jar, the plugin extracts build artifacts in the directory
-     * 'bootable-jar-build-artifacts'. You can use this property to change this directory name. In most cases
+     * By default, when building a bootable JAR, the plugin extracts build
+     * artifacts in the directory 'bootable-jar-build-artifacts'. You can use
+     * this property to change this directory name. In most cases
      * this should not be required. The use-case is when building multiple bootable JARs in the same project
      * on Windows Platform. In this case, each execution should have its own directory, the plugin being
      * unable to delete the directory due to some references to JBoss module files.

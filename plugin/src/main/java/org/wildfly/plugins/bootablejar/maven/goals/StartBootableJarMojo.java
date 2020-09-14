@@ -33,7 +33,7 @@ import org.wildfly.plugin.core.ServerHelper;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
- * Start the bootable jar. The plugin execution keeps the process running.
+ * Start the bootable JAR. The plugin execution keeps the process running.
  *
  * @author jfdenise
  */
@@ -47,7 +47,7 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Bootable jar server arguments.
+     * Bootable JAR server arguments.
      */
     @Parameter(alias = "arguments")
     public List<String> arguments = new ArrayList<>();
@@ -90,14 +90,15 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     private long startupTimeout;
 
     /**
-     * The Bootable Jar Process id.
+     * The Bootable JAR Process id.
      */
     @Parameter(alias = "id", defaultValue = "60", property = "wildfly.bootable.start.id")
     private String id;
 
     /**
-     * In case a custom jar file name was specified during build, set this option
-     * to this jar file name. That is required for the plugin to retrieve the jar file to start.
+     * In case a custom JAR file name was specified during build, set this
+     * option to this JAR file name. That is required for the plugin to retrieve
+     * the JAR file to start.
      */
     @Parameter(alias = "jar-file-name", property = "wildfly.bootable.start.jar.file.name")
     String jarFileName;

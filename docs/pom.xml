@@ -36,6 +36,14 @@
     <ec2-pub-ip>1.2.3.4</ec2-pub-ip>
   </properties>
 
+  <dependencies>
+      <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>wildfly-jar-maven-plugin</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+  </dependencies>
+  
   <build>
     <plugins>
       <plugin>
