@@ -5,20 +5,23 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins.tests</groupId>
     <version>1.0.0.Final-SNAPSHOT</version>
-    <artifactId>test4</artifactId>
+    <artifactId>test1</artifactId>
     <packaging>war</packaging>
 
     <name>WildFly bootable jar Example for tests</name>
-
+    
     <build>
         <finalName>test</finalName>
         <plugins>
             <plugin>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
-                    <context-root>false</context-root>
+                    <feature-pack-location>TEST_REPLACE</feature-pack-location>
+                    <cloud/>
+                    <excluded-layers>
+                        <layer>deployment-scanner</layer>
+                    </excluded-layers>
                 </configuration>
-                
             </plugin>
         </plugins>
     </build>
