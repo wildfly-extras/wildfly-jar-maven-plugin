@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -66,6 +67,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.Constants;
+import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigId;
@@ -106,6 +108,10 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private static final String BOOT_ARTIFACT_ID = "wildfly-jar-boot";
 
+    private static final String STANDALONE = "standalone";
+    private static final String STANDALONE_XML = "standalone.xml";
+    private static final String STANDALONE_MICROPROFILE_XML = "standalone-microprofile.xml";
+    private static final String SERVER_CONFIG = "--server-config";
     @Component
     RepositorySystem repoSystem;
 
@@ -240,7 +246,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * conjunction with feature-pack-location.
      */
     @Parameter(alias = "feature-packs", required = false)
-    private List<FeaturePack> featurePacks = Collections.emptyList();
+    List<FeaturePack> featurePacks = Collections.emptyList();
 
     /**
      * A list of directories to copy content to the provisioned server.
@@ -681,10 +687,311 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         return excludedLayers;
     }
 
+    private GalleonConfig buildFeaturePacksConfig(ProvisioningManager pm, boolean hasLayers) throws ProvisioningException, MojoExecutionException {
+        ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+        ConfigId provisionedConfigId = null;
+        for (FeaturePack fp : featurePacks) {
+
+            if (fp.getLocation() == null && (fp.getGroupId() == null || fp.getArtifactId() == null)
+                    && fp.getNormalizedPath() == null) {
+                throw new MojoExecutionException("Feature-pack location, Maven GAV or feature pack path is missing");
+            }
+
+            final FeaturePackLocation fpl;
+            if (fp.getNormalizedPath() != null) {
+                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+            } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
+                Path path = resolveMaven(fp);
+                fpl = pm.getLayoutFactory().addLocal(path, false);
+            } else {
+                fpl = FeaturePackLocation.fromString(fp.getLocation());
+            }
+
+            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl);
+            fpConfig.setInheritConfigs(false);
+            if (fp.isInheritPackages() != null) {
+                fpConfig.setInheritPackages(fp.isInheritPackages());
+            }
+
+            if (fp.getIncludedDefaultConfig() != null) {
+                ConfigId includedConfigId = new ConfigId(STANDALONE, fp.getIncludedDefaultConfig());
+                fpConfig.includeDefaultConfig(includedConfigId);
+                if (provisionedConfigId == null) {
+                    provisionedConfigId = includedConfigId;
+                } else {
+                    if (!provisionedConfigId.getName().equals(fp.getIncludedDefaultConfig())) {
+                        throw new ProvisioningException("Feature-packs are not including the same default config");
+                    }
+                }
+            } else {
+                // We don't have an explicit default config and we have no layers, must include the default one.
+                if (!hasLayers && provisionedConfigId == null) {
+                    provisionedConfigId = getDefaultConfig();
+                    fpConfig.includeDefaultConfig(provisionedConfigId);
+                }
+            }
+
+            if (!fp.getIncludedPackages().isEmpty()) {
+                for (String includedPackage : fp.getIncludedPackages()) {
+                    fpConfig.includePackage(includedPackage);
+                }
+            }
+            if (!fp.getExcludedPackages().isEmpty()) {
+                for (String excludedPackage : fp.getExcludedPackages()) {
+                    fpConfig.excludePackage(excludedPackage);
+                }
+            }
+
+            state.addFeaturePackDep(fpConfig.build());
+        }
+        if (hasLayers) {
+            getLog().info("Provisioning server configuration based on the set of configured layers");
+        } else {
+            getLog().info("Provisioning server configuration based on the " + provisionedConfigId.getName() + " default configuration.");
+        }
+        return hasLayers ? new LayersFeaturePacksConfig(state) : new DefaultFeaturePacksConfig(provisionedConfigId, state);
+    }
+
+    private interface GalleonConfig {
+
+        ProvisioningConfig buildConfig() throws ProvisioningException;
+    }
+
+    /**
+     * Parse provisioning.xml to build the configuration.
+     */
+    private class ProvisioningFileConfig implements GalleonConfig {
+
+        @Override
+        public ProvisioningConfig buildConfig() throws ProvisioningException {
+            return ProvisioningXmlParser.parse(provisioningFile.toPath());
+        }
+    }
+
+    /**
+     * Abstract Galleon config that handles plugin options and build the config
+     * based on the state provided by sub class.
+     */
+    private abstract class AbstractGalleonConfig implements GalleonConfig {
+
+        protected final ConfigModel.Builder configBuilder;
+
+        AbstractGalleonConfig(ConfigModel.Builder configBuilder) {
+            Objects.requireNonNull(configBuilder);
+            this.configBuilder = configBuilder;
+            setupPluginOptions();
+        }
+
+        private void setupPluginOptions() {
+            // passive+ in all cases
+            // For included default config not based on layers, default packages
+            // must be included.
+            if (pluginOptions.isEmpty()) {
+                pluginOptions = Collections.
+                        singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+            } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
+                pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+            }
+        }
+
+        protected abstract ProvisioningConfig.Builder buildState() throws ProvisioningException;
+
+        @Override
+        public ProvisioningConfig buildConfig() throws ProvisioningException {
+            ProvisioningConfig.Builder state = buildState();
+            state.addConfig(configBuilder.build());
+            state.addOptions(pluginOptions);
+            return state.build();
+        }
+    }
+
+    /**
+     * Abstract config for config based on added Galleon layers. Parent class of
+     * all configuration constructed from Galleon layers + FPL or set of
+     * feature-packs.
+     */
+    private abstract class AbstractLayersConfig extends AbstractGalleonConfig {
+
+        public AbstractLayersConfig() throws ProvisioningDescriptionException {
+            super(ConfigModel.builder(STANDALONE, STANDALONE_XML));
+            for (String layer : layers) {
+                configBuilder.includeLayer(layer);
+            }
+
+            for (String layer : extraLayers) {
+                if (!layers.contains(layer)) {
+                    configBuilder.includeLayer(layer);
+                }
+            }
+
+            for (String layer : excludedLayers) {
+                configBuilder.excludeLayer(layer);
+            }
+        }
+    }
+
+    /**
+     * Galleon layers based config that uses the FPL.
+     */
+    private class LayersFPLConfig extends AbstractLayersConfig {
+
+        private LayersFPLConfig() throws ProvisioningDescriptionException {
+        }
+        @Override
+        public ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+            FeaturePackConfig.Builder builder = FeaturePackConfig.
+                    builder(FeaturePackLocation.fromString(featurePackLocation)).
+                    setInheritPackages(false).setInheritConfigs(false);
+            FeaturePackConfig dependency = builder.build();
+            state.addFeaturePackDep(dependency);
+            return state;
+        }
+    }
+
+    /**
+     * Galleon layers based config that uses the set of feature-packs.
+     */
+    private class LayersFeaturePacksConfig extends AbstractLayersConfig {
+
+        private final ProvisioningConfig.Builder state;
+
+        private LayersFeaturePacksConfig(ProvisioningConfig.Builder state) throws ProvisioningDescriptionException {
+            this.state = state;
+        }
+
+        @Override
+        public ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            return state;
+        }
+    }
+
+    private static ConfigModel.Builder buildDefaultConfigBuilder(ConfigId defaultConfigId) {
+        Objects.requireNonNull(defaultConfigId);
+        ConfigModel.Builder configBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
+        configBuilder.setProperty(SERVER_CONFIG, STANDALONE_XML);
+        return configBuilder;
+    }
+
+    /**
+     * Abstract config, parent of all config based on a default configuration.
+     * Default configuration can be explicitly included in feature-packs or be a
+     * default one (microprofile or microprofile-ha for Cloud). These
+     * configurations benefit from layers exclusion and extra layers added by
+     * cloud.
+     */
+    private abstract class AbstractDefaultConfig extends AbstractGalleonConfig {
+
+        private AbstractDefaultConfig(ConfigId defaultConfigId) throws ProvisioningException {
+            super(buildDefaultConfigBuilder(defaultConfigId));
+            // We can exclude layers from a default config.
+            for (String layer : excludedLayers) {
+                configBuilder.excludeLayer(layer);
+            }
+            // We can have extra layers to add to default config.
+            for (String layer : extraLayers) {
+                configBuilder.includeLayer(layer);
+            }
+        }
+
+    }
+
+    /**
+     * A config based on a default config retrieved in the FPL.
+     */
+    private class DefaultFPLConfig extends AbstractDefaultConfig {
+        private final ConfigId configId;
+
+        private DefaultFPLConfig(ConfigId configId) throws ProvisioningException {
+            super(configId);
+            this.configId = configId;
+        }
+
+        @Override
+        protected ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+            FeaturePackConfig.Builder builder = FeaturePackConfig.
+                    builder(FeaturePackLocation.fromString(featurePackLocation)).
+                    setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(configId.getModel(),
+                    configId.getName());
+            FeaturePackConfig dependency = builder.build();
+            state.addFeaturePackDep(dependency);
+            return state;
+        }
+
+    }
+
+    /**
+     * A config based on the set of feature-packs. Default config is explicitly
+     * included or is the default.
+     */
+    private class DefaultFeaturePacksConfig extends AbstractDefaultConfig {
+
+        private final ProvisioningConfig.Builder state;
+
+        private DefaultFeaturePacksConfig(ConfigId defaultConfigId, ProvisioningConfig.Builder state) throws ProvisioningException {
+            super(defaultConfigId);
+            Objects.requireNonNull(state);
+            this.state = state;
+        }
+
+        @Override
+        protected ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            return state;
+        }
+
+    }
+
+    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
+        boolean isLayerBasedConfig = !layers.isEmpty();
+        boolean hasFeaturePack = featurePackLocation != null || !featurePacks.isEmpty();
+        boolean hasProvisioningFile = Files.exists(provisioningFile.toPath());
+        if (!hasFeaturePack && !hasProvisioningFile) {
+            throw new ProvisioningException("No valid provisioning configuration, "
+                    + "you must set a feature-pack-location or a list of feature-packs or use a provisioning.xml file.");
+        }
+
+        if (featurePackLocation != null && !featurePacks.isEmpty()) {
+            throw new MojoExecutionException("Feature packlocation can't be used with a list of feature-packs");
+        }
+
+        if (hasFeaturePack && hasProvisioningFile) {
+            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + provisioningFile);
+        }
+
+        if (isLayerBasedConfig) {
+            if (!hasFeaturePack) {
+                throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
+            }
+            if (featurePackLocation == null) {
+                getLog().info("Provisioning server using feature-packs");
+                return buildFeaturePacksConfig(pm, true);
+            } else {
+                getLog().info("Provisioning server configuration based on the set of configured layers");
+                return new LayersFPLConfig();
+            }
+        }
+
+        if (featurePackLocation != null) {
+            ConfigId defaultConfig = getDefaultConfig();
+            getLog().info("Provisioning server configuration based on the " + defaultConfig.getName() + " default configuration.");
+            return new DefaultFPLConfig(defaultConfig);
+        }
+
+        if (!featurePacks.isEmpty()) {
+            getLog().info("Provisioning server using feature-packs");
+            return buildFeaturePacksConfig(pm, isLayerBasedConfig);
+        }
+
+        if (hasProvisioningFile) {
+            getLog().info("Provisioning server using " + provisioningFile);
+            return new ProvisioningFileConfig();
+        }
+        throw new ProvisioningException("Invalid Galleon configuration");
+    }
+
     private Artifact provisionServer(Path home, Path outputProvisioningFile) throws ProvisioningException, MojoExecutionException, IOException, XMLStreamException {
-        final Path provisioningFile = getProvisioningFile();
-        ProvisioningConfig.Builder state = null;
-        ProvisioningConfig config;
+
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(home)
                 .setMessageWriter(new MvnMessageWriter(getLog()))
@@ -692,159 +999,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setRecordState(recordState)
                 .build()) {
 
-            ConfigModel.Builder configBuilder = null;
-            ConfigId defaultConfig = null;
-            if (!featurePacks.isEmpty()) {
-                if (Files.exists(provisioningFile)) {
-                    getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + provisioningFile);
-                }
-                if (featurePackLocation != null) {
-                    throw new MojoExecutionException("Feature packlocation can't be used with a list of feature-packs");
-                }
-                state = ProvisioningConfig.builder();
-
-                for (FeaturePack fp : featurePacks) {
-
-                    if (fp.getLocation() == null && (fp.getGroupId() == null || fp.getArtifactId() == null)
-                            && fp.getNormalizedPath() == null) {
-                        throw new MojoExecutionException("Feature-pack location, Maven GAV or feature pack path is missing");
-                    }
-
-                    final FeaturePackLocation fpl;
-                    if (fp.getNormalizedPath() != null) {
-                        fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
-                    } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
-                        Path path = resolveMaven(fp);
-                        fpl = pm.getLayoutFactory().addLocal(path, false);
-                    } else {
-                        fpl = FeaturePackLocation.fromString(fp.getLocation());
-                    }
-
-                    final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl);
-                    fpConfig.setInheritConfigs(false);
-                    if (fp.isInheritPackages() != null) {
-                        fpConfig.setInheritPackages(fp.isInheritPackages());
-                    }
-
-                    if (fp.getIncludedDefaultConfig() != null) {
-                        ConfigId configId = new ConfigId("standalone", fp.getIncludedDefaultConfig());
-                        fpConfig.includeDefaultConfig(configId);
-                        if (defaultConfig == null) {
-                            defaultConfig = configId;
-                            configBuilder = ConfigModel.
-                                    builder(defaultConfig.getModel(), defaultConfig.getName());
-                            // Must enforce the config name
-                            configBuilder.setProperty("--server-config", "standalone.xml");
-                        } else {
-                            if (!defaultConfig.getName().equals(fp.getIncludedDefaultConfig())) {
-                                throw new ProvisioningException("Feature-packs are not including the same default config");
-                            }
-                        }
-                    }
-
-                    if (!fp.getIncludedPackages().isEmpty()) {
-                        for (String includedPackage : fp.getIncludedPackages()) {
-                            fpConfig.includePackage(includedPackage);
-                        }
-                    }
-                    if (!fp.getExcludedPackages().isEmpty()) {
-                        for (String excludedPackage : fp.getExcludedPackages()) {
-                            fpConfig.excludePackage(excludedPackage);
-                        }
-                    }
-
-                    state.addFeaturePackDep(fpConfig.build());
-                }
-            }
-
-            // We could be in a case where we are only excluding layers from the included default config.
-            // So no layers included thanks to the <layers> element.
-            if (!layers.isEmpty() || !excludedLayers.isEmpty()) {
-                if (featurePackLocation == null && state == null) {
-                    throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
-                }
-                if (Files.exists(provisioningFile)) {
-                    getLog().warn("Layers defined in pom.xml override provisioning file located in " + provisioningFile);
-                }
-                // if not null means a default config has been included.
-                if (configBuilder == null) {
-                    configBuilder = ConfigModel.
-                            builder("standalone", "standalone.xml");
-                }
-
-                for (String layer : layers) {
-                    configBuilder.includeLayer(layer);
-                }
-
-                for (String layer : extraLayers) {
-                    if (!layers.contains(layer)) {
-                        configBuilder.includeLayer(layer);
-                    }
-                }
-
-                for (String layer : excludedLayers) {
-                    configBuilder.excludeLayer(layer);
-                }
-                // passive+ in all cases
-                // For included default config not based on layers, default packages
-                // must be included.
-                if (pluginOptions.isEmpty()) {
-                    pluginOptions = Collections.
-                            singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-                } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
-                    pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-                }
-                if (state == null) {
-                    state = ProvisioningConfig.builder();
-                    FeaturePackConfig dependency = FeaturePackConfig.
-                            builder(FeaturePackLocation.fromString(featurePackLocation)).
-                            setInheritPackages(false).setInheritConfigs(false).build();
-                    state.addFeaturePackDep(dependency);
-                }
-
-                state.addConfig(configBuilder.build());
-            }
-
-            if (state == null) {
-                if (Files.exists(provisioningFile)) {
-                    config = ProvisioningXmlParser.parse(provisioningFile);
-                } else {
-                    if (featurePackLocation == null) {
-                        throw new ProvisioningException("No server feature-pack location to provision microprofile standalone configuration, "
-                                + "you must set a feature-pack-location.");
-                    }
-                    ConfigModel.Builder defaultConfigBuilder = null;
-                    ConfigId defaultConfigId = getDefaultConfig();
-                    if (!extraLayers.isEmpty()) {
-                        defaultConfigBuilder = ConfigModel.
-                                builder(defaultConfigId.getModel(), defaultConfigId.getName());
-                        for (String layer : extraLayers) {
-                            defaultConfigBuilder.includeLayer(layer);
-                        }
-                    }
-                    if (pluginOptions.isEmpty()) {
-                        pluginOptions = Collections.
-                                singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-                    } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
-                        pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-                    }
-                    FeaturePackConfig dependency = FeaturePackConfig.
-                            builder(FeaturePackLocation.fromString(featurePackLocation)).
-                            setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(defaultConfigId.getModel(), defaultConfigId.getName()).build();
-                    ProvisioningConfig.Builder provBuilder = ProvisioningConfig.builder().addFeaturePackDep(dependency).addOptions(pluginOptions);
-                    // Create a config to merge options to name the config standalone.xml
-                    if (defaultConfigBuilder == null) {
-                        defaultConfigBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
-                    }
-                    defaultConfigBuilder.setProperty("--server-config", "standalone.xml");
-                    provBuilder.addConfig(defaultConfigBuilder.build());
-                    config = provBuilder.build();
-                }
-            } else {
-                state.addOptions(pluginOptions);
-                config = state.build();
-            }
-
+            ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
 
@@ -934,7 +1089,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     protected ConfigId getDefaultConfig() {
-        return new ConfigId("standalone", "standalone-microprofile.xml");
+        return new ConfigId(STANDALONE, STANDALONE_MICROPROFILE_XML);
     }
 
     static Artifact getArtifact(String str) {

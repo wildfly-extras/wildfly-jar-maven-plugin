@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins.tests</groupId>
     <version>1.0.0.Final-SNAPSHOT</version>
-    <artifactId>test4</artifactId>
+    <artifactId>test2</artifactId>
     <packaging>war</packaging>
 
     <name>WildFly bootable jar Example for tests</name>
@@ -16,9 +16,13 @@
             <plugin>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
-                    <context-root>false</context-root>
+                    <feature-packs>
+                        <feature-pack>
+                            <location>TEST_REPLACE</location>
+                        </feature-pack>
+                    </feature-packs>
+                    <cloud/>
                 </configuration>
-                
             </plugin>
         </plugins>
     </build>
