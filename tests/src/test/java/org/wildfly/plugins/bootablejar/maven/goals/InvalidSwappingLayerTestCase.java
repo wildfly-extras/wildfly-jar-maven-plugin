@@ -16,27 +16,19 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
-import java.nio.file.Path;
-
 import org.junit.Test;
-import static org.wildfly.plugins.bootablejar.patching.PatchingTestUtil.buildMiscPatch;
-import static org.wildfly.plugins.bootablejar.patching.PatchingTestUtil.randomString;
 
 /**
  * @author jdenise
  */
-public class PatchUnexistingFailMiscTestCase extends AbstractBootableJarMojoTestCase {
-    public PatchUnexistingFailMiscTestCase() {
-        super("test15-pom.xml", true, null);
+public class InvalidSwappingLayerTestCase extends AbstractBootableJarMojoTestCase {
+    public InvalidSwappingLayerTestCase() {
+        super("invalid8-pom.xml", true, null);
     }
 
     @Test
-    public void testMiscPatch()
+    public void test()
             throws Exception {
-        String patchid = randomString();
-        Path patchContentDir = createTestDirectory("patch-test-content", patchid);
-        final String testContent = "java -version";
-        buildMiscPatch(patchContentDir, false, getTestDir(), patchid, testContent, "bin", "jboss-cli.sh");
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         boolean failed = false;
@@ -51,5 +43,14 @@ public class PatchUnexistingFailMiscTestCase extends AbstractBootableJarMojoTest
         if (failed) {
            throw new Exception("Should have failed");
         }
+    }
+
+    @Override
+    public void shutdownServer() throws Exception {
+        // No server to shutdown.
+        // This fixes a test problem on JDK 11, attempt to provision a server has
+        // the side effect to set an SSL Security provider that
+        // will fail to initialize when shutting down the server, no jboss.home being created.
+        // The test execution context doesn't allow us to fork the embedded server.
     }
 }
