@@ -71,6 +71,8 @@ public class PatchUnexistingFailModuleTestCase extends AbstractBootableJarMojoTe
             failed = true;
         } catch (Exception ex) {
             // OK expected
+            System.err.println("EXPECTED exception");
+            ex.printStackTrace();
         }
         if (failed) {
             throw new Exception("Should have failed");

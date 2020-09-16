@@ -469,7 +469,18 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (!Files.exists(extraContent)) {
                 throw new Exception("Extra content dir " + path + " doesn't exist");
             }
+            // Check for the presence of a standalone.xml file
+            warnExtraConfig(extraContent);
             IoUtils.copy(extraContent, wildflyDir);
+        }
+
+    }
+
+    private void warnExtraConfig(Path extraContentDir) {
+        Path config = extraContentDir.resolve(STANDALONE).resolve("configurations").resolve(STANDALONE_XML);
+        if (Files.exists(config)) {
+            getLog().warn("The file " + config + " overrides the Galleon generated configuration, "
+                    + "un-expected behavior can occur when starting the bootable JAR");
         }
     }
 
@@ -948,11 +959,11 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         boolean hasProvisioningFile = Files.exists(provisioningFile.toPath());
         if (!hasFeaturePack && !hasProvisioningFile) {
             throw new ProvisioningException("No valid provisioning configuration, "
-                    + "you must set a feature-pack-location or a list of feature-packs or use a provisioning.xml file.");
+                    + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
         }
 
         if (featurePackLocation != null && !featurePacks.isEmpty()) {
-            throw new MojoExecutionException("Feature packlocation can't be used with a list of feature-packs");
+            throw new MojoExecutionException("feature-pack-location can't be used with a list of feature-packs");
         }
 
         if (hasFeaturePack && hasProvisioningFile) {
@@ -961,7 +972,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         if (isLayerBasedConfig) {
             if (!hasFeaturePack) {
-                throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location.");
+                throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
             }
             if (featurePackLocation == null) {
                 getLog().info("Provisioning server using feature-packs");
@@ -974,7 +985,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         if (featurePackLocation != null) {
             ConfigId defaultConfig = getDefaultConfig();
-            getLog().info("Provisioning server configuration based on the " + defaultConfig.getName() + " default configuration.");
+            getLog().info("Provisioning server configuration based on the " + defaultConfig.getName() + " default configuration");
             return new DefaultFPLConfig(defaultConfig);
         }
 

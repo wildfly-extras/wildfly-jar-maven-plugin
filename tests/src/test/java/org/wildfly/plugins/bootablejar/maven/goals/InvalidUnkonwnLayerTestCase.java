@@ -16,27 +16,19 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
-import java.nio.file.Path;
-
 import org.junit.Test;
-import static org.wildfly.plugins.bootablejar.patching.PatchingTestUtil.buildMiscPatch;
-import static org.wildfly.plugins.bootablejar.patching.PatchingTestUtil.randomString;
 
 /**
  * @author jdenise
  */
-public class PatchUnexistingFailMiscTestCase extends AbstractBootableJarMojoTestCase {
-    public PatchUnexistingFailMiscTestCase() {
-        super("test15-pom.xml", true, null);
+public class InvalidUnkonwnLayerTestCase extends AbstractBootableJarMojoTestCase {
+    public InvalidUnkonwnLayerTestCase() {
+        super("invalid4-pom.xml", true, null);
     }
 
     @Test
-    public void testMiscPatch()
+    public void test()
             throws Exception {
-        String patchid = randomString();
-        Path patchContentDir = createTestDirectory("patch-test-content", patchid);
-        final String testContent = "java -version";
-        buildMiscPatch(patchContentDir, false, getTestDir(), patchid, testContent, "bin", "jboss-cli.sh");
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         boolean failed = false;
