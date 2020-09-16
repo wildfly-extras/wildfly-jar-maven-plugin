@@ -1,4 +1,6 @@
-## WildFly bootable jar maven plugin
+## WildFly bootable jar maven plugin 
+
+### Branch for triggering CI testing - do not merge :)
 
 This project defines a maven plugin to build bootable jars for WildFly (starting version 20.0.0.Final). 
 A WildFly bootable jar contains both the server and your packaged application (a jar, a ear or a war).
