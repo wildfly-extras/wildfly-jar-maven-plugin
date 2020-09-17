@@ -1,6 +1,6 @@
 ## Maven plugin
 
-This chapter is dedicated to the Maven plugin that can be used to build WildFly bootable jar. Maven
+This chapter is dedicated to the Maven plugin that can be used to build WildFly bootable JAR. Maven
 coordinates of the Maven plugin artifact are
 
 [source,xml]

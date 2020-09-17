@@ -27,7 +27,7 @@ import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.core.ServerHelper;
 
 /**
- * Shutdown the bootable jar.
+ * Shutdown the bootable JAR.
  *
  * @author jfdenise
  */

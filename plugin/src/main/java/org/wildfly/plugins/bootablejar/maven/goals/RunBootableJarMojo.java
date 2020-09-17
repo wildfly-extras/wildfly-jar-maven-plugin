@@ -31,7 +31,7 @@ import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
- * Run the bootable jar. This is blocking.
+ * Run the bootable JAR. This is blocking.
  *
  * @author jfdenise
  */
@@ -45,7 +45,7 @@ public final class RunBootableJarMojo extends AbstractMojo {
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Bootable jar server arguments.
+     * Bootable JAR server arguments.
      */
     @Parameter(alias = "arguments")
     public List<String> arguments = new ArrayList<>();
@@ -57,7 +57,7 @@ public final class RunBootableJarMojo extends AbstractMojo {
     public String jvmArgumentsProps;
 
     /**
-     * Bootable jar server arguments that can be set thanks to system property.
+     * Bootable JAR server arguments that can be set thanks to system property.
      */
     @Parameter(property = "wildfly.bootable.arguments")
     public String argumentsProps;
@@ -73,8 +73,9 @@ public final class RunBootableJarMojo extends AbstractMojo {
     private boolean skip;
 
     /**
-     * In case a custom jar file name was specified during build, set this option
-     * to this jar file name. That is required for the plugin to retrieve the jar file to run.
+     * In case a custom JAR file name was specified during build, set this
+     * option to this JAR file name. That is required for the plugin to retrieve
+     * the JAR file to run.
      */
     @Parameter(alias = "jar-file-name", property = "wildfly.bootable.run.jar.file.name")
     String jarFileName;

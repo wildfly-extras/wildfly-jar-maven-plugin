@@ -32,7 +32,7 @@ import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
- * Build and start a bootable jar for dev mode
+ * Build and start a bootable JAR for dev mode
  *
  * @author jfdenise
  */
@@ -49,7 +49,7 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
-     * Bootable jar server arguments.
+     * Bootable JAR server arguments.
      */
     @Parameter(alias = "arguments")
     public List<String> arguments = new ArrayList<>();

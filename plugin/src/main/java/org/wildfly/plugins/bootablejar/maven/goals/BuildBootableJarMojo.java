@@ -28,7 +28,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.jboss.galleon.config.ConfigId;
 
 /**
- * Build a bootable jar containing application and provisioned server
+ * Build a bootable JAR containing application and provisioned server
  *
  * @author jfdenise
  */
