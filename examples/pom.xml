@@ -11,7 +11,7 @@
 
     <properties>
         <version.bootable.jar>2.0.0.Beta7-SNAPSHOT</version.bootable.jar>
-        <version.wildfly>20.0.0.Final</version.wildfly>
+        <version.wildfly>21.0.0.Beta1</version.wildfly>
         <version.jkube>1.0.0-rc-1</version.jkube>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
