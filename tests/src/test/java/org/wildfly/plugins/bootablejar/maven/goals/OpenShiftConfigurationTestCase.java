@@ -39,8 +39,7 @@ public class OpenShiftConfigurationTestCase extends AbstractBootableJarMojoTestC
         assertEquals("jaxrs", mojo.layers.get(0));
         mojo.recordState = true;
         mojo.execute();
-        // should be microprofile-health but we can't yet with EAP.
-        String[] layers = {"jaxrs", "observability", "core-tools"};
+        String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
         final Path dir = getTestDir();
         checkJar(dir, true, true, layers, null);
         checkDeployment(dir, true);

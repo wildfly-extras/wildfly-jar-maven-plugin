@@ -100,9 +100,7 @@ public class CloudConfig {
 
     public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {
         Set<String> set = new HashSet<>();
-        // Can't add yet, not present in all servers.
-        //set.add("microprofile-health");
-        set.add("observability");
+        set.add("microprofile-health");
         set.add("core-tools");
         return set;
     }
