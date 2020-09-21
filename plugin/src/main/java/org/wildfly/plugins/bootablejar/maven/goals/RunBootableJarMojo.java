@@ -104,7 +104,7 @@ public final class RunBootableJarMojo extends AbstractMojo {
             final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, "run"))
                     .addJavaOptions(jvmArguments)
                     .addServerArgument(argumentsProps);
-            final Process process = Launcher.of(commandBuilder).launch();
+            final Process process = Launcher.of(commandBuilder).inherit().launch();
             process.waitFor();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);
