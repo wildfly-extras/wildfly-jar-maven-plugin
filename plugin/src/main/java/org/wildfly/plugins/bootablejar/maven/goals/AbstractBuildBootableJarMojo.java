@@ -200,6 +200,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     /**
      * List of CLI execution sessions. An embedded server is started for each CLI session.
+     * If a script file is not absolute, it has to be relative to the project base directory.
      * CLI session are configured in the following way:
      * <br/>
      * &lt;cli-sessions&gt;<br/>
@@ -250,6 +251,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     /**
      * A list of directories to copy content to the provisioned server.
+     * If a directory is not absolute, it has to be relative to the project base directory.
      */
     @Parameter(alias = "extra-server-content-dirs", property = "wildfly.bootable.package.extra.server.content.dirs")
     List<String> extraServerContent = Collections.emptyList();
@@ -257,6 +259,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     /**
      * The path to the {@code provisioning.xml} file to use. Note that this cannot be used with the {@code feature-packs}
      * or {@code layers} configuration parameters.
+     * If the provisioning file is not absolute, it has to be relative to the project base directory.
      */
     @Parameter(alias = "provisioning-file", property = "wildfly.bootable.provisioning.file", defaultValue = "${project.basedir}/galleon/provisioning.xml")
     private File provisioningFile;
@@ -269,7 +272,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * force the patch to apply use the '--override-all' option. The
      * '--distribution' option is not needed, System property 'jboss.home.dir'
      * is automatically set to the server that will be packaged in the bootable
-     * JAR. NB: The server is patched with a legacy patch right after the server
+     * JAR. If the script file is not absolute, it has to be relative to the
+     * project base directory.
+     * NB: The server is patched with a legacy patch right after the server
      * has been provisioned with Galleon.
      */
     @Parameter(alias = "legacy-patch-cli-script")
@@ -297,6 +302,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * boot errors or you do not use the logging subsystem and would like to use a custom logging configuration.
      * <br/>
      * An example of a boot error would be using a log4j appender as a {@code custom-handler}.
+     * If the file is not absolute, it has to be relative to the project base directory.
      */
     @Parameter(alias = "boot-logging-config", property = "wildfly.bootable.logging.config")
     private File bootLoggingConfig;
@@ -410,9 +416,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 generateLoggingConfig(wildflyDir);
             } else {
                 // Copy the user overridden logging.properties
-                final Path loggingConfig = bootLoggingConfig.toPath();
+                final Path loggingConfig = resolvePath(bootLoggingConfig.toPath());
                 if (Files.notExists(loggingConfig)) {
-                    throw new MojoExecutionException(String.format("The bootLoggingConfig %s does not exist.", bootLoggingConfig));
+                    throw new MojoExecutionException(String.format("The bootLoggingConfig %s does not exist.", loggingConfig));
                 }
                 final Path target = getJBossHome().resolve("standalone").resolve("configuration").resolve("logging.properties");
                 Files.copy(loggingConfig, target, StandardCopyOption.REPLACE_EXISTING);
@@ -446,14 +452,18 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             String prop = "jboss.home.dir";
             System.setProperty(prop, wildflyDir.toAbsolutePath().toString());
             try {
+                Path patchScript = resolvePath(Paths.get(legacyPatchCliScript));
+                if (Files.notExists(patchScript)) {
+                    throw new Exception("Patch CLI script " + patchScript + " doesn't exist");
+                }
                 List<CliSession> cliPatchingSessions = new ArrayList<>();
                 List<String> files = new ArrayList<>();
-                files.add(legacyPatchCliScript);
+                files.add(patchScript.toString());
                 CliSession patchingSession = new CliSession();
                 patchingSession.setResolveExpressions(true);
                 patchingSession.setScriptFiles(files);
                 cliPatchingSessions.add(patchingSession);
-                getLog().info("Patching server with " + legacyPatchCliScript + " CLI script.");
+                getLog().info("Patching server with " + patchScript + " CLI script.");
                 userScripts(wildflyDir, cliPatchingSessions, false);
                 if (patchCleaner != null) {
                     patchCleaner.clean();
@@ -467,8 +477,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private void copyExtraContent(Path wildflyDir) throws Exception {
         for (String path : extraServerContent) {
             Path extraContent = Paths.get(path);
-            if (!Files.exists(extraContent)) {
-                throw new Exception("Extra content dir " + path + " doesn't exist");
+            extraContent = resolvePath(extraContent);
+            if (Files.notExists(extraContent)) {
+                throw new Exception("Extra content dir " + extraContent + " doesn't exist");
             }
             // Check for the presence of a standalone.xml file
             warnExtraConfig(extraContent);
@@ -536,15 +547,11 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             List<String> commands = new ArrayList<>();
             for (String path : session.getScriptFiles()) {
                 File f = new File(path);
-                if (!f.exists()) {
-                    if (!f.isAbsolute()) {
-                        f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-                    }
-                    if (!f.exists()) {
-                        throw new RuntimeException("Cli script file " + path + " doesn't exist");
-                    }
+                Path filePath = resolvePath(f.toPath());
+                if (Files.notExists(filePath)) {
+                    throw new RuntimeException("Cli script file " + filePath + " doesn't exist");
                 }
-                try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(filePath.toFile()))) {
                     String line = reader.readLine();
                     while (line != null) {
                         commands.add(line.trim());
@@ -644,19 +651,22 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         l.setLevel(level);
     }
 
+    private Path resolvePath(Path path) {
+        if (!path.isAbsolute()) {
+            path = Paths.get(project.getBasedir().getAbsolutePath()).resolve(path);
+        }
+        return path;
+    }
+
     private Properties loadProperties(String propertiesFile) throws Exception {
         File f = new File(propertiesFile);
-        if (!f.exists()) {
-            if (!f.isAbsolute()) {
-                f = Paths.get(project.getBasedir().getAbsolutePath()).resolve(f.toPath()).toFile();
-            }
-            if (!f.exists()) {
-                throw new RuntimeException("Cli properties file " + f + " doesn't exist");
-            }
+        Path filePath = resolvePath(f.toPath());
+        if (Files.notExists(filePath)) {
+            throw new RuntimeException("Cli properties file " + filePath + " doesn't exist");
         }
         final Properties props = new Properties();
-        try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(f),
-            StandardCharsets.UTF_8)) {
+        try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(filePath.toFile()),
+                StandardCharsets.UTF_8)) {
             props.load(inputStreamReader);
         } catch (IOException e) {
             throw new Exception(
@@ -684,7 +694,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     protected Path getProvisioningFile() {
-        return provisioningFile.toPath();
+        return resolvePath(provisioningFile.toPath());
     }
 
     protected boolean hasLayers() {
@@ -776,7 +786,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         @Override
         public ProvisioningConfig buildConfig() throws ProvisioningException {
-            return ProvisioningXmlParser.parse(provisioningFile.toPath());
+            return ProvisioningXmlParser.parse(getProvisioningFile());
         }
     }
 
@@ -957,7 +967,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
         boolean isLayerBasedConfig = !layers.isEmpty();
         boolean hasFeaturePack = featurePackLocation != null || !featurePacks.isEmpty();
-        boolean hasProvisioningFile = Files.exists(provisioningFile.toPath());
+        boolean hasProvisioningFile = Files.exists(getProvisioningFile());
         if (!hasFeaturePack && !hasProvisioningFile) {
             throw new ProvisioningException("No valid provisioning configuration, "
                     + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
@@ -968,7 +978,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         if (hasFeaturePack && hasProvisioningFile) {
-            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + provisioningFile);
+            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
         }
 
         if (isLayerBasedConfig) {
@@ -996,7 +1006,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         if (hasProvisioningFile) {
-            getLog().info("Provisioning server using " + provisioningFile);
+            getLog().info("Provisioning server using " + getProvisioningFile());
             return new ProvisioningFileConfig();
         }
         throw new ProvisioningException("Invalid Galleon configuration");
@@ -1204,7 +1214,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     static void deleteDir(Path root) {
-        if (root == null || !Files.exists(root)) {
+        if (root == null || Files.notExists(root)) {
             return;
         }
         try {
