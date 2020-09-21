@@ -23,8 +23,6 @@ Some limitations exist:
 
 * The server can't be re-started automatically during a shutdown. The bootable jar process will exit without restarting.
 * Management model changes (eg: using JBoss CLI) are not persisted. Once the server is killed, management updates are lost.
-* Security manager can't be enabled using the _-secmgr_ argument. All permissions must be granted to the bootable jar codebase. 
-(The example [secmanager](https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/master/examples/secmanager) covers security manager usage).
 * Server can't be started in admin mode.
 
 NB: When started, the bootable jar installs a WildFly server in the _TEMP_ directory. The bootable jar displayed traces contain the actual path to this transient installation. This 
