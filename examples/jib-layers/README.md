@@ -1,8 +1,7 @@
-# JAXRS WildFly bootable jar jib generated image
+# JAX-RS WildFly bootable jar Jib generated image
 
-We are using the packaged jar and WAR support of jib.
-This example separates the creation of an hollow bootable jar JIB image
-from the application JIB image. This allows for efficient application image build. The bootable jar is built only once.
+We are using the packaged jar and WAR support of Java Image Builder Jib.
+This example separates the creation of a hollow bootable jar Jib image from the application JIB image. This allows for efficient application image build. The bootable jar is built only once.
 
 * To build the hollow jar JIB image
 
@@ -15,8 +14,6 @@ from the application JIB image. This allows for efficient application image buil
   * cd app-layer
   * mvn package
 
-* To run: docker run wildfly/jaxrs-layers-jib
+* To run: docker run -p 8080:8080 wildfly/jaxrs-layers-jib
 
-* Inspect the running container for IP address.
-
-* Access the application: http://<container ip>:8080/hello
+* Access the application: http://localhost:8080/hello

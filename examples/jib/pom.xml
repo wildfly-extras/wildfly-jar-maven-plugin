@@ -6,21 +6,21 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
     <artifactId>jaxrs-jib</artifactId>
     <packaging>jar</packaging>
 
-    <name>WildFly bootable jar Jaxrs running with jib Example</name>
+    <name>WildFly Bootable JAR - JAX-RS with jib</name>
+    <description>JAX-RS running with jib Example</description>
 
     <dependencies>
-        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
         <dependency>
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -38,7 +38,7 @@
             </plugin>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
@@ -72,7 +72,7 @@
                         <!-- to push to external repo -->
                         <!--<image>quay.io/<your organization>/jaxrs-jib</image>-->
                     </to>
-                    
+
                     <container>
                         <args>
                             <!-- required to create a route -->

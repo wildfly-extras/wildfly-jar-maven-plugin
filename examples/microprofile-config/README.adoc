@@ -10,7 +10,7 @@ configure the application
 == Run the application locally
 
 * To build: `mvn package`
-* To run: `CONFIG1="Value comes from the env" java -jar target/microprofile-config-bootable.jar`
+* To run: `CONFIG1="Value comes from the env" mvn wildfly-jar:run`
 * Access the application: http://localhost:8080/
 
 [source,bash]
@@ -21,7 +21,7 @@ config2 = Value for config2 comes from a properties file inside the application
 config3 = Default value for config3 comes from my code
 ----
 
-== Run the application on Openshift
+== Run the application on OpenShift
 
 === Package the application and create the application image
 
@@ -48,10 +48,10 @@ microprofile-config-app   default-route-openshift-image-registry.apps-crc.testin
 
 [source,bash]
 ----
-$ oc new-app microprofile-config-app
+$ oc new-app microprofile-config-app -e CONFIG1="Value comes from the env"
 $ oc expose svc/microprofile-config-app
 $ curl http://$(oc get route microprofile-config-app --template='{{ .spec.host }}')
-config1 = Default value for config1 comes from my code
+config1 = Value comes from the env
 config2 = Value for config2 comes from a properties file inside the application
 config3 = Default value for config3 comes from my code
 ----
@@ -67,24 +67,14 @@ $ oc create configmap microprofile-config-map --from-literal=config2="Value for 
 
 [source,bash]
 ----
-$ oc edit dc microprofile-config-app
+$ oc set volume deployments/microprofile-config-app --add --name=config-volume \
+--mount-path=/etc/config \
+--type=configmap \
+--configmap-name=microprofile-config-map
 
-    spec:
-      volumes:
-        - name: config-volume
-          configMap:
-            name: microprofile-config-map
-      containers:
-        - name: microprofile-config-app
-          env:
-            - name: CONFIG1
-              value: Value from Config1 comes from an env var in the DeploymentConfig
-          volumeMounts:
-            - name: config-volume
-              mountPath: /etc/config
 ----
 
-Once the DeploymentConfig is saved, the application will be redeployed and the new configuration will be taken into account:
+Once the deployment is saved, the application will be redeployed and the new configuration will be taken into account:
 
 [source,bash]
 ----

@@ -6,20 +6,20 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
+
     <artifactId>default-hollow-jar</artifactId>
     <packaging>pom</packaging>
-    
-    <name>WildFly bootable JAR default Eclipse Microprofile configuration hollow JAR</name>
-   
-   
+
+    <name>WildFly Bootable JAR - Hollow JAR</name>
+    <description>Default Eclipse Microprofile configuration hollow JAR example</description>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <hollow-jar>true</hollow-jar>
@@ -42,7 +42,7 @@
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
                         <configuration>
                             <cloud/>
                         </configuration>

@@ -29,7 +29,7 @@
     <artifactId>wildfly-jar-maven-plugin-memory-tests</artifactId>
     <packaging>pom</packaging>
 
-    <name>WildFly Bootable Jar Maven Plugin memory consumption tests</name>
+    <name>WildFly Bootable JAR Maven Plugin memory consumption tests</name>
 
     <build>
         <plugins>

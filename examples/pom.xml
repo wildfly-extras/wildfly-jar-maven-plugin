@@ -7,7 +7,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>WildFly Bootable Jar - Examples</name>
+    <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
         <version.bootable.jar>2.0.0.Beta9-SNAPSHOT</version.bootable.jar>
@@ -18,93 +18,49 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
+        <version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
+        <version.server.bom>${version.wildfly}</version.server.bom>
     </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>javax</groupId>
-                <artifactId>javaee-web-api</artifactId>
-                <version>7.0</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.logging</groupId>
-                <artifactId>jboss-logging</artifactId>
-                <version>3.4.1.Final</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.microprofile.config</groupId>
-                <artifactId>microprofile-config-api</artifactId>
-                <version>1.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.enterprise</groupId>
-                <artifactId>cdi-api</artifactId>
-                <version>1.1</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.transaction</groupId>
-                <artifactId>jta</artifactId>
-                <version>1.1</version>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-api</artifactId>
+                <version>8.0.0</version>
                 <scope>provided</scope>
             </dependency>
 
-            <!-- Import the JPA API, we use provided scope as the API is included in JBoss EAP -->
+            <!-- importing the jakartaee8-with-tools BOM adds specs and other useful artifacts as managed dependencies -->
             <dependency>
-                <groupId>org.hibernate.javax.persistence</groupId>
-                <artifactId>hibernate-jpa-2.1-api</artifactId>
-                <version>1.0.2</version>
-                <scope>provided</scope>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-jakartaee8-with-tools</artifactId>
+                <version>${version.server.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
+
+            <!-- importing the microprofile BOM adds MicroProfile specs -->
             <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>2.3.0</version>
-                <scope>provided</scope>
-            </dependency>
-            <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
-            <dependency>
-                <groupId>org.jboss.spec.javax.ws.rs</groupId>
-                <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
-                <version>1.0.1.Final</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.keycloak</groupId>
-                <artifactId>keycloak-core</artifactId>
-                <version>9.0.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.keycloak</groupId>
-                <artifactId>keycloak-adapter-core</artifactId>
-                <version>9.0.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.keycloak</groupId>
-                <artifactId>keycloak-adapter-spi</artifactId>
-                <version>9.0.2</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.spec.javax.servlet</groupId>
-                <artifactId>jboss-servlet-api_3.0_spec</artifactId>
-                <version>1.0.2.Final</version>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-microprofile</artifactId>
+                <version>${version.microprofile.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <modules>
         <module>authentication</module>
-        <module>byteman</module>
-        <module>dev-mode</module>
         <module>hollow-jar</module>
         <module>https</module>
         <module>jaxrs</module>
         <module>jib</module>
-        <module>jib-layers</module>
+        <module>jib-layers/app-layer</module>
+        <module>jib-layers/server-layer</module>
         <module>jib-operator</module>
+        <module>jkube</module>
         <module>logging</module>
         <module>microprofile-config</module>
         <module>postgresql</module>
@@ -145,6 +101,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>

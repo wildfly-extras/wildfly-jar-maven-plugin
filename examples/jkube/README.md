@@ -10,3 +10,5 @@ JKube build and deployment for OpenShift
 The following command will create and deploy the Bootable JAR on OpenShift:
 
 `mvn oc:deploy`
+
+Make sure you are logged in to your OpenShift Cluster before you try build/deploy

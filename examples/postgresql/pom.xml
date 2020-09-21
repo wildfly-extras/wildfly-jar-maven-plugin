@@ -6,42 +6,29 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
+
     <artifactId>postgresql</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly bootable jar with postgresql Example</name>
+    <name>WildFly Bootable JAR - PostgreSQL</name>
+    <description>An example of a JAX-RS application with a PostgreSQL data base</description>
 
     <dependencies>
-       <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Import the JPA API, we use provided scope as the API is included in JBoss EAP -->
+        <!-- Removed on JDK 11, provided by the WildFly server -->
         <dependency>
-            <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.1-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-        </dependency>
-        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
-        <dependency>
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+            <groupId>org.jboss.spec.javax.xml.bind</groupId>
+            <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -85,7 +72,7 @@
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
                         <configuration>
                             <cloud/>
                         </configuration>

@@ -31,7 +31,7 @@
   <version>2.0.0.Beta9-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>WildFly Bootable Jar Plugin Parent</name>
+  <name>WildFly Bootable JAR Plugin Parent</name>
   <inceptionYear>2019</inceptionYear>
   <licenses>
     <license>

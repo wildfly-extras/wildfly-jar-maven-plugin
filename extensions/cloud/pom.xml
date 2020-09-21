@@ -29,7 +29,7 @@
     <artifactId>wildfly-jar-cloud-extension</artifactId>
     <packaging>jar</packaging>
 
-    <name>WildFly Bootable Jar cloud extensions</name>
+    <name>WildFly Bootable JAR cloud extensions</name>
 
     <dependencies>
         <dependency>
