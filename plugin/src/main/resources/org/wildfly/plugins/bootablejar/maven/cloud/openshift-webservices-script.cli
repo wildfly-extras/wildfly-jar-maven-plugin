@@ -1,0 +1,6 @@
+# Web Services changes
+
+if (outcome == success) of /subsystem=webservices:read-resource
+  /subsystem=webservices:write-attribute(name=modify-wsdl-address,value=true)
+  /subsystem=webservices:write-attribute(name=wsdl-host,value=jbossws.undefined.host)
+end-if

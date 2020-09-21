@@ -54,7 +54,8 @@ public class CloudConfig {
         "openshift-https-script.cli",
         "openshift-undertow-script.cli",
         "openshift-tx-script.cli",
-        "openshift-clustering-script.cli"};
+        "openshift-clustering-script.cli",
+        "openshift-webservices-script.cli"};
 
     //Can be openshift or kubernetes
     String type = OPENSHIFT;
@@ -99,9 +100,7 @@ public class CloudConfig {
 
     public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {
         Set<String> set = new HashSet<>();
-        // Can't add yet, not present in all servers.
-        //set.add("microprofile-health");
-        set.add("observability");
+        set.add("microprofile-health");
         set.add("core-tools");
         return set;
     }

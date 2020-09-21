@@ -23,25 +23,29 @@ import org.junit.Test;
 /**
  * @author jdenise
  */
-public class OpenShiftConfigurationTestCase extends AbstractBootableJarMojoTestCase {
+public class WebServicesTestCase extends AbstractBootableJarMojoTestCase {
 
-    public OpenShiftConfigurationTestCase() {
-        super("test10-pom.xml", true, null);
+    public WebServicesTestCase() {
+        super("test22-pom.xml", true, null);
     }
 
     @Test
-    public void testOpenshiftConfiguration() throws Exception {
+    public void testDefaultConfiguration()
+            throws Exception {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         assertFalse(mojo.layers.isEmpty());
-        assertNotNull(mojo.cloud);
-        assertEquals(1, mojo.layers.size());
-        assertEquals("jaxrs", mojo.layers.get(0));
+        assertFalse(mojo.cloud == null);
+        assertEquals(2, mojo.layers.size());
+        assertEquals("datasources-web-server", mojo.layers.get(0));
+        assertEquals("webservices", mojo.layers.get(1));
         mojo.recordState = true;
         mojo.execute();
-        String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
+        String[] layers = {"datasources-web-server", "webservices", "microprofile-health", "core-tools"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, layers, null);
+        checkJar(dir, true, true, layers, null,
+                "<wsdl-host>jbossws.undefined.host</wsdl-host>",
+                "<modify-wsdl-address>true</modify-wsdl-address>");
         checkDeployment(dir, true);
     }
 }
