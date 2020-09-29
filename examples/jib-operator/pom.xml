@@ -6,21 +6,21 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
-    <artifactId>jaxrs-jib</artifactId>
+    <artifactId>jaxrs-jib-operator</artifactId>
     <packaging>jar</packaging>
 
-    <name>WildFly bootable jar Jaxrs running with jib / WildFly operator Example</name>
+    <name>WildFly Bootable JAR - JAX-RS with Jib Operator</name>
+    <description>An example of JAX-RS application with Jib running on the WildFly Operator</description>
 
     <dependencies>
-        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
         <dependency>
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -38,7 +38,7 @@
             </plugin>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
@@ -52,7 +52,7 @@
                         <jboss-fork-embedded>true</jboss-fork-embedded>
                     </plugin-options>
                     <!-- required by jib to retrieve the bootable jar -->
-                    <output-file-name>jaxrs-jib.jar</output-file-name>
+                    <output-file-name>${project.artifactId}.jar</output-file-name>
                 </configuration>
                 <executions>
                     <execution>
@@ -72,7 +72,7 @@
                         <!-- to push to external repo -->
                         <!--<image>quay.io/<your organization>/jaxrs-jib</image>-->
                     </to>
-                    
+
                     <container>
                         <args>
                             <!-- required to create a route -->

@@ -8,11 +8,11 @@
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>jaxrs-server</artifactId>
 
-    <name>WildFly bootable jar Jaxrs server JIB layer</name>
-   
-   
+    <artifactId>jib-server-layer</artifactId>
+    <name>WildFly Bootable JAR - Server Jib layer</name>
+    <description>JAX-RS running with jib Example</description>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -29,7 +29,7 @@
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <hollow-jar>true</hollow-jar>
-                    <output-file-name>jaxrs-server.jar</output-file-name>
+                    <output-file-name>jib-server-layer.jar</output-file-name>
                 </configuration>
                 <executions>
                     <execution>

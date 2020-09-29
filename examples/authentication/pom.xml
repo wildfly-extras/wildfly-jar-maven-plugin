@@ -6,17 +6,17 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
     <artifactId>authentication</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly bootable jar authentication Example</name>
+    <name>WildFly Bootable JAR - Authentication</name>
+    <description>An Authentication example</description>
 
     <dependencies>
         <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

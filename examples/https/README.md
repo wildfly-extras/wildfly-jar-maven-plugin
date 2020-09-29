@@ -6,9 +6,9 @@ CLI script enables HTTPS undertow listener and disables HTTP undertow listener.
 Build and run
 =============
 
-* mvn package 
-* java -jar target/https-bootable.jar
-* https://127.0.0.1:8443/hello
+* To build: `mvn package`
+* To run: `mvn wildfly-jar:run`
+* Open the browser and navigate to: `https://127.0.0.1:8443/hello`
 
 Openshift binary build and deployment
 =====================================

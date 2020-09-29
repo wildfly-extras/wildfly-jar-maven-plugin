@@ -11,7 +11,7 @@
     <artifactId>microprofile-config</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly Bootable Jar - MicroProfile Config Example</name>
+    <name>WildFly Bootable JAR - MicroProfile Config</name>
 
     <dependencies>
         <dependency>
@@ -19,10 +19,10 @@
             <artifactId>microprofile-config-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Import the JAX-RS API, we use provided scope as the API is included WildFly -->
+
         <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

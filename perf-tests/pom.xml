@@ -29,7 +29,7 @@
     <artifactId>wildfly-jar-maven-plugin-perf-tests-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>WildFly Bootable Jar Maven Plugin perf tests parent</name>
+    <name>WildFly Bootable JAR Maven Plugin perf tests parent</name>
 
     <properties>
         <skip.perf.tests>true</skip.perf.tests>

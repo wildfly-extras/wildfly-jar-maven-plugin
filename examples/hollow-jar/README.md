@@ -2,14 +2,19 @@
 
 Build a bootable JAR containing no deployment for both bare-metal and OpenShift.
 
-* To build: mvn package
-* To run: mvn wildfly-jar:run
+Build and run
+=============
+
+* To build: `mvn package`
+* To run: `mvn wildfly-jar:run`
+
+Build and run in OpenShift
+=======================
 
 To build the bootable JAR for OpenShift:
 
-* mvn package -Popenshift
+`mvn package -Popenshift`
 
-When building a bootable JAR for OpenShift, a set of WildFly CLI commands are applied to the server configuration in order to
-adjust it to the OpenShift context. The applied script can be retrieved in target/bootable-jar-build-artifacts/generated-cli-script.txt file.
+When building a bootable JAR for OpenShift, a set of WildFly CLI commands are applied to the server configuration in order to adjust it to the OpenShift context. The applied script can be retrieved in `target/bootable-jar-build-artifacts/generated-cli-script.txt` file.
 
-You can check community documentation to retrieve information on the cloud specific changes.
+You can check the community documentation to retrieve information on the cloud specific changes.

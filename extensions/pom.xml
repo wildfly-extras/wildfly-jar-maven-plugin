@@ -29,7 +29,7 @@
   <artifactId>wildfly-jar-extensions-parent</artifactId>
   <packaging>pom</packaging>
 
-  <name>WildFly Bootable Jar runtime extensions Parent</name>
+  <name>WildFly Bootable JAR runtime extensions Parent</name>
   <inceptionYear>2019</inceptionYear>
   <licenses>
     <license>

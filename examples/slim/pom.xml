@@ -6,21 +6,22 @@
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
     </parent>
+
     <artifactId>slim</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly slim bootable jar and local maven repository generation Example</name>
+    <name>WildFly Bootable JAR - WildFly slim</name>
+    <description>WildFly slim bootable jar and local maven repository generation Example</description>
 
     <dependencies>
-        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss EAP -->
         <dependency>
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -37,7 +38,7 @@
                     </excluded-layers>
                     <plugin-options>
                          <jboss-maven-dist/>
-                         <jboss-maven-repo>./my-maven-repo</jboss-maven-repo>
+                         <jboss-maven-repo>target/my-maven-repo</jboss-maven-repo>
                     </plugin-options>
                 </configuration>
                 <executions>
