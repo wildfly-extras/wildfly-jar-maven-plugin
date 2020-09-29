@@ -112,6 +112,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private static final String STANDALONE_XML = "standalone.xml";
     private static final String STANDALONE_MICROPROFILE_XML = "standalone-microprofile.xml";
     private static final String SERVER_CONFIG = "--server-config";
+    private static final String MAVEN_REPO_PLUGIN_OPTION = "jboss-maven-repo";
+
     @Component
     RepositorySystem repoSystem;
 
@@ -811,8 +813,20 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (pluginOptions.isEmpty()) {
                 pluginOptions = Collections.
                         singletonMap(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
-            } else if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
-                pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+            } else {
+                if (!pluginOptions.containsKey(Constants.OPTIONAL_PACKAGES)) {
+                    pluginOptions.put(Constants.OPTIONAL_PACKAGES, Constants.PASSIVE_PLUS);
+                }
+                if (pluginOptions.containsKey(MAVEN_REPO_PLUGIN_OPTION)) {
+                    String val = pluginOptions.get(MAVEN_REPO_PLUGIN_OPTION);
+                    if (val != null) {
+                        Path path = Paths.get(val);
+                        if (!path.isAbsolute()) {
+                            path = project.getBasedir().toPath().resolve(path);
+                            pluginOptions.put(MAVEN_REPO_PLUGIN_OPTION, path.toString());
+                        }
+                    }
+                }
             }
         }
 
