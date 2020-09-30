@@ -75,6 +75,8 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
         super.execute();
 
         final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
+                // Always disable color when printing to file.
+                .addJavaOption("-Dorg.jboss.logmanager.nocolor=true")
                 .addJavaOptions(jvmArguments)
                 .addServerArguments(arguments);
         try {
