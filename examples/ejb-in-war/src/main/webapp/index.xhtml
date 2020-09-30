@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <title>Hello Greeting</title>
+</h:head>
+<h:body>
+    <h:form id="response">
+        <h:panelGrid columns="2">
+            <h:outputLabel>Response:</h:outputLabel>
+            <h:outputLabel value="#{greeter.message}"/>
+        </h:panelGrid>
+    </h:form>
+    <h:form id="greetForm">
+        <h:panelGrid columns="3">
+            <h:outputLabel>Name:</h:outputLabel>
+            <h:inputText value="#{name}"/>
+            <h:commandButton id="add" value="Greet"
+                             action="#{greeter.setName(name)}">
+            </h:commandButton>
+        </h:panelGrid>
+    </h:form>
+</h:body>
+</html>
