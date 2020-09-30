@@ -4,9 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.wildfly.plugins</groupId>
-        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <artifactId>jib-layers-parent</artifactId>
         <version>2.0.0.Beta9-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>jib-app-layer</artifactId>
     <packaging>war</packaging>

@@ -1,9 +1,9 @@
 # JAX-RS WildFly bootable jar Jib generated image
 
-We are using the packaged jar and WAR support of Java Image Builder Jib.
-This example separates the creation of a hollow bootable jar Jib image from the application JIB image. This allows for efficient application image build. The bootable jar is built only once.
+We are using the packaged JAR and WAR support of Java Image Builder Jib.
+This example separates the creation of a hollow bootable JAR Jib image from the application JIB image. This allows for efficient application image build. The bootable JAR is built only once.
 
-* To build the hollow jar JIB image
+* To build the hollow JAR JIB image
 
   * cd server-layer
   * mvn package

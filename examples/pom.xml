@@ -57,8 +57,7 @@
         <module>https</module>
         <module>jaxrs</module>
         <module>jib</module>
-        <module>jib-layers/app-layer</module>
-        <module>jib-layers/server-layer</module>
+        <module>jib-layers</module>
         <module>jib-operator</module>
         <module>jkube</module>
         <module>logging</module>
