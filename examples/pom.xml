@@ -66,6 +66,7 @@
         <module>secmanager</module>
         <module>slim</module>
         <module>web-clustering</module>
+        <module>web-console</module>
     </modules>
 
     <build>
