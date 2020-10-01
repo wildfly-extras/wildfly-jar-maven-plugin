@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>JSF Bootable Jar example</title>
+    <h:outputStylesheet library="css" name="styles.css"/>
+</h:head>
+<h:body>
+    <div class="main">
+        <h:form id="form">
+            <div>
+                <h:outputLabel value="Title: "/>
+                <h:inputText id="inputTitle" value="#{title}"/>
+                <h:commandButton id="add" value="Add">
+                    <f:ajax execute="inputTitle" render="outputGroup" listener="#{taskBean.add(title)}"/>
+                </h:commandButton>
+            </div>
+            <div>
+                <h:outputLabel value="Task Id: "/>
+                <h:inputText id="delTitle" value="#{delTitle}">
+                    <f:validateLongRange minimum="1" maximum="99"/>
+                </h:inputText>
+                <h:commandButton id="del" value="Delete">
+                    <f:ajax execute="delTitle" render="outputGroup" listener="#{taskBean.delete(delTitle)}"/>
+                </h:commandButton>
+            </div>
+            <div>
+                <h:outputLabel value="Task Id: "/>
+                <h:inputText id="updateId" value="#{updateId}">
+                    <f:validateLongRange minimum="1" maximum="99"/>
+                </h:inputText>
+                <br/>
+                <h:outputLabel value="Title: "/>
+                <h:inputText id="updateTitle" value="#{updateTitle}"/>
+                <h:commandButton id="update" value="Update">
+                    <f:ajax execute="updateId updateTitle" render="outputGroup"
+                            listener="#{taskBean.update(updateId, updateTitle)}"/>
+                </h:commandButton>
+            </div>
+        </h:form>
+
+        <h:panelGroup id="outputGroup" layout="block">
+            <h:dataTable id="taskTable" value="#{taskBean.allTasks}" var="row" title="Task List" styleClass="results">
+                <h:column>
+                    <f:facet name="header">ID</f:facet>
+                    #{row.id}
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Title</f:facet>
+                    #{row.title}
+                </h:column>
+            </h:dataTable>
+
+            <h:messages id="messages"/>
+        </h:panelGroup>
+    </div>
+</h:body>
+</html>

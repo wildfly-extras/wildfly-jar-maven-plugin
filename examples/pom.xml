@@ -61,6 +61,7 @@
         <module>jib-layers</module>
         <module>jib-operator</module>
         <module>jkube</module>
+        <module>jsf-ejb-jpa</module>
         <module>logging</module>
         <module>microprofile-config</module>
         <module>postgresql</module>
