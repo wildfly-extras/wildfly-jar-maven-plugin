@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-examples-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0.Beta9-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>WildFly Bootable JAR - Examples</name>
@@ -57,8 +57,7 @@
         <module>https</module>
         <module>jaxrs</module>
         <module>jib</module>
-        <module>jib-layers/app-layer</module>
-        <module>jib-layers/server-layer</module>
+        <module>jib-layers</module>
         <module>jib-operator</module>
         <module>jkube</module>
         <module>logging</module>

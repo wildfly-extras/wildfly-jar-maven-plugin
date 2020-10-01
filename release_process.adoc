@@ -7,18 +7,28 @@ First, make sure you don't have pending changes in your master branch.
 * `cd wildfly-jar-maven-plugin`
 * `git checkout master`
 * `pull --rebase upstream master`
-* Update docs/* content to reference the new released version. 
-* Commit the changes with message: `Update doc to X.X.X.Final`
+* Update in pom.xml docs.project.branch to reference the new release
+* Update in pom.xml docs.wildfly.major to reference the WildFly major release (if a new WildFly final release on which the plugin depends has been released).
 * Update the examples/pom.xml file to reference the released plugin
-* Commit the changes with message: `Update examples to X.X.X.Final`
+* Update the examples version:
+** cd examples
+** mvn versions:set -DnewVersion=<new released version>
+** mvn versions:commit
+** cd ..
+* Commit the changes with message: `Update docs and examples to X.X.X.Final`
 * mvn clean install to run tests.
+* Validate that all examples build: `cd examples && mvn clean package`
 * `mvn release:prepare -Darguments="-DskipTests"`
 * `mvn release:perform -Darguments="-DskipTests"`
-* Update docs/* content to reference the new SNAPSHOT version. 
-* Commit the changes with message: `Update doc to X.X.X.Final-SNAPSHOT`
-* Update the examples/pom.xml file to reference the new SNAPSHOT version.
-* Commit the changes with message: `Update examples to X.X.X.Final-SNAPSHOT`
-* `push upstream master`
+* Update in pom.xml docs.project.branch to reference master
+* Update the examples/pom.xml file to reference the snapshot plugin
+* Update the examples version:
+** cd examples
+** mvn versions:set -DnewVersion=<new snapshot version>
+** mvn versions:commit
+** cd ..
+* Commit the changes with message: `Update docs and examples to X.X.X.Final-SNAPSHOT`
+* `git push upstream master`
 
 == STEP 2: Release in Nexus
 
