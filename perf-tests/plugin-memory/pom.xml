@@ -35,8 +35,9 @@
         <plugins>
             <!-- provision a full server to be used as patching distribution source -->
             <plugin>
-                <groupId>org.wildfly.plugins</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <version>${project.version}</version>
                 <configuration>
                     <plugin-options>
                         <jboss-fork-embedded>true</jboss-fork-embedded>
