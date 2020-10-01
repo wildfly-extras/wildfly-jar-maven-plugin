@@ -414,6 +414,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
             userScripts(wildflyDir, cliSessions, true);
+
+            Path loggingFile = copyLoggingFile(contentRoot);
             if (bootLoggingConfig == null) {
                 generateLoggingConfig(wildflyDir);
             } else {
@@ -428,6 +430,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             cleanupServer(wildflyDir);
             zipServer(wildflyDir, contentDir);
             buildJar(contentDir, jarFile, bootArtifact);
+            restoreLoggingFile(loggingFile);
         } catch (Exception ex) {
             if (ex instanceof MojoExecutionException) {
                 throw (MojoExecutionException) ex;
@@ -443,6 +446,32 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    // Keep a safe copy of logging.properties to be set back into
+    // unzipped WildFly dir. That is needed to be able to execute WildFly
+    // from the generated artifacts (for investigation purpose) with original
+    // logging.properties file content.
+    private Path copyLoggingFile(Path contentRoot) throws IOException {
+        final Path configDir = getJBossHome().resolve("standalone").resolve("configuration");
+        final Path loggingFile = configDir.resolve("logging.properties");
+        Path originalLoggingFile = contentRoot.resolve("logging.properties");
+        if (Files.exists(loggingFile)) {
+            Files.copy(loggingFile, originalLoggingFile, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return originalLoggingFile;
+    }
+
+    private void restoreLoggingFile(Path originalLoggingFile) throws IOException {
+        // Replace logging file with original one, keep a copy of the generated one.
+        if (Files.exists(originalLoggingFile)) {
+            Path configDir = getJBossHome().resolve("standalone").resolve("configuration");
+            Path bootableLoggingFile = configDir.resolve("wildfly-jar-generated-logging.properties");
+            final Path loggingFile = configDir.resolve("logging.properties");
+            Files.copy(loggingFile, bootableLoggingFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(originalLoggingFile, loggingFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.delete(originalLoggingFile);
+        }
     }
 
     private void legacyPatching() throws Exception {
