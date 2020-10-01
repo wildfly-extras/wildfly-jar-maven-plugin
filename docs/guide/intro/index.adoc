@@ -306,6 +306,11 @@ The WildFly OpenShift Operator can be used to manage deployments based on image 
 At boot time, the WildFly bootable JAR dumps in the file ```/opt/jboss/container/wildfly-bootable-jar/install-dir``` its installation path.
 This information is required by the WildFly OpenShift Operator to retrieve transaction logs and call into WildFly CLI.
 
+IMPORTANT: When deploying WildFly bootable JAR using openjdk image it is strongly advised to set 
+           ```GC_MAX_METASPACE_SIZE=256``` and ```GC_METASPACE_SIZE=96```environment variables.
+           
+
+
 [[wildfly_jar_configuring_runtime]]
 ## Configuring the server at runtime
 
@@ -376,6 +381,20 @@ When using 'dev', 'run' or 'start' goals you can set the _jvmArguments_ configur
 </configuration>
 ----
 
+[[wildfly_jar_enabling_debug_openshift]]
+### Enable Debug for Openshift
+
+You must set the following env variables to enable debug:
+
+* JAVA_DEBUG=true
+* JAVA_DEBUG_PORT=8787
+
+Then enable port forwarding:
+
+* oc get pods
+* oc port-forward <pod name> 8787:8787
+
+Finally, you can attach your debugger to 127.0.0.1:8787
 
 [[wildfly_jar_advanced]]
 ## Advanced usages
