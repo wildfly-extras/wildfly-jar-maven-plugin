@@ -27,7 +27,9 @@ import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.core.ServerHelper;
 
 /**
- * Shutdown the bootable JAR.
+ * Shutdown the bootable JAR. In order to be able to shutdown a running server,
+ * the 'management' Galleon layer must have been included. If that is not the
+ * case, the server would have to be killed.
  *
  * @author jfdenise
  */

@@ -291,6 +291,11 @@ In addition the main link:#_package[package] goal used to build a bootable JAR, 
 * link:#_start[start]: To launch the bootable JAR in background (non blocking).
 * link:#_shutdown[shutdown]: To kill a running bootable JAR.
 
+IMPORTANT: In order to shutdown a running bootable JAR (started with 'start' or 'dev' goals), 
+           the 'management' Galleon layer must have been provisioned. That is required for the
+           plugin to be able to access the running server management interface. 
+           If that is not the case, the server would have to be killed.
+
 Check the link:#_maven_plugin[Maven plugin documentation] for an exhaustive list of configuration elements usable with each goal.
 
 ## Development mode (dev mode)
@@ -315,6 +320,27 @@ The running server detects the application and deploys it.
 
 NB: Although the _dev_ mode relies on the deployment scanner, you can safely exclude it from the set of layers. 
 The Maven plugin forces its presence when the server is started in _dev_ mode.
+
+[[wildfly_jar_enabling_debug]]
+## Enabling debug
+
+You can enable debug by passing the _-agentlib:jdwp_ argument, for example:
+
+```
+java -agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n -jar myapp-bootable.jar 
+```
+
+When using 'dev', 'run' or 'start' goals you can set the _jvmArguments_ configuration element to contain the same argument, for example:
+
+[source,xml]
+----
+<configuration>
+  <jvmArguments>
+    <arg>-agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n</arg>
+  </jvmArguments>
+</configuration>
+----
+
 
 ## Advanced usages
 

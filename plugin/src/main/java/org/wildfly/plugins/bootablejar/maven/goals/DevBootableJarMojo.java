@@ -32,7 +32,9 @@ import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
- * Build and start a bootable JAR for dev mode
+ * Build and start a bootable JAR for dev mode. In order to be able to shutdown
+ * the server started in 'dev' mode, the 'management' Galleon layer must have
+ * been included. If that is not the case, the server would have to be killed.
  *
  * @author jfdenise
  */
