@@ -1,0 +1,13 @@
+# Create a user store
+/subsystem=elytron/filesystem-realm=exampleFsRealm:add(path=fs-realm-users,relative-to=jboss.server.config.dir)
+
+# Add user admin identity and password admin
+/subsystem=elytron/filesystem-realm=exampleFsRealm:add-identity(identity=admin)
+/subsystem=elytron/filesystem-realm=exampleFsRealm:set-password(clear={password="admin"}, identity=admin)
+
+# Create the security domain and http-authentication-factory
+/subsystem=elytron/security-domain=exampleSD:add(realms=[{realm=exampleFsRealm}], permission-mapper=default-permission-mapper, default-realm=exampleFsRealm)
+/subsystem=elytron/http-authentication-factory=example-http-auth:add(http-server-mechanism-factory=global,security-domain=exampleSD,mechanism-configurations=[{mechanism-name=DIGEST,mechanism-realm-configurations=[{realm-name=exampleFsRealm}]}])
+
+# Set the auth factory on the management interface
+/core-service=management/management-interface=http-interface:write-attribute(name=http-authentication-factory,value=example-http-auth)
