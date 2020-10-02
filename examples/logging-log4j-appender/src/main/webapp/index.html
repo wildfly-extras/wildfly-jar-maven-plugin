@@ -1,0 +1,271 @@
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~
+  ~ Copyright 2020 Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.css">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+
+    <!-- bootstrap-table -->
+    <script src="https://unpkg.com/bootstrap-table@1.18.0/dist/bootstrap-table.min.js"></script>
+
+    <script src="assets/js/app.js"></script>
+
+    <title>Log Messages</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <span class="navbar-brand h1">Log Messages</span>
+    <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a id="jsonLogs" class="nav-link" href="#">JSON Messages</a>
+            </li>
+            <li class="nav-item">
+                <a id="logMessage" class="nav-link" href="#">Log Message</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#help" data-toggle="collapse" data-target="#help"
+                   aria-expanded="false" aria-controls="help">Help</a>
+            </li>
+        </ul>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav" aria-controls="nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</nav>
+<div class="container">
+
+    <!-- The JSON modal -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-dialog  modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="rawJson"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The active job modal -->
+    <div id="jobModal" class="modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Jobs</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-sm table-borderless" id="jobs" data-toggle="table"
+                           data-url="rest/log/active" data-show-header="false" data-height="450">
+                        <thead>
+                        <tr>
+                            <th data-field="id"></th>
+                            <th data-formatter="buttonFormatter" data-events="operateEvent"
+                                data-class="text-right"></th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeModal" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The custom log message modal -->
+    <div id="logMessageModal" class="modal">
+        <div class="modal-dialog" role="document">
+            <form id="logMessageForm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Log a Message</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="level">Level</label>
+                            <select class="custom-select" id="level" name="level">
+                                <option selected value="INFO">INFO</option>
+                                <option value="WARN">WARN</option>
+                                <option value="ERROR">ERROR</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <input type="text" class="form-control" id="message" name="message"
+                                   placeholder="Enter a message to log" required>
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="addException" name="addException"
+                                   value="true">
+                            <label class="form-check-label" for="addException">Add Exception</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" id="submitLog" class="btn btn-primary">Submit</button>
+                        <button id="closeLogMessage" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help text -->
+    <div class="row">
+        <div class="col">
+            <div class="collapse card my-2" id="help">
+                <div class="card-header">
+                    <span class="font-weight-bold">Help</span>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="font-weight-bold text-right">Start</td>
+                            <td>Clicking start will schedule a job to log a message every number of seconds defined.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-right">Seconds</td>
+                            <td>The interval to which scheduled jobs are executed at.</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-right">Stop All</td>
+                            <td>Stops all the running jobs.</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-right">Auto-Refresh</td>
+                            <td>Enable or disable auto-refreshing the log table.</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-right">Refresh</td>
+                            <td>Refreshes the log table.</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold text-right">Active Jobs</td>
+                            <td>Displays the active jobs logging with an option to stop the job.</td>
+                        </tr>
+                    </table>
+                    <p>
+                        Click on a a log row to see more details about the logged message.
+                    </p>
+                </div>
+                <div class="card-footer text-right">
+                    <a id="closeHelp" type="button" class="btn btn-primary btn-sm" href="#help" data-toggle="collapse"
+                       data-target="#help" aria-expanded="false" aria-controls="help">Close</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control buttons -->
+    <div class="row my-4">
+        <div class="col input-group">
+            <span class="mx-1">
+                <button id="start" type="button" class="btn btn-secondary">Start</button>
+            </span>
+            <input type="number" class="form-control col-sm-2" id="seconds" name="message"
+                   value="5" required>
+            <div class="input-group-append">
+                <label class="input-group-text" for="seconds">Seconds</label>
+            </div>
+            <span class="ml-2">
+                <button id="stopAll" type="button" class="btn btn-danger">Stop All</button>
+            </span>
+        </div>
+        <div class="col">
+            <div class="float-right">
+                <span class="mx-1">
+                    <label for="autoRefresh">Auto-Refresh: </label>
+                    <input type="checkbox" id="autoRefresh" name="autoRefresh"/>
+                </span>
+                <span class="mx-1">
+                    <button id="refresh" type="button" class="btn btn-info">Refresh</button>
+                </span>
+                <span class="mx-1">
+                    <button id="activeJobs" type="button" class="btn btn-dark" data-toggle="modal"
+                            data-target="#jobModal">Active Jobs</button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log result table -->
+    <div class="row">
+        <div class="col">
+            <table class="table table-striped" id="logs" data-toggle="table" data-pagination="true" data-page-size="25"
+                   data-url="rest/log/" data-height="600" data-detail-view="true" data-detail-view-icon="false"
+                   data-detail-view-by-click="true" data-detail-formatter="detailFormatter"
+                   data-row-style="logRowFormatter" data-sort-name="timestamp" data-sort-order="desc">
+                <thead>
+                <tr>
+                    <th data-field="timestamp" data-sortable="true" data-width="12" data-width-unit="%"
+                        data-formatter="dateFormatter">Timestamp
+                    </th>
+                    <th data-field="level" data-sortable="true" data-width="8" data-width-unit="%">Level</th>
+                    <th data-field="message" data-width="65" data-width-unit="%" data-formatter="messageFormatter">
+                        Message
+                    </th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notifications -->
+<div id="notifications" style="position: absolute; top: 75px; right: 5px; min-height: 200px; min-width: 200px;">
+</div>
+</body>
+</html>

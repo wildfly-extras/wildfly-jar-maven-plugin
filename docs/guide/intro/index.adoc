@@ -195,6 +195,8 @@ IMPORTANT: Using a log4j appender as a `custom-handler` in the logging subsystem
            log4j configuration files located in your deployment will still work as expected.
 
 You can workaround this by supplying your own `logging.properties` and defining the path in the `boot-logging-config` configuration property.
+An example can be seen in the https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/logging-log4j-appender[logging-log4j-appender]
+example project.
 
 [[wildfly_jar_configuring_build_cli]]
 ### WildFly CLI execution during packaging
