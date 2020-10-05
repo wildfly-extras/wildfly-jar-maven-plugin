@@ -39,6 +39,7 @@
                     <plugin-options>
                          <jboss-maven-dist/>
                          <jboss-maven-repo>target/my-maven-repo</jboss-maven-repo>
+                         <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
                     </plugin-options>
                 </configuration>
                 <executions>

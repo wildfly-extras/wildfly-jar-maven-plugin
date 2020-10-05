@@ -29,6 +29,9 @@
                     </excluded-layers>
                     <hollow-jar>true</hollow-jar>
                     <output-file-name>jib-server-layer.jar</output-file-name>
+                    <plugin-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 <executions>
                     <execution>
