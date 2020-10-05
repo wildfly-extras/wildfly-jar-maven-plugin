@@ -386,7 +386,7 @@ When using 'dev', 'run' or 'start' goals you can set the _jvmArguments_ configur
 [[wildfly_jar_enabling_debug_openshift]]
 ### Enable Debug for Openshift
 
-You must set the following env variables to enable debug:
+When using the ```registry.redhat.io/ubi8/openjdk-11``` docker image to run a bootable JAR, you must set the following env variables to enable debug:
 
 * JAVA_DEBUG=true
 * JAVA_DEBUG_PORT=8787
@@ -442,7 +442,26 @@ _jboss-maven-repo_ elements. For example:
 </plugin-options>
 ----
 
-In this example, the directory _./my-maven-repo_ is created and contains the set of JBoss modules JAR required to start the server.
+In this example, the directory _<project directory>/target/my-maven-repo_ is created and contains the set of JBoss modules JAR required to start the server.
  
 The https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/slim[slim] example shows how to build a slim bootable JAR 
 and generate a local Maven repository used at startup.
+
+[[wildfly_jar_troubleshooting]]
+## Troubleshooting
+
+### Out of Memory error when building
+
+When building a large number of projects in the same Maven session you can encounter OOM error, this can be solved in various ways:
+
+* You can increase the metaspace size of the Maven execution by setting the ```MAVEN_OPTS="-XX:MaxMetaspaceSize=<value>"``` environment variable.
+* Or you can configure the plugin to fork part of its execution in remote processes:
+[source,xml]
+----
+<configuration>
+  ...
+  <plugin-options>
+    <jboss-fork-embedded>true</jboss-fork-embedded>
+  </plugin-options>
+</configuration>
+----

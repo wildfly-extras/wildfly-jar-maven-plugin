@@ -16,8 +16,8 @@ First, make sure you don't have pending changes in your master branch.
 ** mvn versions:commit
 ** cd ..
 * Commit the changes with message: `Update docs and examples to X.X.X.Final`
-* mvn clean install to run tests.
-* Validate that all examples build: `cd examples && mvn clean package`
+* Run tests: `mvn clean install -Dskip.perf.tests=false`
+* Validate that all examples build: `cd examples, mvn clean package` (In case OOM increase metaspace MAVEN_OPTS="-XX:MaxMetaspaceSize=2048m")
 * `mvn release:prepare -Darguments="-DskipTests"`
 * `mvn release:perform -Darguments="-DskipTests"`
 * Update in pom.xml docs.project.branch to reference master
@@ -36,6 +36,6 @@ First, make sure you don't have pending changes in your master branch.
 * Close the staging repository.
 * Release the closed repository.
 
-== STEP 2: Release doc in github
+== STEP 3: Release doc in github
 
-* Attach the docs/target/generated-docs/index.html to the latest release  
+* Attach the docs/target/generated-docs/index.html to the latest release
