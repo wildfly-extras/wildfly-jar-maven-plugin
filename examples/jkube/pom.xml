@@ -21,6 +21,10 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <jkube.generator.from>registry.redhat.io/ubi8/openjdk-11:latest</jkube.generator.from>
+    </properties>
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -67,11 +71,6 @@
                             </jkube-service>
                         </config>
                     </enricher>
-                    <resources>
-                        <env>
-                            <JAVA_OPTIONS>-Djava.net.preferIPv4Stack=true</JAVA_OPTIONS>
-                        </env>
-                    </resources>
                 </configuration>
             </plugin>
         </plugins>
