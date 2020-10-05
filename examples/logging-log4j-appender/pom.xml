@@ -75,6 +75,9 @@
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <boot-logging-config>${project.basedir}/config/logging.properties</boot-logging-config>
+                    <plugin-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 <executions>
                     <execution>

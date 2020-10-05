@@ -49,7 +49,7 @@
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <plugin-options>
-                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
                     </plugin-options>
                     <!-- required by jib to retrieve the bootable jar -->
                     <output-file-name>${project.artifactId}.jar</output-file-name>

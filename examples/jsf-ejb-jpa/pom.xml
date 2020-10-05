@@ -36,6 +36,9 @@
                         <layer>jsf</layer>
                         <layer>h2-driver</layer>
                     </layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 <executions>
                     <execution>

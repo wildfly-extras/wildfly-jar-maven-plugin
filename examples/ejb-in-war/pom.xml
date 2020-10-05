@@ -34,6 +34,9 @@
                         <layer>ejb-lite</layer>
                         <layer>jsf</layer>
                     </layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 <executions>
                     <execution>
