@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>ejb-in-ear</artifactId>
+        <version>2.0.0.Beta9-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ejb-in-ear-web</artifactId>
+    <packaging>war</packaging>
+
+    <name>WildFly Bootable Jar - EJB in EAR - web</name>
+    <description>This project demonstrates how to package an EJB and WAR in an EAR; this is the WAR POM file</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>ejb-in-ear-ejb</artifactId>
+            <scope>provided</scope>
+            <type>ejb</type>
+        </dependency>
+    </dependencies>
+</project>

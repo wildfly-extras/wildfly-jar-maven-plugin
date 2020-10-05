@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>ejb-in-ear</artifactId>
+        <version>2.0.0.Beta9-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ejb-in-ear-ear</artifactId>
+    <packaging>ear</packaging>
+
+    <name>WildFly Bootable Jar - EJB in EAR - ear</name>
+    <description>This project demonstrates how to package an EJB and WAR in an EAR; this is the EAR POM file
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>ejb-in-ear-ejb</artifactId>
+            <type>ejb</type>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>ejb-in-ear-web</artifactId>
+            <type>war</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.parent.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <version>8</version>
+                    <defaultLibBundleDir>lib</defaultLibBundleDir>
+                    <modules>
+                        <webModule>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>ejb-in-ear-web</artifactId>
+                            <contextRoot>/</contextRoot>
+                        </webModule>
+                    </modules>
+                    <outputFileNameMapping>@{artifactId}@@{dashClassifier?}@.@{extension}@</outputFileNameMapping>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}
+                    </feature-pack-location>
+                    <layers>
+                        <layer>ejb-lite</layer>
+                        <layer>jaxrs</layer>
+                        <layer>cdi</layer>
+                    </layers>
+                    <skip>false</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <finalName>${project.parent.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+                        <configuration>
+                            <cloud/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

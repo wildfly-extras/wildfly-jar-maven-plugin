@@ -53,6 +53,7 @@
 
     <modules>
         <module>authentication</module>
+        <module>ejb-in-ear</module>
         <module>ejb-in-war</module>
         <module>hollow-jar</module>
         <module>https</module>
