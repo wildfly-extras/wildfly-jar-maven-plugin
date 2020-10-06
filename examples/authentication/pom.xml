@@ -38,9 +38,6 @@
                     </excluded-layers>
                     <cli-sessions>
                         <cli-session>
-                            <properties-file>
-                                ../scripts/cli.properties
-                            </properties-file>
                             <script-files>
                                 <script>../scripts/authentication.cli</script>
                             </script-files>
