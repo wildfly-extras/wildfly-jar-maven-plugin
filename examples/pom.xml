@@ -21,6 +21,10 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
         <version.server.bom>${version.wildfly}</version.server.bom>
+        <version.org.wildfly.arquillian>3.0.0.Final</version.org.wildfly.arquillian>
+        <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
+        <version.junit>4.12</version.junit>
+        <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
     </properties>
 
     <dependencyManagement>
@@ -35,7 +39,7 @@
             <!-- importing the jakartaee8-with-tools BOM adds specs and other useful artifacts as managed dependencies -->
             <dependency>
                 <groupId>org.wildfly.bom</groupId>
-                <artifactId>wildfly-jakartaee8-with-tools</artifactId>
+                <artifactId>wildfly-jakartaee8</artifactId>
                 <version>${version.server.bom}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -49,10 +53,37 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wildfly.arquillian</groupId>
+                <artifactId>wildfly-arquillian-container-bootable</artifactId>
+                <version>${version.org.wildfly.arquillian}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.arquillian.junit</groupId>
+                <artifactId>arquillian-junit-container</artifactId>
+                <version>${version.org.jboss.arquillian.junit}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.shrinkwrap</groupId>
+                <artifactId>shrinkwrap-api</artifactId>
+                <version>${version.org.jboss.shrinkwrap.shrinkwrap}</version>
+            </dependency>
+      
+            <dependency>
+                <groupId>org.jboss.shrinkwrap</groupId>
+                <artifactId>shrinkwrap-impl-base</artifactId>
+                <version>${version.org.jboss.shrinkwrap.shrinkwrap}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <modules>
+        <module>arquillian</module>
         <module>authentication</module>
         <module>ejb-in-ear</module>
         <module>ejb-in-war</module>
