@@ -24,7 +24,7 @@
     <parent>
         <artifactId>wildfly-jar-examples-parent</artifactId>
         <groupId>org.wildfly.plugins</groupId>
-        <version>2.0.0.Final</version>
+        <version>3.0.0.Beta1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
