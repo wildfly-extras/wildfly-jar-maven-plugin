@@ -23,7 +23,7 @@
         <version.server.bom>${version.wildfly}</version.server.bom>
         <version.org.wildfly.arquillian>3.0.0.Final</version.org.wildfly.arquillian>
         <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
-        <version.junit>4.12</version.junit>
+        <version.junit>4.13.1</version.junit>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
     </properties>
 
