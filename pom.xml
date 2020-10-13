@@ -50,10 +50,10 @@
   </modules>
 
   <properties>
-    <version.wildfly>21.0.0.Beta1</version.wildfly>
+    <version.wildfly>21.0.0.Final</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
-    <docs.wildfly.major>20</docs.wildfly.major>
+    <docs.wildfly.major>21</docs.wildfly.major>
 
     <version.junit>4.12</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
