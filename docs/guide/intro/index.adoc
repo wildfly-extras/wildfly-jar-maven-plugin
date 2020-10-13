@@ -59,11 +59,11 @@ covered by https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{proj
 [[wildfly_jar_composing_custom_server_galleon]]
 ## Composing custom server with Galleon layers
 
-When building a bootable JAR you have the ability to select the set of https://docs.wildfly.org/{wildfly-major}/Admin_Guide.html#defined-galleon-layers[WildFly server Galleon layers] 
+When building a bootable JAR you have the ability to select the set of https://docs.wildfly.org/{wildfly-major}/Bootable_Guide.html#wildfly_layers[WildFly Galleon layers] 
 you want to see present in the bootable JAR. Selecting a subset of server features has an impact on the server xml configuration 
 and the set of installed JBoss modules. By selecting the subset required by your application you will reduce the JAR size, server configuration content and memory footprint.
 
-You are not limited to the https://docs.wildfly.org/{wildfly-major}/Admin_Guide.html#defined-galleon-layers[WildFly defined Galleon layers], you can combine other third parties Galleon layers compatible with 
+You are not limited to the https://docs.wildfly.org/{wildfly-major}/Bootable_Guide.html#wildfly_layers[WildFly Galleon layers], you can combine other third parties Galleon layers compatible with 
 WildFly (eg: https://github.com/wildfly-extras/wildfly-datasources-galleon-pack[WildFly database drivers and datasources layers]). 
 The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/postgresql[postgresql] 
 shows how to create a _cloud-server_ with support for _postgresql_ database.
