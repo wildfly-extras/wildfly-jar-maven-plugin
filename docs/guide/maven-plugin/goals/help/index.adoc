@@ -1,0 +1,1 @@
+include::../../../../../plugin/target/generated-sources/plugin/help-mojo.adoc[]

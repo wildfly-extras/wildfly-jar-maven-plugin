@@ -184,6 +184,15 @@
                             <goal>descriptor</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>help-goal</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                        <configuration>
+                            <helpPackageName>org.wildfly.plugin.bootablejar.maven.generated</helpPackageName>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
