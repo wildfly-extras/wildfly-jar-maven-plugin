@@ -3,6 +3,7 @@
 [options="autowidth"]
 |===
 |<<_dev>> |Build and start a WildFly bootable JAR for dev mode.
+|<<_help>> |Prints help for the plugin.
 |<<_package>> |Build a WildFly bootable JAR.
 |<<_run>> |Run a WildFly bootable JAR (blocking).
 |<<_shutdown>> |Shutdown a WildFly bootable JAR.
@@ -10,6 +11,7 @@
 |===
 
 include::dev/index.adoc[]
+include::help/index.adoc[]
 include::package/index.adoc[]
 include::run/index.adoc[]
 include::shutdown/index.adoc[]

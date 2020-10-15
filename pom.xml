@@ -287,7 +287,7 @@
             <consoleOutput>true</consoleOutput>
             <failsOnError>true</failsOnError>
             <includeTestSourceDirectory>true</includeTestSourceDirectory>
-            <excludes>**/*$logger.java,**/*$bundle.java</excludes>
+            <excludes>**/*$logger.java,**/*$bundle.java,**/HelpMojo.java</excludes>
             <useFile />
           </configuration>
           <dependencies>
