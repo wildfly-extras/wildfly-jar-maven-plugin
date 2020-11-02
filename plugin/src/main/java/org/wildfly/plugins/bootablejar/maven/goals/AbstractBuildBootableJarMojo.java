@@ -261,7 +261,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * If a directory is not absolute, it has to be relative to the project base directory.
      */
     @Parameter(alias = "extra-server-content-dirs", property = "wildfly.bootable.package.extra.server.content.dirs")
-    List<String> extraServerContent = Collections.emptyList();
+    List<String> extraServerContentDirs = Collections.emptyList();
 
     /**
      * The path to the {@code provisioning.xml} file to use. Note that this cannot be used with the {@code feature-packs}
@@ -515,7 +515,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private void copyExtraContent(Path wildflyDir) throws Exception {
-        for (String path : extraServerContent) {
+        for (String path : extraServerContentDirs) {
             Path extraContent = Paths.get(path);
             extraContent = resolvePath(extraContent);
             if (Files.notExists(extraContent)) {

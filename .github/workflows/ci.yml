@@ -34,7 +34,7 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Build and Test on ${{ matrix.java }}
-        run: mvn clean install '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true'
+        run: mvn clean install '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true' '-Dorg.wildfly.bootable.jar.ci.execution=true'
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
@@ -45,6 +45,11 @@ jobs:
         with:
           name: server-logs-${{ matrix.os }}-${{ matrix.java }}
           path: '**/server.log'
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: devwatch-logs-${{ matrix.os }}-${{ matrix.java }}
+          path: '**/dev-watch-test-output.txt'
       - uses: actions/upload-artifact@v2
         if: failure()
         with:

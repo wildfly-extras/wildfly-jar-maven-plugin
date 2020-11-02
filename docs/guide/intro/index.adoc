@@ -344,6 +344,49 @@ Check the link:#_maven_plugin[Maven plugin documentation] for an exhaustive list
 
 When packaging a bootable JAR, a WildFly server is provisioned and customization (if any) is applied. Rebuilding a bootable JAR each time is time consuming
 and slows down the application development process.
+
+We offer 2 different dev goals:
+
+### Development mode with source watching
+
+In order to speed-up the development of your application, the Maven plugin offers a link:#_dev_watch[dev-watch] goal that builds and starts the bootable JAR only once then 
+watch for changes in order to rebuild and redeploy your application.
+
+The workflow to follow during development is:
+
+* _mvn wildfly-jar:dev-watch_
+** The plugin builds your application, build an hollow server bootable JAR and starts it, 
+then monitors the projects to detect source files changes and rebuild/redeploy the application.
+** The goal `dev-watch` is blocking. When done, type Ctrl-C in the console to stop the process.
+
+Watch details:
+
+* `war`, `jar` and `ejb` packaging are supported.
+* Applications are deployed as exploded deployments. 
+* Any change to the project build sources (default to `src/main/java`) implies a recompile, repackage and redeploy.
+* Any change to the `src/main/webapp` implies a copy of the file in the exploded deployment and a redeploy.
+* Any change to the default resources `src/main/resources` as well as configured resource directories in pom.xml implies a repackage and redeploy.
+* Any change to the pom.xml file outside of the plugin configuration implies a recompile, repackage and redeploy.
+* Any change to the plugin configuration implies rebuild/restart of the bootable JAR, recompile, repackage and redeploy.
+* Any change to CLI scripts or CLI properties files implies rebuild/restart of the bootable JAR, recompile, repackage and redeploy.
+* Any change to extra content directories implies rebuild/restart of the bootable JAR, recompile, repackage and redeploy.
+
+Error handling:
+
+The `dev-watch` goal will not exit on error. Errors are advertised in the console.
+
+* Compilation errors are printed in the console. Fix the files, recompilation will occur.
+* Re-build of bootable JAR errors (eg: usage of invalid Galleon layer) are printed in the console. Fix the pom.xml file, rebuild/restart and redeploy will occur.
+* Server startup errors are printed in the console. Fix your application, the application will get redeployed.
+
+Limitations:
+
+* No support for multi modules.
+* No support for resources filtering (include/exclude). The resources directory is watched fully, this means that some re-deploy could be started for resources
+excluded from the project.
+
+### Development mode with repackaging
+
 In order to speed-up the development of your application, the Maven plugin offers a link:#_dev[dev] goal that builds and starts the bootable JAR only once.
 
 The workflow to follow during development is:

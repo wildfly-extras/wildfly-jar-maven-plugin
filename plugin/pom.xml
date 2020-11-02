@@ -44,6 +44,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.twdata.maven</groupId>
+            <artifactId>mojo-executor</artifactId>
+        </dependency>
+        <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>wildfly-jar-cloud-extension</artifactId>
         </dependency>
@@ -203,6 +207,7 @@
                         <jboss.home>${jboss.home}</jboss.home>
                         <test.jvm.args>${test.jvm.args}</test.jvm.args>
                     </systemPropertyVariables>
+                    <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
                 </configuration>
             </plugin>
             <!-- Used to test the BootLoggingConfiguration -->

@@ -31,11 +31,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpEntity;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.maven.plugin.Mojo;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.galleon.config.ConfigId;
@@ -43,6 +45,7 @@ import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.junit.After;
 import org.junit.Before;
@@ -60,21 +63,31 @@ import org.wildfly.plugin.core.ServerHelper;
 public abstract class AbstractBootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
     static final String WILDFLY_FPL = "test.fpl";
+    static final String PLUGIN_VERSION = "test.plugin.version";
     private static final String TEST_REPLACE = "TEST_REPLACE";
+    static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
 
-    private final String pomFileName;
+    private final String projectFile;
     private final boolean copyWar;
     private final String provisioning;
     private final String[] cli;
     private final Path testDir;
 
     protected AbstractBootableJarMojoTestCase(final String pomFileName, final boolean copyWar, final String provisioning, final String... cli) {
-        this.pomFileName = pomFileName;
+        this(pomFileName, "bootable-jar-test", copyWar, provisioning, cli);
+    }
+
+    protected AbstractBootableJarMojoTestCase(final String pomFileName, String testName, final boolean copyWar, final String provisioning, final String... cli) {
+        this.projectFile = pomFileName;
         this.copyWar = copyWar;
         this.provisioning = provisioning;
         this.cli = cli;
-        testDir = createTestDirectory("bootable-jar-test");
+        testDir = createTestDirectory(testName.toLowerCase() + "-watch-test");
+    }
+
+    final boolean isProject() {
+        return !projectFile.endsWith(".xml");
     }
 
     @Before
@@ -102,57 +115,69 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     @Override
     protected Mojo lookupConfiguredMojo(File pom, String goal) throws Exception {
+        patchPomFile(pom);
+        Mojo mojo = super.lookupConfiguredMojo(pom, goal);
+        return mojo;
+    }
+
+    protected void patchPomFile(File pom) throws IOException {
         StringBuilder content = new StringBuilder();
         for (String s : Files.readAllLines(pom.toPath())) {
             if (s.contains(TEST_REPLACE)) {
                 s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_FPL));
             }
+            if (s.contains(PLUGIN_VERSION_TEST_REPLACE)) {
+                s = s.replace(PLUGIN_VERSION_TEST_REPLACE, System.getProperty(PLUGIN_VERSION));
+            }
             content.append(s).append(System.lineSeparator());
         }
         Files.write(pom.toPath(), content.toString().getBytes());
-        Mojo mojo = super.lookupConfiguredMojo(pom, goal);
-        return mojo;
     }
 
     private void setupProject() throws IOException {
-        File pom = getTestFile("src/test/resources/poms/" + pomFileName);
-        File clientPom = getTestFile("src/test/resources/poms/client-pom.xml");
-        File war = getTestFile("src/test/resources/test.war");
-        assertNotNull(pom);
-        assertTrue(pom.exists());
-        assertNotNull(war);
-        assertTrue(war.exists());
+        if (!isProject()) {
+            File pom = getTestFile("src/test/resources/poms/" + projectFile);
+            File clientPom = getTestFile("src/test/resources/poms/client-pom.xml");
+            File war = getTestFile("src/test/resources/test.war");
+            assertNotNull(pom);
+            assertTrue(pom.exists());
+            assertNotNull(war);
+            assertTrue(war.exists());
 
-        Path pomFile = testDir.resolve("pom.xml");
-        Path clientPomFile = testDir.resolve("client-pom.xml");
-        Path target = Files.createDirectory(testDir.resolve("target"));
-        if (copyWar) {
-            Files.copy(war.toPath(), target.resolve(war.getName()));
-        }
-        if (provisioning != null) {
-            File prov = getTestFile("src/test/resources/provisioning/" + provisioning);
-            assertNotNull(prov);
-            assertTrue(prov.exists());
-            Path galleon = Files.createDirectory(testDir.resolve("galleon"));
-            StringBuilder content = new StringBuilder();
-            for (String s : Files.readAllLines(prov.toPath())) {
-                if (s.contains(TEST_REPLACE)) {
-                    s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_FPL));
+            Path pomFile = testDir.resolve("pom.xml");
+            Path clientPomFile = testDir.resolve("client-pom.xml");
+            Path target = Files.createDirectory(testDir.resolve("target"));
+            if (copyWar) {
+                Files.copy(war.toPath(), target.resolve(war.getName()));
+            }
+            if (provisioning != null) {
+                File prov = getTestFile("src/test/resources/provisioning/" + provisioning);
+                assertNotNull(prov);
+                assertTrue(prov.exists());
+                Path galleon = Files.createDirectory(testDir.resolve("galleon"));
+                StringBuilder content = new StringBuilder();
+                for (String s : Files.readAllLines(prov.toPath())) {
+                    if (s.contains(TEST_REPLACE)) {
+                        s = s.replace(TEST_REPLACE, System.getProperty(WILDFLY_FPL));
+                    }
+                    content.append(s);
                 }
-                content.append(s);
+                Files.write(galleon.resolve("provisioning.xml"), content.toString().getBytes());
             }
-            Files.write(galleon.resolve("provisioning.xml"), content.toString().getBytes());
-        }
-        if (cli != null) {
-            for (String p : cli) {
-                File cliFile = getTestFile("src/test/resources/cli/" + p);
-                assertNotNull(cliFile);
-                assertTrue(cliFile.exists());
-                Files.copy(cliFile.toPath(), testDir.resolve(cliFile.getName()));
+            if (cli != null) {
+                for (String p : cli) {
+                    File cliFile = getTestFile("src/test/resources/cli/" + p);
+                    assertNotNull(cliFile);
+                    assertTrue(cliFile.exists());
+                    Files.copy(cliFile.toPath(), testDir.resolve(cliFile.getName()));
+                }
             }
+            Files.copy(pom.toPath(), pomFile);
+            Files.copy(clientPom.toPath(), clientPomFile);
+        } else {
+            File srcDir = getTestFile("src/test/resources/projects/" + projectFile);
+            IoUtils.copy(srcDir.toPath(), testDir);
         }
-        Files.copy(pom.toPath(), pomFile);
-        Files.copy(clientPom.toPath(), clientPomFile);
     }
 
     protected Path checkAndGetWildFlyHome(Path dir, boolean expectDeployment, boolean isRoot,
@@ -291,6 +316,24 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         }
     }
 
+    protected String getContent(String url) throws Exception {
+        int timeout = TestEnvironment.getTimeout() * 1000;
+        long sleep = 1000;
+        String content = null;
+        while (timeout > 0) {
+            if ((content = getBodyContent(url)) != null) {
+                System.out.println("Successfully connected to " + url);
+                break;
+            }
+            Thread.sleep(sleep);
+            timeout -= sleep;
+        }
+        if (content == null) {
+            throw new Exception("Unable to interact with deployed application, no content retrieved");
+        }
+        return content;
+    }
+
     protected Process startServer(Path dir, String fileName, String... args) throws Exception {
         List<String> cmd = new ArrayList<>();
         cmd.add(getJavaCommand());
@@ -324,6 +367,44 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         }
     }
 
+    protected String getBodyContent(String url) throws Exception {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpGet httpget = new HttpGet(url);
+
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            System.out.println("STATUS CODE " + response.getStatusLine().getStatusCode());
+            if (response.getStatusLine().getStatusCode() != 200) {
+                return null;
+            }
+            HttpEntity entity = response.getEntity();
+            return EntityUtils.toString(entity, "UTF-8");
+        } catch (Exception ex) {
+            System.out.println(ex);
+            return null;
+        }
+    }
+
+    protected boolean pollBodyContent(String url, String content) throws Exception {
+        int timeout = TestEnvironment.getTimeout() * 1000;
+        long sleep = 1000;
+        boolean success = false;
+        while (timeout > 0) {
+            String remoteContent = getBodyContent(url);
+            if (content.equals(remoteContent)) {
+                System.out.println("Expected content returned from " + url);
+                success = true;
+                break;
+            } else {
+                System.out.println("Remote content not equals to expected");
+                System.out.println("[" + content + "]");
+                System.out.println("[" + remoteContent + "]");
+            }
+            Thread.sleep(sleep);
+            timeout -= sleep;
+        }
+        return success;
+    }
+
     static Path createTestDirectory(final String... paths) {
         final Path dir = TestEnvironment.createTempPath(paths);
         try {
@@ -349,7 +430,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         return dir;
     }
 
-    private static String createUrl(final int port, final String... paths) {
+    protected static String createUrl(final int port, final String... paths) {
         final StringBuilder result = new StringBuilder(32)
                 .append("http://")
                 .append(TestEnvironment.getHost())
@@ -395,4 +476,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
         }
     }
+
+    // dev-watch related.
 }
