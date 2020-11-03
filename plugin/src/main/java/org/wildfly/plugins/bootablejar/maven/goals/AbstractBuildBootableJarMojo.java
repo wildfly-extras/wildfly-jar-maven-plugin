@@ -355,7 +355,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         validateProjectFile();
 
-        if (System.getProperty("dev") != null) {
+        if (isPackageDev()) {
             Path deployments = getDeploymentsDir();
             IoUtils.recursiveDelete(deployments);
             try {
@@ -451,6 +451,10 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    protected boolean isPackageDev() {
+        return System.getProperty("dev") != null;
     }
 
     // Keep a safe copy of logging.properties to be set back into

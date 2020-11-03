@@ -39,7 +39,7 @@ import org.wildfly.plugins.bootablejar.maven.common.Utils;
  * @author jfdenise
  */
 @Mojo(name = "dev", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.COMPILE)
-public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
+public final class DevBootableJarMojo extends BuildBootableJarMojo {
     private static final String DEPLOYMENT_SCANNER_LAYER = "deployment-scanner";
 
     public static final String DEPLOYMENT_SCANNER_NAME = "wildfly-jar-for-dev-mode";
@@ -95,6 +95,7 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected void configureCli(List<String> commands) {
+        super.configureCli(commands);
         configureScanner(getDeploymentsDir(), commands);
     }
 
