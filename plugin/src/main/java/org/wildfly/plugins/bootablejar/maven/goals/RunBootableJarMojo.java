@@ -18,7 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -41,26 +41,14 @@ public final class RunBootableJarMojo extends AbstractMojo {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments")
+    @Parameter(property = "wildfly.bootable.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
      * Bootable JAR server arguments.
      */
-    @Parameter(alias = "arguments")
-    public List<String> arguments = new ArrayList<>();
-
-    /**
-     * Additional JVM options that can be set thanks to system property.
-     */
-    @Parameter(property = "wildfly.bootable.jvmArguments")
-    public String jvmArgumentsProps;
-
-    /**
-     * Bootable JAR server arguments that can be set thanks to system property.
-     */
     @Parameter(property = "wildfly.bootable.arguments")
-    public String argumentsProps;
+    public List<String> arguments = new ArrayList<>();
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
@@ -86,28 +74,34 @@ public final class RunBootableJarMojo extends AbstractMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-
-        if (jvmArgumentsProps != null) {
-            StringTokenizer args = new StringTokenizer(jvmArgumentsProps);
-            while (args.hasMoreTokens()) {
-                this.jvmArguments.add(args.nextToken());
-            }
-        }
-
-        if (argumentsProps != null) {
-            StringTokenizer args = new StringTokenizer(argumentsProps);
-            while (args.hasMoreTokens()) {
-                this.arguments.add(args.nextToken());
-            }
-        }
         try {
             final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, "run"))
                     .addJavaOptions(jvmArguments)
-                    .addServerArgument(argumentsProps);
+                    .addServerArguments(arguments);
             final Process process = Launcher.of(commandBuilder).inherit().launch();
             process.waitFor();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);
         }
+    }
+
+    /**
+     * Allows the {@linkplain #jvmArguments} to be set as a string.
+     *
+     * @param jvmArguments a whitespace delimited string for the JVM arguments
+     */
+    @SuppressWarnings("unused")
+    public void setJvmArguments(final String jvmArguments) {
+        this.jvmArguments = Utils.splitArguments(jvmArguments);
+    }
+
+    /**
+     * Allows the {@linkplain #arguments} to be set as a string.
+     *
+     * @param arguments a whitespace delimited string for the server arguments
+     */
+    @SuppressWarnings("unused")
+    public void setArguments(final String arguments) {
+        this.arguments = Utils.splitArguments(arguments);
     }
 }
