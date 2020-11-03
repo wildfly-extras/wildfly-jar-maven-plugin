@@ -16,6 +16,8 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -90,6 +92,14 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     @Parameter(alias = "jar-file-name", property = "wildfly.bootable.start.jar.file.name")
     String jarFileName;
 
+    /**
+     * Indicates how {@code stdout} and {@code stderr} should be handled for the server process. A value of
+     * {@code inherit} means that the standard output streams are inherited from the current process. Any other value is
+     * assumed to be a path. In this case both {@code stdout} and {@code stderr} will be redirected to a file.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/wildfly-jar-start-stdout.log", property = "wildfly.bootable.stdout")
+    public String stdout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         doExecute(project);
@@ -105,7 +115,17 @@ public class StartBootableJarMojo extends AbstractServerConnection {
                 .addJavaOptions(jvmArguments)
                 .addServerArguments(arguments);
         try {
-            final Process process = Launcher.of(commandBuilder).launch();
+            final Launcher launcher = Launcher.of(commandBuilder);
+
+            if ("inherit".equalsIgnoreCase(stdout)) {
+                launcher.inherit();
+            } else {
+                final Path redirect = Paths.get(stdout);
+                getLog().info(String.format("The stdout and stderr for the process are being logged to %s", redirect));
+                launcher.setRedirectErrorStream(true)
+                        .redirectOutput(redirect);
+            }
+            final Process process = launcher.launch();
             if (checkStarted) {
                 try (ModelControllerClient client = createClient()) {
                     ServerHelper.waitForStandalone(process, client, startupTimeout);
