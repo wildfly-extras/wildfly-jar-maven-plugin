@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,14 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
     @Parameter(property = "wildfly.bootable.arguments")
     public List<String> arguments = new ArrayList<>();
 
+    /**
+     * Indicates how {@code stdout} and {@code stderr} should be handled for the server process. A value of
+     * {@code inherit} means that the standard output streams are inherited from the current process. Any other value is
+     * assumed to be a path. In this case both {@code stdout} and {@code stderr} will be redirected to a file.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/wildfly-jar-dev-stdout.log", property = "wildfly.bootable.stdout")
+    public String stdout;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -82,12 +91,17 @@ public final class DevBootableJarMojo extends AbstractBuildBootableJarMojo {
                 .addJavaOptions(jvmArguments)
                 .addServerArguments(arguments);
         try {
-            final Path stdout = Utils.createTemporaryFile(project, "wildfly-jar-dev-stdout.log");
-            getLog().info(String.format("The stdout and stderr for the process are being logged to %s", stdout));
-            Launcher.of(commandBuilder)
-                    .setRedirectErrorStream(true)
-                    .redirectOutput(stdout)
-                    .launch();
+            final Launcher launcher = Launcher.of(commandBuilder);
+
+            if ("inherit".equalsIgnoreCase(stdout)) {
+                launcher.inherit();
+            } else {
+                final Path redirect = Paths.get(stdout);
+                getLog().info(String.format("The stdout and stderr for the process are being logged to %s", redirect));
+                launcher.setRedirectErrorStream(true)
+                        .redirectOutput(redirect);
+            }
+            launcher.launch();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);
         }

@@ -17,16 +17,13 @@
 package org.wildfly.plugins.bootablejar.maven.common;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
@@ -49,25 +46,6 @@ public class Utils {
             throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
         }
         return path;
-    }
-
-    /**
-     * Creates a temporary file in the {@linkplain Build#getDirectory() target} directory.
-     *
-     * @param project the project to get the target directory for
-     * @param paths   the paths to resolve
-     *
-     * @return the temporary file
-     *
-     * @throws IOException if the parent paths of the file cannot be created
-     */
-    public static Path createTemporaryFile(final MavenProject project, final String... paths) throws IOException {
-        final Path result = Paths.get(project.getBuild().getDirectory(), paths);
-        final Path parent = result.getParent();
-        if (parent != null && Files.notExists(parent)) {
-            Files.createDirectories(parent);
-        }
-        return result;
     }
 
     /**
