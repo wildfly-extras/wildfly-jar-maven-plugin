@@ -33,7 +33,7 @@ import org.jboss.galleon.config.ConfigId;
  * @author jfdenise
  */
 @Mojo(name = "package", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PACKAGE)
-public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
+public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     /**
      * To enable cloud support. When cloud support is enabled, the created bootable JAR will operate properly in context such as openshift.
@@ -51,11 +51,13 @@ public final class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-        if (cloud != null) {
-            getLog().info("Cloud support is enabled");
-            cloud.validate();
-            for(String layer : cloud.getExtraLayers(this)) {
-                addExtraLayer(layer);
+        if (!isPackageDev()) {
+            if (cloud != null) {
+                getLog().info("Cloud support is enabled");
+                cloud.validate();
+                for (String layer : cloud.getExtraLayers(this)) {
+                    addExtraLayer(layer);
+                }
             }
         }
         super.execute();
