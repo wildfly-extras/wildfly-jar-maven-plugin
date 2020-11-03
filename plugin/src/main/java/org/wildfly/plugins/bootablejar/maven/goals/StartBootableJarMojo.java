@@ -18,7 +18,6 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -43,26 +42,14 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     /**
      * Additional JVM options.
      */
-    @Parameter(alias = "jvmArguments")
+    @Parameter(property = "wildfly.bootable.jvmArguments")
     public List<String> jvmArguments = new ArrayList<>();
 
     /**
      * Bootable JAR server arguments.
      */
-    @Parameter(alias = "arguments")
-    public List<String> arguments = new ArrayList<>();
-
-    /**
-     * Additional JVM options that can be set thanks to system property.
-     */
-    @Parameter(property = "wildfly.bootable.jvmArguments")
-    public String jvmArgumentsProps;
-
-    /**
-     * Bootable jar server arguments that can be set thanks to system property.
-     */
     @Parameter(property = "wildfly.bootable.arguments")
-    public String argumentsProps;
+    public List<String> arguments = new ArrayList<>();
 
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -114,19 +101,6 @@ public class StartBootableJarMojo extends AbstractServerConnection {
             return;
         }
 
-        if (jvmArgumentsProps != null) {
-            StringTokenizer args = new StringTokenizer(jvmArgumentsProps);
-            while (args.hasMoreTokens()) {
-                this.jvmArguments.add(args.nextToken());
-            }
-        }
-
-        if (argumentsProps != null) {
-            StringTokenizer args = new StringTokenizer(argumentsProps);
-            while (args.hasMoreTokens()) {
-                this.arguments.add(args.nextToken());
-            }
-        }
         final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, goal()))
                 .addJavaOptions(jvmArguments)
                 .addServerArguments(arguments);
@@ -145,5 +119,25 @@ public class StartBootableJarMojo extends AbstractServerConnection {
     @Override
     public String goal() {
         return "start";
+    }
+
+    /**
+     * Allows the {@linkplain #jvmArguments} to be set as a string.
+     *
+     * @param jvmArguments a whitespace delimited string for the JVM arguments
+     */
+    @SuppressWarnings("unused")
+    public void setJvmArguments(final String jvmArguments) {
+        this.jvmArguments = Utils.splitArguments(jvmArguments);
+    }
+
+    /**
+     * Allows the {@linkplain #arguments} to be set as a string.
+     *
+     * @param arguments a whitespace delimited string for the server arguments
+     */
+    @SuppressWarnings("unused")
+    public void setArguments(final String arguments) {
+        this.arguments = Utils.splitArguments(arguments);
     }
 }
