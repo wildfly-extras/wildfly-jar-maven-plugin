@@ -135,6 +135,9 @@ public final class DevBootableJarMojo extends BuildBootableJarMojo {
 
     private void configureScanner(Path deployments, List<String> commands) {
         String deploymentPath = deployments.toString().replace("\\", "\\\\");
+        commands.add("if (outcome == success) of /subsystem=deployment-scanner/scanner=default:read-resource()");
+        commands.add("/subsystem=deployment-scanner/scanner=default:remove()");
+        commands.add("end-if");
         commands.add("/subsystem=deployment-scanner/scanner=" + DEPLOYMENT_SCANNER_NAME + ":add(scan-interval=1000,auto-deploy-exploded=false,"
                 + "path=\"" + deploymentPath + "\")");
     }

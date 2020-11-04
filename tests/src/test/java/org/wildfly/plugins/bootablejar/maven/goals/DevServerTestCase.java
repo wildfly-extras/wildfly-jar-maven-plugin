@@ -46,6 +46,7 @@ public class DevServerTestCase extends AbstractBootableJarMojoTestCase {
         assertTrue(Files.exists(config));
         String content = new String(Files.readAllBytes(config), StandardCharsets.UTF_8);
         assertTrue(content.contains(DevBootableJarMojo.DEPLOYMENT_SCANNER_NAME));
+        assertFalse(content, content.contains("<deployment-scanner name=\"default\""));
         checkManagementItf(dir, false);
     }
 }
