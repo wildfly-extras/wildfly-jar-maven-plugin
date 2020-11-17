@@ -89,6 +89,7 @@
         <module>ejb-in-war</module>
         <module>hollow-jar</module>
         <module>https</module>
+        <module>jaxws</module>
         <module>jaxrs</module>
         <module>jib</module>
         <module>jib-layers</module>
