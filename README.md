@@ -46,5 +46,9 @@ Some examples are targeting OpenShift deployment, for example:
 
 ## Building the project
 
-* Clone this repository project.
-* Call: `mvn clean install -DskipTests`
+The master branch depends on latest WildFly that you need to build locally.
+
+* git clone https://github.com/wildfly/wildfly
+* mvn clean install -DskipTests
+* git clone https://github.com/wildfly-extras/wildfly-jar-maven-plugin
+* mvn clean install -DskipTests

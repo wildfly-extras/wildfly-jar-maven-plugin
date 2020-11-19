@@ -50,7 +50,7 @@
   </modules>
 
   <properties>
-    <version.wildfly>21.0.0.Final</version.wildfly>
+    <version.wildfly>22.0.0.Beta1-SNAPSHOT</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
     <docs.wildfly.major>21</docs.wildfly.major>
@@ -78,7 +78,7 @@
 
     <maven.test.skip>false</maven.test.skip>
     <skipTests>${maven.test.skip}</skipTests>
-    
+    <surefire.tests.redirectTestOutputToFile>true</surefire.tests.redirectTestOutputToFile>
     <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
     <test.patch.product>WildFly Full</test.patch.product>
     <test.patch.version>${version.wildfly}</test.patch.version>

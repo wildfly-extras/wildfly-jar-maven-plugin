@@ -184,7 +184,7 @@
                                     <value>${jbossas.dist}</value>
                                 </property>
                             </systemProperties>
-                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <redirectTestOutputToFile>${surefire.tests.redirectTestOutputToFile}</redirectTestOutputToFile>
                         </configuration>
                     </execution>
                 </executions>

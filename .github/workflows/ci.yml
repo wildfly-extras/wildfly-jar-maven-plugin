@@ -23,6 +23,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          path: main
+      
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
@@ -33,8 +36,68 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+      - name: Initialise Bootable JAR WildFly version
+        # Needed to download everything from Maven to not pollute the output in the next steps
+        run: |
+          mvn -B help:evaluate -Dexpression=version.wildfly -pl :wildfly-jar-parent
+        working-directory: main
+      - name: Initialise BOOTABLE_JAR_WILDFLY_VERSION
+        run: |
+          TMP="$(mvn help:evaluate -Dexpression=version.wildfly -pl :wildfly-jar-parent | grep -v '^\[')"
+          echo "::set-env name=BOOTABLE_JAR_WILDFLY_VERSION::${TMP}"
+        working-directory: main
+      - name: Checkout wildfly master
+        # WildFly master is built only if the dependency is a SNAPSHOT
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        uses: actions/checkout@v2
+        with:
+          repository: wildfly/wildfly
+          path: wildfly-master
+      - name: Initialise WildFly version
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        # Needed to download everything from Maven to not pollute the output in the next steps
+        run: |
+          mvn -B help:evaluate -Dexpression=project.version -pl :wildfly-parent
+        working-directory: wildfly-master
+      - name: Initialize WILDFLY_VERSION
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        run: |
+          TMP="$(mvn help:evaluate -Dexpression=project.version -pl :wildfly-parent | grep -v '^\[')"
+          echo "::set-env name=WILDFLY_VERSION::${TMP}"
+        working-directory: wildfly-master
+      - name: Check SNAPSHOT versions match
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        run: |
+          echo "Actual WildFly version in master branch: ${WILDFLY_VERSION}"
+          echo "WildFly version in bootable JAR project: ${BOOTABLE_JAR_WILDFLY_VERSION}"
+          if [ "${BOOTABLE_JAR_WILDFLY_VERSION}" != "${WILDFLY_VERSION}" ]; then
+            echo "SNAPSHOT versions don't match, update version.wildfly to ${WILDFLY_VERSION} "
+            exit 1;
+          fi
+      - name: Build WildFly master
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        run: mvn -B install -DskipTests
+        working-directory: wildfly-master
+      - name: Set BOOTABLE_JAR_VERSION used to run WildFly master branch tests
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        run: |
+          TMP="$(mvn help:evaluate -Dexpression=project.version -pl :wildfly-jar-parent | grep -v '^\[')"
+          echo "::set-env name=BOOTABLE_JAR_VERSION::${TMP}"
+        working-directory: main
+   
+      # End build WildFly master
+   
       - name: Build and Test on ${{ matrix.java }}
-        run: mvn clean install '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true'
+        run: mvn -B install '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true' -Dversion.wildfly=${BOOTABLE_JAR_WILDFLY_VERSION}
+        working-directory: main
+   
+      # Run some tests to check that WildFly bootable JAR tests are ok.   
+      
+      - name: Run WildFly microprofile master bootable JAR tests (sanity check the plugin)
+        if: contains(env.BOOTABLE_JAR_WILDFLY_VERSION, 'SNAPSHOT')
+        run: mvn -B install install -pl microprofile -Dts.bootable -Dversion.org.wildfly.jar.plugin=${BOOTABLE_JAR_VERSION}
+        working-directory: wildfly-master/testsuite/integration
+        
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
