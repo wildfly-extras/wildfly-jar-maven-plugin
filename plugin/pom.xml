@@ -39,6 +39,7 @@
         <jboss.home>${project.build.directory}${file.separator}wildfly</jboss.home>
         <!-- Used in the test module.xml -->
         <test.class.path>${project.build.testOutputDirectory}</test.class.path>
+        <test.jvm.args>-Dmaven.repo.local=${settings.localRepository}</test.jvm.args>
     </properties>
 
     <dependencies>
@@ -200,6 +201,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <jboss.home>${jboss.home}</jboss.home>
+                        <test.jvm.args>${test.jvm.args}</test.jvm.args>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
