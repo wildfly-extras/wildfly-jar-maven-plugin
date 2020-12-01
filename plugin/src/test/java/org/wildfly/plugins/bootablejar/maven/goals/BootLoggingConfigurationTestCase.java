@@ -78,7 +78,8 @@ public class BootLoggingConfigurationTestCase {
     @BeforeClass
     public static void startWildFly() throws Exception {
         stdout = Files.createTempFile("stdout-", ".log");
-        final StandaloneCommandBuilder builder = StandaloneCommandBuilder.of(TestEnvironment.getJBossHome());
+        final StandaloneCommandBuilder builder = StandaloneCommandBuilder.of(TestEnvironment.getJBossHome())
+                .addJavaOptions(TestEnvironment.getJvmArgs());
         currentProcess = Launcher.of(builder)
                 .setRedirectErrorStream(true)
                 .redirectOutput(stdout)

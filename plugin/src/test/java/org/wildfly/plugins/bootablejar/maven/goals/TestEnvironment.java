@@ -22,6 +22,10 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
@@ -33,11 +37,19 @@ class TestEnvironment {
     private static final int MGMT_PORT = getProperty("ts.mgmt.port", 9990);
     private static final int LOG_SERVER_PORT = getProperty("ts.log.server.port", 10514);
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir", "target");
+    private static final Collection<String> JVM_ARGS;
 
     static {
         JBOSS_HOME = Paths.get(System.getProperty("jboss.home"));
         if (Files.notExists(JBOSS_HOME)) {
             throw new RuntimeException(String.format("The JBoss Home %s does not exist.", System.getProperty("jboss.home")));
+        }
+
+        final String jvmArgs = System.getProperty("test.jvm.args");
+        if (jvmArgs == null) {
+            JVM_ARGS = Collections.emptyList();
+        } else {
+            JVM_ARGS = Utils.splitArguments(jvmArgs);
         }
     }
 
@@ -96,6 +108,15 @@ class TestEnvironment {
      */
     static int getLogServerPort() {
         return LOG_SERVER_PORT;
+    }
+
+    /**
+     * Returns a collection of the JVM arguments to set for any server started during the test process.
+     *
+     * @return the JVM arguments
+     */
+    static Collection<String> getJvmArgs() {
+        return JVM_ARGS;
     }
 
     /**
