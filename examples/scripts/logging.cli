@@ -1,12 +1,5 @@
-/subsystem=logging/logger=org.jboss.as.logging:add
-/subsystem=logging/logger=org.xnio:add
-/subsystem=logging/logger=org.wildfly.jar:add
-/subsystem=logging/logger=org.wildfly.jar:write-attribute(name=level,value=ALL)
-/subsystem=logging/logger=org.xnio:write-attribute(name=level,value=ALL)
-/subsystem=logging/logger=org.jboss.as.logging:write-attribute(name=level,value=ALL)
+/subsystem=logging/logger=org.wildfly.plugins.demo:add(level=ALL)
+/subsystem=logging/json-formatter=json-formatter:add(exception-output-type=formatted, pretty-print=false, meta-data={version="1"}, key-overrides={timestamp="@timestamp"})
 /subsystem=logging/console-handler=CONSOLE:write-attribute(name=level,value=ALL)
-/subsystem=logging/custom-formatter=json-formatter:add(module=org.jboss.logmanager, class=org.jboss.logmanager.formatters.JsonFormatter, properties={exceptionOutputType=FORMATTED, prettyPrint=false})
-/subsystem=logging/file-handler=json:add(file={relative-to=jboss.server.log.dir, path=json.log}, append=false, level=DEBUG, autoflush=true, named-formatter=json-formatter)
-/subsystem=logging/logger=com.example.demo.rest:add(handlers=[json], level=DEBUG)
-/subsystem=logging/logger=com.example.demo.rest:write-attribute(name=level,value=ALL)
+/subsystem=logging/console-handler=CONSOLE:write-attribute(name=named-formatter, value=json-formatter)
 
