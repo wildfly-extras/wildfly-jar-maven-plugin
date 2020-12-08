@@ -1,0 +1,8 @@
+deploy --name=ActiveMQ-RAR --runtime-name=activemq-rar.rar build/activemq-rar-5.16.0.rar
+/subsystem=resource-adapters/resource-adapter=AMQBroker:add(archive=activemq-rar.rar)
+/subsystem=resource-adapters/resource-adapter=AMQBroker/config-properties=ServerUrl/:add(value="${amq.broker.url}")
+/subsystem=resource-adapters/resource-adapter=AMQBroker/config-properties=UserName/:add(value="${amq.broker.userName}")
+/subsystem=resource-adapters/resource-adapter=AMQBroker/config-properties=Password/:add(value="${amq.broker.passWord}")
+/subsystem=resource-adapters/resource-adapter=AMQBroker/connection-definitions=amqCF/:add(class-name="org.apache.activemq.ra.ActiveMQManagedConnectionFactory", jndi-name="java:/amq/ConnectionFactory", elytron-enabled=true,recovery-elytron-enabled=true)
+/subsystem=ejb3:write-attribute(name=default-resource-adapter-name, value=AMQBroker)
+deploy build/libs/gradle-demo.jar

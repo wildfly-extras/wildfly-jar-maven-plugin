@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <version>3.0.0.Beta1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>gradle-demo</artifactId>
+    <packaging>pom</packaging>
+
+    <name>WildFly Bootable JAR - Gradle Example</name>
+    <description>WildFly Bootable JAR - Gradle Example with MDB</description>
+    
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                    <layers>
+                        <layer>resource-adapters</layer>
+                        <layer>ejb</layer>
+                    </layers>
+                    <cli-sessions>
+                        <cli-session>
+                            <script-files>
+                                <script>src/main/resources/deploy-amq-rar.cli</script>
+                            </script-files>
+                        </cli-session>
+                    </cli-sessions>
+                    <hollow-jar>true</hollow-jar>
+                    <plugin-options>
+                    </plugin-options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

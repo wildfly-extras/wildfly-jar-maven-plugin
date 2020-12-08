@@ -16,3 +16,8 @@ target/
 examples/slim/my-maven-repo/
 examples/**/nb-configuration.xml
 /extensions/cloud/target/
+
+#gradle
+examples/gradle-mdb-rar/.gradle/
+examples/gradle-mdb-rar/.mvn/**/*.jar
+examples/gradle-mdb-rar/build/
