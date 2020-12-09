@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+repositories {    
+    mavenCentral()
+}
+
+configurations{
+    amqRAR {
+        transitive = false
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+jar{
+    archiveBaseName = "gradle-demo"
+    exclude("*.cli")
+    exclude("*properties")
+    exclude("**module.xml")
+}
+
+dependencies {
+    compileOnly 'javax:javaee-api:8.0.1'
+    amqRAR 'org.apache.activemq:activemq-rar:5.16.0'
+}
+
+
+task getRAR(type: Copy) {
+    from configurations.amqRAR
+    into 'build/'
+}
+
+task makeHollowJar(type: Exec){
+    dependsOn getRAR
+    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+        commandLine 'mvnw.cmd', 'clean', 'wildfly-jar:package'
+    } else {
+        commandLine './mvnw', 'clean', 'wildfly-jar:package'
+    }
+}
+
+task mavenClean(type: Exec){
+    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+        commandLine 'mvnw.cmd', 'clean'
+    } else {
+        commandLine './mvnw', 'clean'
+    }
+}
+wrapper{
+    gradleVersion = '6.7'
+}
+
+
+clean.dependsOn mavenClean
+build.dependsOn makeHollowJar
+
