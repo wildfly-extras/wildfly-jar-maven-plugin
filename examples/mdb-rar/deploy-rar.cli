@@ -1,2 +1,2 @@
-deploy activemq-rar.rar
+deploy target/activemq-rar.rar
 /subsystem=resource-adapters/resource-adapter=activemq-rar.rar:add(archive=activemq-rar.rar,transaction-support=LocalTransaction)

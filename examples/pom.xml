@@ -87,6 +87,7 @@
         <module>authentication</module>
         <module>ejb-in-ear</module>
         <module>ejb-in-war</module>
+        <module>gradle-mdb-rar</module>
         <module>hollow-jar</module>
         <module>https</module>
         <module>jaxws</module>
@@ -98,6 +99,7 @@
         <module>jsf-ejb-jpa</module>
         <module>logging</module>
         <module>logging-log4j-appender</module>
+        <module>mdb-rar</module>
         <module>microprofile-config</module>
         <module>postgresql</module>
         <module>secmanager</module>
