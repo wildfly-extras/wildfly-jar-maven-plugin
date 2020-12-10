@@ -11,6 +11,7 @@
 |===
 
 include::dev/index.adoc[]
+include::dev-watch/index.adoc[]
 include::help/index.adoc[]
 include::package/index.adoc[]
 include::run/index.adoc[]

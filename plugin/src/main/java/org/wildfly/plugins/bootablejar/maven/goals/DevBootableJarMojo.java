@@ -19,7 +19,6 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -28,9 +27,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.core.launcher.Launcher;
-import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
  * Build and start a bootable JAR for dev mode. In order to be able to shutdown
@@ -40,23 +37,10 @@ import org.wildfly.plugins.bootablejar.maven.common.Utils;
  * @author jfdenise
  */
 @Mojo(name = "dev", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.COMPILE)
-public final class DevBootableJarMojo extends BuildBootableJarMojo {
+public final class DevBootableJarMojo extends AbstractDevBootableJarMojo {
     private static final String DEPLOYMENT_SCANNER_LAYER = "deployment-scanner";
 
     public static final String DEPLOYMENT_SCANNER_NAME = "wildfly-jar-for-dev-mode";
-
-    /**
-     * Additional JVM options.
-     */
-    @Parameter(property = "wildfly.bootable.jvmArguments")
-    public List<String> jvmArguments = new ArrayList<>();
-
-    /**
-     * Bootable JAR server arguments.
-     */
-    @Parameter(property = "wildfly.bootable.arguments")
-    public List<String> arguments = new ArrayList<>();
-
     /**
      * Indicates how {@code stdout} and {@code stderr} should be handled for the server process. A value of
      * {@code inherit} means that the standard output streams are inherited from the current process. Any other value is
@@ -66,34 +50,12 @@ public final class DevBootableJarMojo extends BuildBootableJarMojo {
     public String stdout;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skip) {
-            getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
-            return;
-        }
-        if (Files.exists(getProvisioningFile()) && !hasLayers()) {
-            getLog().warn("Dev mode, can't enforce provisioning of " + DEPLOYMENT_SCANNER_LAYER
-                    + ". Make sure your provisioned configuration contains deployment-scanner subsystem for dev mode to properly operate.");
-        } else {
-            if (getExcludedLayers().contains(DEPLOYMENT_SCANNER_LAYER)) {
-                getLog().warn("Dev mode, removing layer " + DEPLOYMENT_SCANNER_LAYER + " from the list of excluded layers to ensure dev mode can be operated");
-                getExcludedLayers().remove(DEPLOYMENT_SCANNER_LAYER);
-            }
-            getLog().info("Dev mode, adding layer " + DEPLOYMENT_SCANNER_LAYER + " to ensure dev mode can be operated");
-            addExtraLayer(DEPLOYMENT_SCANNER_LAYER);
-        }
-        hollowJar = true;
-        super.execute();
-
-        final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
-                // Always disable color when printing to file.
-                .addJavaOption("-Dorg.jboss.logmanager.nocolor=true")
-                .addJavaOptions(jvmArguments)
-                .addServerArguments(arguments);
+    protected void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            final Launcher launcher = Launcher.of(commandBuilder);
+            boolean inherit = "inherit".equalsIgnoreCase(stdout);
+            final Launcher launcher = Launcher.of(buildCommandBuilder(!inherit));
 
-            if ("inherit".equalsIgnoreCase(stdout)) {
+            if (inherit) {
                 launcher.inherit();
             } else {
                 final Path redirect = Paths.get(stdout);
@@ -108,29 +70,24 @@ public final class DevBootableJarMojo extends BuildBootableJarMojo {
     }
 
     @Override
+    protected void configureServer() {
+        if (Files.exists(getProvisioningFile()) && !hasLayers()) {
+            getLog().warn("Dev mode, can't enforce provisioning of " + DEPLOYMENT_SCANNER_LAYER
+                    + ". Make sure your provisioned configuration contains deployment-scanner subsystem for dev mode to properly operate.");
+        } else {
+            if (getExcludedLayers().contains(DEPLOYMENT_SCANNER_LAYER)) {
+                getLog().warn("Dev mode, removing layer " + DEPLOYMENT_SCANNER_LAYER + " from the list of excluded layers to ensure dev mode can be operated");
+                getExcludedLayers().remove(DEPLOYMENT_SCANNER_LAYER);
+            }
+            getLog().info("Dev mode, adding layer " + DEPLOYMENT_SCANNER_LAYER + " to ensure dev mode can be operated");
+            addExtraLayer(DEPLOYMENT_SCANNER_LAYER);
+        }
+    }
+
+    @Override
     protected void configureCli(List<String> commands) {
         super.configureCli(commands);
         configureScanner(getDeploymentsDir(), commands);
-    }
-
-    /**
-     * Allows the {@linkplain #jvmArguments} to be set as a string.
-     *
-     * @param jvmArguments a whitespace delimited string for the JVM arguments
-     */
-    @SuppressWarnings("unused")
-    public void setJvmArguments(final String jvmArguments) {
-        this.jvmArguments = Utils.splitArguments(jvmArguments);
-    }
-
-    /**
-     * Allows the {@linkplain #arguments} to be set as a string.
-     *
-     * @param arguments a whitespace delimited string for the server arguments
-     */
-    @SuppressWarnings("unused")
-    public void setArguments(final String arguments) {
-        this.arguments = Utils.splitArguments(arguments);
     }
 
     private void configureScanner(Path deployments, List<String> commands) {

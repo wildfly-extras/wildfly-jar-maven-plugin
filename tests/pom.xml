@@ -117,6 +117,7 @@
     <build>
         <plugins>
             <!-- provision a full server to be used as patching distribution source -->
+            
             <plugin>
                 <groupId>org.jboss.galleon</groupId>
                 <artifactId>galleon-maven-plugin</artifactId>
@@ -172,6 +173,10 @@
                                     <value>${test.fpl}</value>
                                 </property>
                                 <property>
+                                    <name>test.plugin.version</name>
+                                    <value>${project.version}</value>
+                                </property>
+                                <property>
                                     <name>test.patch.version</name>
                                     <value>${test.patch.version}</value>
                                 </property>
@@ -184,7 +189,7 @@
                                     <value>${jbossas.dist}</value>
                                 </property>
                             </systemProperties>
-                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
                         </configuration>
                     </execution>
                 </executions>
