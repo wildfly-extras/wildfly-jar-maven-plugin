@@ -49,6 +49,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
@@ -72,6 +73,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -87,10 +89,12 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
+
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
@@ -118,6 +122,10 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private static final String STANDALONE_MICROPROFILE_XML = "standalone-microprofile.xml";
     private static final String SERVER_CONFIG = "--server-config";
     private static final String MAVEN_REPO_PLUGIN_OPTION = "jboss-maven-repo";
+
+    private static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";
+    private static final String JBOSS_PROVISIONING_MAVEN_REPO = "jboss-maven-provisioning-repo";
+    private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
 
     @Component
     RepositorySystem repoSystem;
@@ -338,6 +346,12 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private boolean forkCli;
 
+    // EE-9 specific
+    private Path provisioningMavenRepo;
+    private String jakartaTransformSuffix;
+    private Set<String> transformExcluded = new HashSet<>();
+    // End EE-9
+
     public Path getJBossHome() {
         return wildflyDir;
     }
@@ -389,12 +403,28 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
 
+        // EE-9
+        String originalLocalRepo = null;
+        // end EE-9
+
         try {
             // We are forking CLI executions in order to avoid JBoss Modules static references to ModuleLoaders.
             forkCli = Boolean.parseBoolean(pluginOptions.getOrDefault("jboss-fork-embedded", "false"));
             if (forkCli) {
                 getLog().info("CLI executions are done in forked process");
             }
+
+            // EE-9
+            // In case we provision a slim server and a provisioningMavenRepo has been provided,
+            // it must be used for the embedded server started in CLI scripts to resolve artifacts
+            String provisioningRepo = pluginOptions.get(JBOSS_PROVISIONING_MAVEN_REPO);
+            if (provisioningRepo != null && isThinServer()) {
+                provisioningMavenRepo = Paths.get(provisioningRepo);
+                originalLocalRepo = System.getProperty(MAVEN_REPO_LOCAL);
+                System.setProperty(MAVEN_REPO_LOCAL, provisioningMavenRepo.toAbsolutePath().toString());
+            }
+            // End EE-9
+
             // Legacy Patching point
             legacyPatching();
             copyExtraContentInternal(wildflyDir, contentDir);
@@ -448,6 +478,11 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             // the module.path system property has been set and needs to be cleared for
             // in same JVM next execution.
             System.clearProperty("module.path");
+            // EE-9
+            if (originalLocalRepo != null) {
+                System.setProperty(MAVEN_REPO_LOCAL, originalLocalRepo);
+            }
+            // End EE-9
         }
 
         attachJar(jarFile);
@@ -710,7 +745,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             props.load(inputStreamReader);
         } catch (IOException e) {
             throw new Exception(
-                "Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());
+                    "Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());
         }
         for (String key : props.stringPropertyNames()) {
             WildFlySecurityManager.setPropertyPrivileged(key, props.getProperty(key));
@@ -1113,6 +1148,29 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 } catch (Exception ex) {
                     throw new MojoExecutionException("Error reading artifact versions", ex);
                 }
+                // EE-9
+                // Lookup to retrieve ee-9 suffix.
+                Path tasksProps = fprt.getResource("wildfly/wildfly-tasks.properties");
+                final Map<String, String> tasksMap = new HashMap<>();
+                try {
+                    readProperties(tasksProps, tasksMap);
+                } catch (Exception ex) {
+                    throw new MojoExecutionException("Error reading artifact versions", ex);
+                }
+                jakartaTransformSuffix = tasksMap.get("jakarta.transform.artifacts.suffix");
+                final Path excludedArtifacts = fprt.getResource("wildfly-jakarta-transform-excludes.txt");
+                if (Files.exists(excludedArtifacts)) {
+                    try (BufferedReader reader = Files.newBufferedReader(excludedArtifacts, StandardCharsets.UTF_8)) {
+                        String line = reader.readLine();
+                        while (line != null) {
+                            transformExcluded = CollectionUtils.add(transformExcluded, line);
+                            line = reader.readLine();
+                        }
+                    } catch (IOException e) {
+                        throw new ProvisioningException(Errors.readFile(excludedArtifacts), e);
+                    }
+                }
+                // End EE-9
                 for (Entry<String, String> entry : propsMap.entrySet()) {
                     String value = entry.getValue();
                     Artifact a = getArtifact(value);
@@ -1175,8 +1233,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         String extension = parts[4];
 
         return new DefaultArtifact(groupId, artifactId, version,
-                            "provided", extension, classifier,
-                            new DefaultArtifactHandler(extension));
+                "provided", extension, classifier,
+                new DefaultArtifactHandler(extension));
     }
 
     private static void readProperties(Path propsFile, Map<String, String> propsMap) throws Exception {
@@ -1293,12 +1351,72 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         mavenArtifact.setClassifier(artifact.getClassifier());
         mavenArtifact.setExtension(artifact.getType());
         try {
-            artifactResolver.resolve(mavenArtifact);
+            resolve(mavenArtifact);
             return mavenArtifact.getPath();
-        } catch (MavenUniverseException ex) {
+        } catch (IOException | MavenUniverseException ex) {
             throw new MojoExecutionException(ex.toString(), ex);
         }
     }
+
+    // EE-9
+    private boolean isThinServer() throws ProvisioningException {
+        if (!pluginOptions.containsKey(JBOSS_MAVEN_DIST)) {
+            return false;
+        }
+        final String value = pluginOptions.get(JBOSS_MAVEN_DIST);
+        return value == null ? true : Boolean.parseBoolean(value);
+    }
+
+    private void resolve(MavenArtifact artifact) throws MavenUniverseException, IOException {
+        if (provisioningMavenRepo == null) {
+            artifactResolver.resolve(artifact);
+        } else {
+            String grpid = artifact.getGroupId().replaceAll("\\.", Matcher.quoteReplacement(File.separator));
+            Path grpidPath = provisioningMavenRepo.resolve(grpid);
+            Path artifactidPath = grpidPath.resolve(artifact.getArtifactId());
+            String version = getTransformedVersion(artifact);
+            Path versionPath = artifactidPath.resolve(version);
+            String classifier = (artifact.getClassifier() == null || artifact.getClassifier().isEmpty()) ? null : artifact.getClassifier();
+            Path localPath = versionPath.resolve(artifact.getArtifactId() + "-"
+                    + version
+                    + (classifier == null ? "" : "-" + classifier)
+                    + "." + artifact.getExtension());
+
+            if (Files.exists(localPath)) {
+                artifact.setPath(localPath);
+            } else {
+                artifactResolver.resolve(artifact);
+            }
+        }
+    }
+
+    private String getTransformedVersion(MavenArtifact artifact) {
+        boolean transformed = !isExcludedFromTransformation(artifact);
+        return artifact.getVersion() + (transformed ? jakartaTransformSuffix : "");
+    }
+
+    private boolean isExcludedFromTransformation(MavenArtifact artifact) {
+        if (transformExcluded.contains(artifactToString(artifact))) {
+            return true;
+        }
+        return false;
+    }
+
+    private String artifactToString(MavenArtifact artifact) {
+        final StringBuilder buf = new StringBuilder();
+        if (artifact.getGroupId() != null) {
+            buf.append(artifact.getGroupId());
+        }
+        buf.append(':');
+        if (artifact.getArtifactId() != null) {
+            buf.append(artifact.getArtifactId());
+        }
+        if (artifact.getVersion() != null) {
+            buf.append(':').append(artifact.getVersion());
+        }
+        return buf.toString();
+    }
+    // End EE-9
 
     private void attachJar(Path jarFile) {
         debug("Attaching bootable jar %s as a project artifact", jarFile);
