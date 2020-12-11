@@ -40,15 +40,9 @@ public class JGroupsUtil {
 
     static List<String> getAuthProtocolCommands(Path configFile) throws Exception {
         List<String> ret = new ArrayList<>();
-        FileInputStream fileInputStream = new FileInputStream(configFile.toFile());
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-
-        Document document = documentBuilder.parse(fileInputStream);
-        Element root = document.getDocumentElement();
         XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
-        NodeList lst = (NodeList) xpath.evaluate("//subsystem", root, XPathConstants.NODESET);
+        NodeList lst = getSubSystems(configFile);
         for (int i = 0; i < lst.getLength(); i++) {
             Element subsystem = (Element) lst.item(i);
             String xmlns = subsystem.getAttribute("xmlns");
@@ -75,5 +69,30 @@ public class JGroupsUtil {
             }
         }
         return ret;
+    }
+
+    private static NodeList getSubSystems(Path configFile) throws Exception {
+        try (FileInputStream fileInputStream = new FileInputStream(configFile.toFile())) {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+            Document document = documentBuilder.parse(fileInputStream);
+            Element root = document.getDocumentElement();
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            return (NodeList) xpath.evaluate("//subsystem", root, XPathConstants.NODESET);
+        }
+    }
+
+    static boolean containsJGroups(Path configFile) throws Exception {
+        NodeList lst = getSubSystems(configFile);
+        for (int i = 0; i < lst.getLength(); i++) {
+            Element subsystem = (Element) lst.item(i);
+            String xmlns = subsystem.getAttribute("xmlns");
+            if (xmlns.startsWith("urn:jboss:domain:jgroups:")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
