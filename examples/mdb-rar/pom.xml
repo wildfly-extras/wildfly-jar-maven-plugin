@@ -31,6 +31,30 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <transitive>false</transitive>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>org.apache.activemq</groupId>
+                            <artifactId>activemq-rar</artifactId>
+                            <version>5.16.0</version>
+                            <type>rar</type>
+                            <overWrite>true</overWrite>
+                            <outputDirectory>${project.build.directory}/</outputDirectory>
+                            <destFileName>activemq-rar.rar</destFileName>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
