@@ -107,18 +107,27 @@ public class CloudConfig {
 
     public void addCLICommands(BuildBootableJarMojo mojo, List<String> commands) throws Exception {
         // Must be done first before to modify the config with static script
+        Path p = mojo.getJBossHome();
+        Path config = p.resolve("standalone").resolve("configuration").resolve("standalone.xml");
+        boolean jgroups = JGroupsUtil.containsJGroups(config);
         if (enableJgroupsPassword) {
-            Path p = mojo.getJBossHome();
-            Path config = p.resolve("standalone").resolve("configuration").resolve("standalone.xml");
             commands.addAll(JGroupsUtil.getAuthProtocolCommands(config));
         }
+        if (jgroups) {
+            // Can only add repl cache if jgroups is present.
+            addCommands("openshift-infinispan-script.cli", commands);
+        }
         for (String script : CLI_SCRIPTS) {
-            try (InputStream stream = CloudConfig.class.getResourceAsStream(script)) {
-                List<String> lines
-                        = new BufferedReader(new InputStreamReader(stream,
-                                StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
-                commands.addAll(lines);
-            }
+            addCommands(script, commands);
+        }
+    }
+
+    private static void addCommands(String script, List<String> commands) throws Exception {
+        try (InputStream stream = CloudConfig.class.getResourceAsStream(script)) {
+            List<String> lines
+                    = new BufferedReader(new InputStreamReader(stream,
+                            StandardCharsets.UTF_8)).lines().collect(Collectors.toList());
+            commands.addAll(lines);
         }
     }
 }

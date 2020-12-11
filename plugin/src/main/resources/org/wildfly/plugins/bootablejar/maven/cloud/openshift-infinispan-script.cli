@@ -1,0 +1,8 @@
+# Infinispan, add a more efficient cache.
+if (outcome == success) of /subsystem=infinispan/cache-container=web:read-resource
+  /subsystem=infinispan/cache-container=web/replicated-cache=repl:add
+  /subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=repl)
+  /subsystem=infinispan/cache-container=web/replicated-cache=repl/component=locking:add(isolation=REPEATABLE_READ
+  /subsystem=infinispan/cache-container=web/replicated-cache=repl/component=transaction:add(mode=BATCH
+  /subsystem=infinispan/cache-container=web/replicated-cache=repl/store=file:add  
+end-if

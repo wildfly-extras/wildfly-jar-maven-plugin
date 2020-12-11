@@ -17,7 +17,6 @@
 package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.nio.file.Path;
-import org.junit.Ignore;
 
 import org.junit.Test;
 
@@ -31,9 +30,6 @@ public class IncludedDefaultConfigurationCloudTestCase extends AbstractBootableJ
     }
 
     @Test
-    // Ignoring, can't add replicated cache without jgroups.
-    // If that happens to be an unsupported use case, remove the test or un-ignore it when fixed.
-    @Ignore
     public void testConfiguration() throws Exception {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
@@ -51,7 +47,7 @@ public class IncludedDefaultConfigurationCloudTestCase extends AbstractBootableJ
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, "proxy-address-forwarding=\"true\"", "bindall");
+        checkJar(dir, true, true, null, null, "default-cache=\"passivation\"", "proxy-address-forwarding=\"true\"", "bindall");
         checkDeployment(dir, true);
     }
 }
