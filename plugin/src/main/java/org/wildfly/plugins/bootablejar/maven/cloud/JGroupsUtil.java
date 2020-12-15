@@ -83,16 +83,4 @@ public class JGroupsUtil {
             return (NodeList) xpath.evaluate("//subsystem", root, XPathConstants.NODESET);
         }
     }
-
-    static boolean containsJGroups(Path configFile) throws Exception {
-        NodeList lst = getSubSystems(configFile);
-        for (int i = 0; i < lst.getLength(); i++) {
-            Element subsystem = (Element) lst.item(i);
-            String xmlns = subsystem.getAttribute("xmlns");
-            if (xmlns.startsWith("urn:jboss:domain:jgroups:")) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
