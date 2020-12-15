@@ -1,5 +1,5 @@
-# Infinispan, add a more efficient cache.
-if (outcome == success) of /subsystem=infinispan/cache-container=web:read-resource
+# Infinispan, add a more efficient cache if we already have the dist distributed cache.
+if (outcome == success) of /subsystem=infinispan/cache-container=web/distributed-cache=dist:read-resource
   /subsystem=infinispan/cache-container=web/replicated-cache=repl:add
   /subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=repl)
   /subsystem=infinispan/cache-container=web/replicated-cache=repl/component=locking:add(isolation=REPEATABLE_READ

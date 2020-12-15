@@ -55,6 +55,7 @@ public class CloudConfig {
         "openshift-undertow-script.cli",
         "openshift-tx-script.cli",
         "openshift-clustering-script.cli",
+        "openshift-infinispan-script.cli",
         "openshift-webservices-script.cli"};
 
     //Can be openshift or kubernetes
@@ -109,13 +110,8 @@ public class CloudConfig {
         // Must be done first before to modify the config with static script
         Path p = mojo.getJBossHome();
         Path config = p.resolve("standalone").resolve("configuration").resolve("standalone.xml");
-        boolean jgroups = JGroupsUtil.containsJGroups(config);
         if (enableJgroupsPassword) {
             commands.addAll(JGroupsUtil.getAuthProtocolCommands(config));
-        }
-        if (jgroups) {
-            // Can only add repl cache if jgroups is present.
-            addCommands("openshift-infinispan-script.cli", commands);
         }
         for (String script : CLI_SCRIPTS) {
             addCommands(script, commands);
