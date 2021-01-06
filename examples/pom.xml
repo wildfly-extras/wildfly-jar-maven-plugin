@@ -11,6 +11,7 @@
 
     <properties>
         <version.bootable.jar>3.0.0.Beta2-SNAPSHOT</version.bootable.jar>
+        <version.keycloak>12.0.1</version.keycloak>
         <version.wildfly>21.0.1.Final</version.wildfly>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
@@ -97,6 +98,7 @@
         <module>jib-operator</module>
         <module>jkube</module>
         <module>jsf-ejb-jpa</module>
+        <module>keycloak</module>
         <module>logging</module>
         <module>logging-log4j-appender</module>
         <module>mdb-rar</module>
