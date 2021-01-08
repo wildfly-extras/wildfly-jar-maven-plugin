@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -125,6 +127,12 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     private static final String MAVEN_WILDFLY_JAR_PLUGINS = "org.wildfly.plugins";
     private static final String MAVEN_WILDFLY_JAR_PLUGIN = "wildfly-jar-maven-plugin";
     private static final String WATCH_GOAL = "dev-watch";
+    private static final boolean IS_WINDOWS;
+
+    static {
+        final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+        IS_WINDOWS = os.contains("win");
+    }
 
     @Component
     private BuildPluginManager pluginManager;
@@ -155,6 +163,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     protected int timeout;
 
     private Process process;
+    private Path currentServerDir;
     private final DeploymentController deploymentController = new DeploymentController();
 
     // Test specific content to have the process to exit on Windows
@@ -180,6 +189,10 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 boolean success = deploy(client, dir);
                 if (success) {
                     waitDeploymentUp(client, name);
+                }
+                // We only need this on Windows since it may lock the JAR when the delete process is running
+                if (IS_WINDOWS) {
+                    currentServerDir = getHomeDirectory(client);
                 }
             }
         }
@@ -893,7 +906,36 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 }
             }
             process = null;
+            // Make a timed attempt to wait for the directory to be deleted. In some cases the delete may still be
+            // happening and the JAR may be in use on Windows.
+            if (currentServerDir != null && Files.exists(currentServerDir.resolve("wildfly-cleanup-marker"))) {
+                try {
+                    int timeout = this.timeout * 1000;
+                    while (Files.exists(currentServerDir)) {
+                        TimeUnit.MILLISECONDS.sleep(500L);
+                        timeout -= 500;
+                        if (timeout <= 0) {
+                            getLog().warn(String.format("Failed to wait for server directory to be deleted: %s", currentServerDir));
+                            break;
+                        }
+                    }
+                } catch (InterruptedException ignore) {
+                } finally {
+                    currentServerDir = null;
+                }
+            }
         }
+    }
+
+    private Path getHomeDirectory(final ModelControllerClient client) throws IOException {
+        final ModelNode op = Operations.createReadAttributeOperation(
+                Operations.createAddress("core-service", "server-environment"), "home-dir");
+        final ModelNode result = client.execute(op);
+        if (Operations.isSuccessfulOutcome(result)) {
+            return Paths.get(Operations.readResult(result).asString());
+        }
+        getLog().warn(String.format("Failed to find home directory: %s", Operations.getFailureDescription(result).asString()));
+        return null;
     }
 
     private static String camelize(final String name) {
