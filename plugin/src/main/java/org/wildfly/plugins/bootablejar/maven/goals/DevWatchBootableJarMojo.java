@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +34,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -170,7 +173,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 return;
             }
             String name = dir.getFileName().toString();
-            try (ModelControllerClient client = ModelControllerClient.Factory.create(hostname, port)) {
+            try (ModelControllerClient client = createClient()) {
                 ServerHelper.waitForStandalone(client, timeout);
                 undeploy(client, name);
                 waitRemoved(client, name);
@@ -416,14 +419,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     } catch (IOException ex) {
                         getLog().error("Error closing the watcher " + ex);
                     }
-                    if (process != null) {
-                        process.destroy();
-                        try {
-                            process.waitFor();
-                        } catch (InterruptedException ex) {
-                            getLog().error("Error waiting for process to terminate " + ex);
-                        }
-                    }
+                    shutdownContainer();
                 }
             }));
 
@@ -478,11 +474,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                         // We must first stop the server, on Windows platform
                         // we can't rebuild a Bootable JAR although the server is running.
                         getLog().info("[WATCH] stopping bootable JAR");
-                        if (process != null) {
-                            process.destroy();
-                            process.waitFor();
-                            process = null;
-                        }
+                        shutdownContainer();
                         getLog().info("[WATCH] server stopped");
                         // Must rebuild the bootable JAR.
                         System.setProperty(REBUILD_MARKER, "true");
@@ -874,6 +866,31 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         }
 
         return configuration;
+    }
+
+    private ModelControllerClient createClient() throws UnknownHostException {
+        return ModelControllerClient.Factory.create(hostname, port);
+    }
+
+    private void shutdownContainer() {
+        if (process != null) {
+            if (process.isAlive()) {
+                // Attempt to safely shutdown first
+                try (ModelControllerClient client = createClient()) {
+                    ServerHelper.shutdownStandalone(client, timeout);
+                } catch (Throwable ignore) {
+                    process.destroy();
+                }
+                try {
+                    if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
+                        process.destroyForcibly();
+                    }
+                } catch (InterruptedException ex) {
+                    getLog().error("Error waiting for process to terminate " + ex);
+                }
+            }
+            process = null;
+        }
     }
 
     private static String camelize(final String name) {
