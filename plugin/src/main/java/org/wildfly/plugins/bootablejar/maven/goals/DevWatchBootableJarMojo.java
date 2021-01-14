@@ -860,8 +860,11 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
 
         Xpp3Dom pluginConfiguration = (Xpp3Dom) plugin.getConfiguration();
         if (pluginConfiguration != null) {
+            //Filter out `test*` configurations
             for (Xpp3Dom child : pluginConfiguration.getChildren()) {
-                configuration.addChild(child);
+                if (!child.getName().startsWith("test")) {
+                    configuration.addChild(child);
+                }
             }
         }
 
