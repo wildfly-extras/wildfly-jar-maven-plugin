@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
-        <version>3.0.2.Final</version>
+        <version>3.0.3.Final-SNAPSHOT</version>
     </parent>
 
     <artifactId>postgresql</artifactId>
