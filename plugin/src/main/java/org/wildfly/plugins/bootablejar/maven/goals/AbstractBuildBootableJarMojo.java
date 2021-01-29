@@ -101,6 +101,7 @@ import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
+import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -127,6 +128,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private static final String JBOSS_PROVISIONING_MAVEN_REPO = "jboss-maven-provisioning-repo";
     private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
 
+    static final String WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH = "wildfly/artifact-versions.properties";
     @Component
     RepositorySystem repoSystem;
 
@@ -333,6 +335,39 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "bootable-jar-build-artifacts", property = "wildfly.bootable.jar.build.artifacts", defaultValue = "bootable-jar-build-artifacts")
     private String bootableJarBuildArtifacts;
 
+    /**
+     * A list of artifacts that override the one referenced in the WildFly
+     * Galleon feature-pack used to build the Bootable JAR. The artifacts
+     * present in this list must exist in the project dependencies (with a
+     * {@code provided} scope). GroupId and ArtifactId are mandatory.
+     * Classifier is required if non null. Version and Type are optional and are
+     * retrieved from the project dependencies. Dependencies on Galleon
+     * feature-pack can also be referenced from this list. {@code zip} type must be used for Galleon feature-packs.<br/>
+     *  Example of an override of the {@code io.undertow:undertow-core}
+     * artifact:<br/>
+     * &lt;overridden-server-artifacts&gt;<br/>
+     * &lt;artifact&gt;<br/>
+     * &lt;groupId&gt;io.undertow&lt;/groupId&gt;<br/>
+     * &lt;artifactId&gt;undertow-core&lt;/artifactId&gt;<br/>
+     * &lt;/artifact&gt;<br/>
+     * &lt;/overridden-server-artifacts&gt;<br/>
+     */
+    @Parameter(alias = "overridden-server-artifacts")
+    List<OverriddenArtifact> overriddenServerArtifacts = Collections.emptyList();
+
+    /**
+     * Set this parameter to true in order to retrieve the set of artifacts that can be upgraded.
+     * The file `target/bootable-jar-build-artifacts/bootable-jar-server-original-artifacts.xml` is generated.
+     * It contains XML elements for the Galleon feature-packs dependencies, JBoss Modules runtime and artifacts.
+     * JBoss Modules modules artifacts are grouped by JBoss Modules name.
+     * The generated file contains only the artifacts that are provisioned by Galleon.
+     * Each artifact version is the one that would get installed when building the Bootable JAR without upgrade.
+     */
+    @Parameter(alias = "dump-original-artifacts", property = "bootable.jar.dump.original.artifacts" )
+    boolean dumpOriginalArtifacts;
+
+    MavenProjectArtifactVersions artifactVersions;
+
     @Inject
     private BootLoggingConfiguration bootLoggingConfiguration;
 
@@ -367,6 +402,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             outputFileName = this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR;
         }
 
+        artifactVersions = MavenProjectArtifactVersions.getInstance(project);
         validateProjectFile();
 
         if (isPackageDev()) {
@@ -398,7 +434,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         Artifact bootArtifact;
         try {
-            bootArtifact = provisionServer(wildflyDir, contentDir.resolve("provisioning.xml"));
+            bootArtifact = provisionServer(wildflyDir, contentDir.resolve("provisioning.xml"), contentRoot);
         } catch (ProvisioningException | IOException | XMLStreamException ex) {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
@@ -418,10 +454,17 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             // In case we provision a slim server and a provisioningMavenRepo has been provided,
             // it must be used for the embedded server started in CLI scripts to resolve artifacts
             String provisioningRepo = pluginOptions.get(JBOSS_PROVISIONING_MAVEN_REPO);
-            if (provisioningRepo != null && isThinServer()) {
-                provisioningMavenRepo = Paths.get(provisioningRepo);
-                originalLocalRepo = System.getProperty(MAVEN_REPO_LOCAL);
-                System.setProperty(MAVEN_REPO_LOCAL, provisioningMavenRepo.toAbsolutePath().toString());
+            String generatedRepo = pluginOptions.get(MAVEN_REPO_PLUGIN_OPTION);
+            if (isThinServer()) {
+                if (generatedRepo != null) {
+                    Path repo = Paths.get(generatedRepo);
+                    originalLocalRepo = System.getProperty(MAVEN_REPO_LOCAL);
+                    System.setProperty(MAVEN_REPO_LOCAL, repo.toAbsolutePath().toString());
+                } else if (provisioningRepo != null) {
+                    provisioningMavenRepo = Paths.get(provisioningRepo);
+                    originalLocalRepo = System.getProperty(MAVEN_REPO_LOCAL);
+                    System.setProperty(MAVEN_REPO_LOCAL, provisioningMavenRepo.toAbsolutePath().toString());
+                }
             }
             // End EE-9
 
@@ -702,7 +745,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private List<Path> getCLIArtifacts() throws MojoExecutionException {
-        getLog().debug("CLI artifacts " + cliArtifacts);
+        debug("CLI artifacts %s", cliArtifacts);
         List<Path> paths = new ArrayList<>();
         paths.add(wildflyDir.resolve("jboss-modules.jar"));
         for (Artifact a : cliArtifacts) {
@@ -798,8 +841,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (fp.getNormalizedPath() != null) {
                 fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
             } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
-                Path path = resolveMaven(fp);
-                fpl = pm.getLayoutFactory().addLocal(path, false);
+                String coords = fp.getMavenCoords();
+                fpl = FeaturePackLocation.fromString(coords);
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
@@ -873,13 +916,13 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         protected final ConfigModel.Builder configBuilder;
 
-        AbstractGalleonConfig(ConfigModel.Builder configBuilder) {
+        AbstractGalleonConfig(ConfigModel.Builder configBuilder) throws ProvisioningException {
             Objects.requireNonNull(configBuilder);
             this.configBuilder = configBuilder;
             setupPluginOptions();
         }
 
-        private void setupPluginOptions() {
+        private void setupPluginOptions() throws ProvisioningException {
             // passive+ in all cases
             // For included default config not based on layers, default packages
             // must be included.
@@ -921,7 +964,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      */
     private abstract class AbstractLayersConfig extends AbstractGalleonConfig {
 
-        public AbstractLayersConfig() throws ProvisioningDescriptionException {
+        public AbstractLayersConfig() throws ProvisioningDescriptionException, ProvisioningException {
             super(ConfigModel.builder(STANDALONE, STANDALONE_XML));
             for (String layer : layers) {
                 configBuilder.includeLayer(layer);
@@ -944,7 +987,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      */
     private class LayersFPLConfig extends AbstractLayersConfig {
 
-        private LayersFPLConfig() throws ProvisioningDescriptionException {
+        private LayersFPLConfig() throws ProvisioningDescriptionException, ProvisioningException {
         }
         @Override
         public ProvisioningConfig.Builder buildState() throws ProvisioningException {
@@ -965,7 +1008,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         private final ProvisioningConfig.Builder state;
 
-        private LayersFeaturePacksConfig(ProvisioningConfig.Builder state) throws ProvisioningDescriptionException {
+        private LayersFeaturePacksConfig(ProvisioningConfig.Builder state) throws ProvisioningDescriptionException, ProvisioningException {
             this.state = state;
         }
 
@@ -1068,6 +1111,25 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
         }
 
+        // Retrieve versions from Maven in case versions not set.
+        if (featurePackLocation != null) {
+            featurePackLocation = MavenUpgrade.locationWithVersion(featurePackLocation, artifactVersions);
+        } else {
+            for (FeaturePack fp : featurePacks) {
+                if (fp.getLocation() != null) {
+                    fp.setLocation(MavenUpgrade.locationWithVersion(fp.getLocation(), artifactVersions));
+                } else {
+                    if (fp.getVersion() == null) {
+                        Artifact fpArtifact = artifactVersions.getFeaturePackArtifact(fp.getGroupId(), fp.getArtifactId(), fp.getClassifier());
+                        if (fpArtifact == null) {
+                            throw new MojoExecutionException("No version found for " + fp.getGAC());
+                        }
+                        fp.setVersion(fpArtifact.getVersion());
+                    }
+                }
+            }
+        }
+
         if (isLayerBasedConfig) {
             if (!hasFeaturePack) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
@@ -1099,8 +1161,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         throw new ProvisioningException("Invalid Galleon configuration");
     }
 
-    private Artifact provisionServer(Path home, Path outputProvisioningFile) throws ProvisioningException, MojoExecutionException, IOException, XMLStreamException {
-
+    private Artifact provisionServer(Path home, Path outputProvisioningFile, Path workDir) throws ProvisioningException,
+            MojoExecutionException, IOException, XMLStreamException {
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
                 .setInstallationHome(home)
                 .setMessageWriter(new MvnMessageWriter(getLog()))
@@ -1111,7 +1173,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
-
+            MavenUpgrade mavenUpgrade = new MavenUpgrade(this, config, pm);
+            // Dump artifacts
+            if (dumpOriginalArtifacts) {
+                Path file = workDir.resolve("bootable-jar-server-original-artifacts.xml");
+                getLog().info("Dumping original Maven artifacts in " + file);
+                mavenUpgrade.dumpArtifacts(file);
+            }
+            config = mavenUpgrade.upgrade();
             // store provisioning.xml
             try(FileWriter writer = new FileWriter(outputProvisioningFile.toFile())) {
                 ProvisioningXmlWriter.getInstance().write(config, writer);
@@ -1122,7 +1191,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
                 if (fprt.getPackage(MODULE_ID_JAR_RUNTIME) != null) {
                     // We need to discover GAV of the associated boot.
-                    Path artifactProps = fprt.getResource("wildfly/artifact-versions.properties");
+                    Path artifactProps = fprt.getResource(WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
                     final Map<String, String> propsMap = new HashMap<>();
                     try {
                         readProperties(artifactProps, propsMap);
@@ -1134,14 +1203,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                         Artifact a = getArtifact(value);
                         if ( BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
                             // We got it.
-                            getLog().info("Found boot artifact " + a + " in " + fprt.getFPID());
+                            getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                             bootArtifact = a;
                             break;
                         }
                     }
                 }
                 // Lookup artifacts to retrieve the required dependencies for isolated CLI execution
-                Path artifactProps = fprt.getResource("wildfly/artifact-versions.properties");
+                Path artifactProps = fprt.getResource(WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
                 final Map<String, String> propsMap = new HashMap<>();
                 try {
                     readProperties(artifactProps, propsMap);
@@ -1177,7 +1246,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-cli".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        getLog().debug("Found cli artifact " + a + " in " + fprt.getFPID());
+                        debug("Found cli artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "provided", JAR,
                                 "client", new DefaultArtifactHandler(JAR)));
                         continue;
@@ -1185,7 +1254,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-patching".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        getLog().debug("Found patching artifact " + a + " in " + fprt.getFPID());
+                        debug("Found patching artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
                         continue;
                     }
@@ -1193,20 +1262,20 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-controller".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        getLog().debug("Found controller artifact " + a + " in " + fprt.getFPID());
+                        debug("Found controller artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
                         continue;
                     }
                     if ("wildfly-version".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        getLog().debug("Found version artifact " + a + " in " + fprt.getFPID());
+                        debug("Found version artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
                     }
                     if ("vdx-core".equals(a.getArtifactId())
                             && "org.projectodd.vdx".equals(a.getGroupId())) {
                         // We got it.
-                        getLog().debug("Found vdx-core artifact " + a + " in " + fprt.getFPID());
+                        debug("Found vdx-core artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
                     }
                     // End patching dependencies.
@@ -1224,6 +1293,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         return new ConfigId(STANDALONE, STANDALONE_MICROPROFILE_XML);
     }
 
+    // Get Artifact, syntax comply with WildFly feature-pack versions file.
     static Artifact getArtifact(String str) {
         final String[] parts = str.split(":");
         final String groupId = parts[0];
@@ -1237,7 +1307,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 new DefaultArtifactHandler(extension));
     }
 
-    private static void readProperties(Path propsFile, Map<String, String> propsMap) throws Exception {
+    static void readProperties(Path propsFile, Map<String, String> propsMap) throws Exception {
         try (BufferedReader reader = Files.newBufferedReader(propsFile)) {
             String line = reader.readLine();
             while (line != null) {
@@ -1423,7 +1493,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         projectHelper.attachArtifact(project, JAR, BOOTABLE_SUFFIX, jarFile.toFile());
     }
 
-    private void debug(String msg, Object... args) {
+    void debug(String msg, Object... args) {
         if (getLog().isDebugEnabled()) {
             getLog().debug(String.format(msg, args));
         }
@@ -1463,7 +1533,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    private Path resolveMaven(ArtifactCoordinate coordinate) throws MavenUniverseException {
+    Path resolveMaven(ArtifactCoordinate coordinate) throws MavenUniverseException {
         final MavenArtifact artifact = new MavenArtifact()
                 .setGroupId(coordinate.getGroupId())
                 .setArtifactId(coordinate.getArtifactId())

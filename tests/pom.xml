@@ -173,6 +173,14 @@
                                     <value>${test.fpl}</value>
                                 </property>
                                 <property>
+                                    <name>test.version.wildfly-ee.upgrade</name>
+                                    <value>${test.version.wildfly-ee.upgrade}</value>
+                                </property>
+                                <property>
+                                    <name>test.version.wildfly</name>
+                                    <value>${test.version.wildfly}</value>
+                                </property>
+                                <property>
                                     <name>test.plugin.version</name>
                                     <value>${project.version}</value>
                                 </property>

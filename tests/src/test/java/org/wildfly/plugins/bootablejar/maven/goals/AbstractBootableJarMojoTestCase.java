@@ -65,8 +65,12 @@ import org.wildfly.plugin.core.ServerHelper;
 public abstract class AbstractBootableJarMojoTestCase extends AbstractConfiguredMojoTestCase {
 
     static final String WILDFLY_FPL = "test.fpl";
+    static final String WILDFLY_VERSION = "test.version.wildfly";
+    static final String WILDFLY_EE_VERSION = "test.version.wildfly-ee.upgrade";
     static final String PLUGIN_VERSION = "test.plugin.version";
     private static final String TEST_REPLACE = "TEST_REPLACE";
+    private static final String TEST_REPLACE_WF_EE_VERSION = "WF_EE_VERSION";
+    private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
 
@@ -146,6 +150,12 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
             if (s.contains(PLUGIN_VERSION_TEST_REPLACE)) {
                 s = s.replace(PLUGIN_VERSION_TEST_REPLACE, System.getProperty(PLUGIN_VERSION));
+            }
+            if (s.contains(TEST_REPLACE_WF_VERSION)) {
+                s = s.replace(TEST_REPLACE_WF_VERSION, System.getProperty(WILDFLY_VERSION));
+            }
+            if (s.contains(TEST_REPLACE_WF_EE_VERSION)) {
+                s = s.replace(TEST_REPLACE_WF_EE_VERSION, System.getProperty(WILDFLY_EE_VERSION));
             }
             content.append(s).append(System.lineSeparator());
         }
