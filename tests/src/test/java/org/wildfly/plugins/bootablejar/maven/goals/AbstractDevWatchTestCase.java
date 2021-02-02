@@ -50,7 +50,7 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
     private Path provisioningXml;
     private Path exitFile;
     protected AbstractDevWatchTestCase(String projectName, String testName) {
-        super(projectName, testName, false, null);
+        super(projectName, testName + "-watch-test", false, null);
     }
 
     @Override

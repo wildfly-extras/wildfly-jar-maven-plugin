@@ -75,7 +75,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     private final Path testDir;
 
     protected AbstractBootableJarMojoTestCase(final String pomFileName, final boolean copyWar, final String provisioning, final String... cli) {
-        this(pomFileName, "bootable-jar-test", copyWar, provisioning, cli);
+        this(pomFileName, "bootable-jar-test-" + System.currentTimeMillis(), copyWar, provisioning, cli);
     }
 
     protected AbstractBootableJarMojoTestCase(final String pomFileName, String testName, final boolean copyWar, final String provisioning, final String... cli) {
@@ -83,7 +83,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         this.copyWar = copyWar;
         this.provisioning = provisioning;
         this.cli = cli;
-        testDir = createTestDirectory(testName.toLowerCase() + "-watch-test");
+        testDir = createTestDirectory(testName.toLowerCase());
     }
 
     final boolean isProject() {
