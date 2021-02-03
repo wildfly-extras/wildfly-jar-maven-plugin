@@ -39,19 +39,27 @@ jobs:
         if: failure()
         with:
           name: surefire-reports-${{ matrix.os }}-${{ matrix.java }}
-          path: '**/surefire-reports/*.txt'
+          path: | 
+           !**/bootable-jar-build-artifacts/**
+           **/surefire-reports/*.txt
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: server-logs-${{ matrix.os }}-${{ matrix.java }}
-          path: '**/server.log'
+          path: |
+           !**/bootable-jar-build-artifacts/**
+           **/server.log
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: devwatch-logs-${{ matrix.os }}-${{ matrix.java }}
-          path: '**/dev-watch-test-output.txt'
+          path: |
+           !**/bootable-jar-build-artifacts/**
+           **/dev-watch-test-output.txt
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: logs-${{ matrix.os }}-${{ matrix.java }}
-          path: '**/tests/**/logs/**'
+          path: | 
+           !**/bootable-jar-build-artifacts/**
+           **/tests/**/logs/**
