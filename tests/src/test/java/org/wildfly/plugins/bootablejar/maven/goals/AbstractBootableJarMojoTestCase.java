@@ -101,7 +101,15 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     @After
     public void shutdownServer() throws Exception {
-        shutdown();
+        try {
+            shutdown();
+        } catch (Exception ex) {
+            System.err.println("Exception occured shutingdown the server, " + ex);
+        } finally {
+            //Delete the build artifact dir
+            Path buildArtifacts = getTestDir().resolve("target").resolve("bootable-jar-build-artifacts/");
+            BuildBootableJarMojo.deleteDir(buildArtifacts);
+        }
     }
 
     Path getTestDir() {
