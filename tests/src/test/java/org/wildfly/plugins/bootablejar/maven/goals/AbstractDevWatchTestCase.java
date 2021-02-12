@@ -141,7 +141,7 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
 
     @Override
     public void shutdownServer() throws Exception {
-        super.shutdownServer();
+        super.shutdownServerAsync();
 
         if (process != null) {
             if (retCode != null) {
