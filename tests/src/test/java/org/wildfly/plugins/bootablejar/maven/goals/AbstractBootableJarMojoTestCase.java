@@ -40,6 +40,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.maven.plugin.Mojo;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.as.controller.client.helpers.Operations;
+import org.jboss.dmr.ModelNode;
 import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.config.ConfigModel;
 import org.jboss.galleon.config.ProvisioningConfig;
@@ -101,7 +103,23 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     @After
     public void shutdownServer() throws Exception {
-        shutdown();
+        try {
+            shutdown();
+        } finally {
+            //Delete the build artifact dir
+            Path buildArtifacts = getTestDir().resolve("target").resolve("bootable-jar-build-artifacts/");
+            BuildBootableJarMojo.deleteDir(buildArtifacts);
+        }
+    }
+
+    public void shutdownServerAsync() throws Exception {
+        try {
+            shutdownAsync();
+        } finally {
+            //Delete the build artifact dir
+            Path buildArtifacts = getTestDir().resolve("target").resolve("bootable-jar-build-artifacts/");
+            BuildBootableJarMojo.deleteDir(buildArtifacts);
+        }
     }
 
     Path getTestDir() {
@@ -477,5 +495,17 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         }
     }
 
-    // dev-watch related.
+    private static void shutdownAsync() throws IOException {
+        try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(), TestEnvironment.getManagementPort())) {
+            if (ServerHelper.isStandaloneRunning(client)) {
+                shutdownStandaloneAsync(client, TestEnvironment.getTimeout());
+            }
+        }
+    }
+
+    private static void shutdownStandaloneAsync(final ModelControllerClient client, final int timeout) throws IOException {
+        final ModelNode op = Operations.createOperation("shutdown");
+        op.get("timeout").set(timeout);
+        client.executeAsync(op);
+    }
 }
