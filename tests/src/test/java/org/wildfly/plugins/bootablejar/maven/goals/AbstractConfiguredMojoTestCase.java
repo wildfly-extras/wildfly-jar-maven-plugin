@@ -98,6 +98,8 @@ public abstract class AbstractConfiguredMojoTestCase extends AbstractMojoTestCas
         assertTrue(pom.exists());
 
         ProjectBuildingRequest buildingRequest = newMavenSession().getProjectBuildingRequest();
+        // Need to resolve artifacts for tests that upgrade server components
+        buildingRequest.setResolveDependencies(true);
         ProjectBuilder projectBuilder = lookup(ProjectBuilder.class);
         MavenProject project = projectBuilder.build(pom, buildingRequest).getProject();
 

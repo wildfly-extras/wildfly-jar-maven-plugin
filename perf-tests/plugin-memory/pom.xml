@@ -39,6 +39,7 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
+                    <dump-original-artifacts>true</dump-original-artifacts>
                     <plugin-options>
                         <jboss-fork-embedded>true</jboss-fork-embedded>
                     </plugin-options>

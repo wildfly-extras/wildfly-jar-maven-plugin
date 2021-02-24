@@ -81,6 +81,8 @@
     <skipTests>${maven.test.skip}</skipTests>
     
     <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
+    <test.version.wildfly>${version.wildfly}</test.version.wildfly>
+    <test.version.wildfly-ee.upgrade>22.0.0.Final</test.version.wildfly-ee.upgrade>
     <test.patch.product>WildFly Full</test.patch.product>
     <test.patch.version>${version.wildfly}</test.patch.version>
     <wildfly.artifactId>wildfly-galleon-pack</wildfly.artifactId>

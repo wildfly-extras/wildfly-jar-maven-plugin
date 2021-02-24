@@ -160,6 +160,28 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         return path;
     }
 
+    public String getMavenCoords() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getGroupId()).append(":").append(getArtifactId());
+        String type = getExtension() == null ? getType() : getExtension();
+        if (getClassifier() != null || type != null) {
+            builder.append(":").append(getClassifier() == null ? "" : getClassifier()).append(":").append(type == null ? "" : type);
+        }
+        if (getVersion() != null) {
+            builder.append(":").append(getVersion());
+        }
+        return builder.toString();
+    }
+
+    public String getGAC() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getGroupId()).append(":").append(getArtifactId());
+        String type = getExtension() == null ? getType() : getExtension();
+        if (getClassifier() != null) {
+            builder.append(":").append(getClassifier());
+        }
+        return builder.toString();
+    }
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
