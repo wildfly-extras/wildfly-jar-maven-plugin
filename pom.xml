@@ -53,7 +53,7 @@
     <version.wildfly>23.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
-    <docs.wildfly.major>23</docs.wildfly.major>
+    <docs.wildfly.major>22</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
