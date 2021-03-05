@@ -60,4 +60,24 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>runtime-config</id>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                        <configuration >
+                            <!-- reset the CLI scripts applied at build time -->
+                            <cli-sessions combine.self="override"/>
+                            <!-- do not package any custom content -->
+                            <extra-server-content-dirs combine.self="override"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
