@@ -50,10 +50,10 @@
   </modules>
 
   <properties>
-    <version.wildfly>23.0.0.Beta1</version.wildfly>
+    <version.wildfly>23.0.0.Final</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
-    <docs.wildfly.major>22</docs.wildfly.major>
+    <docs.wildfly.major>23</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
@@ -82,7 +82,7 @@
     
     <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
     <test.version.wildfly>${version.wildfly}</test.version.wildfly>
-    <test.version.wildfly-ee.upgrade>22.0.0.Final</test.version.wildfly-ee.upgrade>
+    <test.version.wildfly-ee.upgrade>23.0.0.Final</test.version.wildfly-ee.upgrade>
     <test.patch.product>WildFly Full</test.patch.product>
     <test.patch.version>${version.wildfly}</test.patch.version>
     <wildfly.artifactId>wildfly-galleon-pack</wildfly.artifactId>
