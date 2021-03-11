@@ -1,6 +1,6 @@
 # Keycloak WildFly bootable jar example
 
-WARNING: THIS EXAMPLE IS BROKEN WITH WILDFLY 23 Beta1. A NEW KEYCLOAK ADAPTER MUST BE RELEASED.
+WARNING: THIS EXAMPLE IS BROKEN WITH WILDFLY 23 Final. A NEW KEYCLOAK ADAPTER MUST BE RELEASED.
 
 Build a bootable JAR containing an application secured with Keycloak.
 In order to enable keycloak, you must use the Galleon layer `keycloak-client-oidc` that brings in the 
