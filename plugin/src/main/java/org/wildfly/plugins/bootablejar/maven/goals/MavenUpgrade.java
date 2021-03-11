@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -38,7 +39,6 @@ import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.maven.MavenChannel;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-import org.jboss.galleon.universe.maven.repo.MavenArtifactVersion;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
@@ -201,12 +201,15 @@ final class MavenUpgrade {
                 if (fpArtifact == null) {
                     throw new MojoExecutionException("No version for Galleon feature-pack " + a.getGAC());
                 } else {
+                    checkScope(fpArtifact);
                     FeaturePack dep = dependencies.get(key);
-                    MavenArtifactVersion orig = new MavenArtifactVersion(dep.getVersion());
-                    MavenArtifactVersion overriddenVersion = new MavenArtifactVersion(fpArtifact.getVersion());
+                    DefaultArtifactVersion orig = new DefaultArtifactVersion(dep.getVersion());
+                    DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(fpArtifact.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        mojo.getLog().warn("[UPDATE] Downgrading dependency " + key + " from " + dep.getVersion() + " to " + fpArtifact.getVersion());
+                        if (mojo.warnArtifactDowngrade) {
+                            mojo.getLog().warn("[UPDATE] Downgrading dependency " + key + " from " + dep.getVersion() + " to " + fpArtifact.getVersion());
+                        }
                     } else {
                         if (compared == 0) {
                             mojo.getLog().warn("[UPDATE] Dependency " + key + " will be not upgraded, already at version: " + fpArtifact.getVersion());
@@ -233,6 +236,7 @@ final class MavenUpgrade {
                     }
                     throw new MojoExecutionException("No version for artifact " + a.getGAC());
                 } else {
+                    checkScope(mavenArtifact);
                     if (a.getVersion() == null) {
                         a.setVersion(mavenArtifact.getVersion());
                     }
@@ -243,11 +247,13 @@ final class MavenUpgrade {
                     if (originalVersion == null) {
                         throw new MojoExecutionException("Overridden artifact " + a.getGAC() + " not know in provisioned feature-packs");
                     }
-                    MavenArtifactVersion orig = new MavenArtifactVersion(originalVersion);
-                    MavenArtifactVersion overriddenVersion = new MavenArtifactVersion(a.getVersion());
+                    DefaultArtifactVersion orig = new DefaultArtifactVersion(originalVersion);
+                    DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(a.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        mojo.getLog().warn("[UPDATE] Downgrading artifact " + a.getGAC() + " from " + originalVersion + " to " + a.getVersion());
+                        if (mojo.warnArtifactDowngrade) {
+                            mojo.getLog().warn("[UPDATE] Downgrading artifact " + a.getGAC() + " from " + originalVersion + " to " + a.getVersion());
+                        }
                     } else {
                         if (compared == 0) {
                             mojo.getLog().warn("[UPDATE] Artifact " + a.getGAC() + " is already at version " + a.getVersion() + ", will be not upgraded.");
@@ -286,6 +292,13 @@ final class MavenUpgrade {
             return c.build();
         } else {
             return config;
+        }
+    }
+
+    void checkScope(Artifact a) {
+        if (!"provided".equals(a.getScope())) {
+            mojo.getLog().warn("[UPDATE] Overridden artifact " + a.getGroupId() +":"+ a.getArtifactId()+
+                    (a.getClassifier() == null ? "" : ":" + a.getClassifier()) + ":" + a.getVersion() + " is not of provided scope.");
         }
     }
 

@@ -363,8 +363,16 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * The generated file contains only the artifacts that are provisioned by Galleon.
      * Each artifact version is the one that would get installed when building the Bootable JAR without upgrade.
      */
-    @Parameter(alias = "dump-original-artifacts", property = "bootable.jar.dump.original.artifacts" )
+    @Parameter(alias = "dump-original-artifacts", property = "bootable.jar.dump.original.artifacts" , defaultValue = "false")
     boolean dumpOriginalArtifacts;
+
+    /**
+     * The plugin prints a warning when an overridden artifact is downgraded (updated to an older version).
+     * The version comparison is done based on Maven versioning. This warning can be disabled by setting this parameter to
+     * true.
+     */
+    @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "true")
+    boolean warnArtifactDowngrade;
 
     MavenProjectArtifactVersions artifactVersions;
 
