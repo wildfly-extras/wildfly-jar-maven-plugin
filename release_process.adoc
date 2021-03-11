@@ -41,3 +41,9 @@ gradle-demo that doesn't build but we want them in the parent pom file to update
 == STEP 3: Release doc in github
 
 * Attach the docs/target/generated-docs/index.html to the latest release
+
+== STEP 3: Release doc in wildfly.github.io
+
+* Copy generated doc to wildfly.github.io/bootablejar directory
+* Update wildfly.github.io/index.adoc with new release.
+* Open PR.
