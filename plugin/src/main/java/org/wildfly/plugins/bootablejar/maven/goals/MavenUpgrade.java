@@ -320,12 +320,19 @@ final class MavenUpgrade {
 
     private FeaturePack toFeaturePack(FeaturePackConfig cfg, ProvisioningManager pm) throws MojoExecutionException {
         FeaturePack fp;
+        validateFPL(cfg.getLocation());
         if (cfg.getLocation().isMavenCoordinates()) {
             fp = getFeaturePack(cfg.getLocation().toString());
         } else {
             fp = getFeaturePack(cfg, pm);
         }
         return fp;
+    }
+
+    private static void validateFPL(FeaturePackLocation fpl) throws MojoExecutionException {
+        if (fpl.getUniverse() == null || fpl.getProducer() == null) {
+            throw new MojoExecutionException("Invalid feature-pack location format: " + fpl);
+        }
     }
 
     String getMavenFeaturePack(FeaturePackLocation.FPID location) {
