@@ -21,6 +21,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -122,14 +123,14 @@ public class ForkedCLIUtil {
         return props;
     }
 
-    private static void collectCpUrls(String javaHome, ClassLoader cl, StringBuilder buf) {
+    private static void collectCpUrls(String javaHome, ClassLoader cl, StringBuilder buf) throws URISyntaxException {
         final ClassLoader parentCl = cl.getParent();
         if(parentCl != null) {
             collectCpUrls(javaHome, cl.getParent(), buf);
         }
         if (cl instanceof URLClassLoader) {
             for (URL url : ((URLClassLoader)cl).getURLs()) {
-                final String file = url.getFile();
+                final String file = new File(url.toURI()).getAbsolutePath();
                 if(file.startsWith(javaHome)) {
                     continue;
                 }
