@@ -1127,6 +1127,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 if (fp.getLocation() != null) {
                     fp.setLocation(MavenUpgrade.locationWithVersion(fp.getLocation(), artifactVersions));
                 } else {
+                    if (fp.getGroupId() == null || fp.getArtifactId() == null) {
+                        throw new MojoExecutionException("Invalid Maven coordinates for galleon feature-pack ");
+                    }
                     if (fp.getVersion() == null) {
                         Artifact fpArtifact = artifactVersions.getFeaturePackArtifact(fp.getGroupId(), fp.getArtifactId(), fp.getClassifier());
                         if (fpArtifact == null) {
