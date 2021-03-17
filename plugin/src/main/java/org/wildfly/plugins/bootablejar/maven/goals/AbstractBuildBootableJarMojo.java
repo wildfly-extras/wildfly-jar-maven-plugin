@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -388,6 +389,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private final Set<Artifact> cliArtifacts = new HashSet<>();
 
     private boolean forkCli;
+
+    // Exposed to MavenUpgrade
+    Map<FeaturePack, FeaturePackLocation> resolvedLocations = new IdentityHashMap<>();
 
     // EE-9 specific
     private Path provisioningMavenRepo;
@@ -854,7 +858,15 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
-
+            // They will be used when computing the overridden artifacts per feature-pack.
+            if (!fp.getOverridenArtifacts().isEmpty()) {
+                resolvedLocations.put(fp, fpl);
+            }
+            // We are using dependencies only to convey overriden artifacts.
+            // Dependencies are upgraded as overridden artifacts not as dependency.
+            if (fp.isDependency()) {
+                continue;
+            }
             final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl);
             fpConfig.setInheritConfigs(false);
             if (fp.isInheritPackages() != null) {

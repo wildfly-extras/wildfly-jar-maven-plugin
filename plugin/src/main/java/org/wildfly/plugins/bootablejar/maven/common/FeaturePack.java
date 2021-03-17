@@ -44,11 +44,22 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
 
     private String includedDefaultConfig;
 
+    private boolean dependency;
+
     private Boolean inheritPackages = false;
     private List<String> excludedPackages = Collections.emptyList();
     private List<String> includedPackages = Collections.emptyList();
+    private List<OverriddenArtifact> overriddenArtifacts = Collections.emptyList();
 
     private Path path;
+
+    public boolean isDependency() {
+        return dependency;
+    }
+
+    public void setDependency(boolean dependency) {
+        this.dependency = dependency;
+    }
 
     @Override
     public String getGroupId() {
@@ -151,6 +162,14 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         this.includedPackages = includedPackages;
     }
 
+    public List<OverriddenArtifact> getOverridenArtifacts() {
+        return overriddenArtifacts;
+    }
+
+    public void setOverridenArtifacts(List<OverriddenArtifact> overriddenArtifacts) {
+        this.overriddenArtifacts = overriddenArtifacts;
+    }
+
     public void setPath(File path) {
         assertPathLocation();
         this.path = path.toPath().normalize();
@@ -203,6 +222,10 @@ public class FeaturePack implements DependableCoordinate, ArtifactCoordinate {
         if (includedDefaultConfig != null) {
             buf.append(" included-default-config=");
             buf.append(includedDefaultConfig);
+        }
+        if (dependency) {
+            buf.append(" dependency=");
+            buf.append(dependency);
         }
         return buf.append('}').toString();
     }

@@ -50,18 +50,18 @@ final class ScannedModules {
     private static final String MODULE = "module";
     private static final String MODULE_RUNTIME_KEY = "org.jboss.modules:jboss-modules";
 
-    private final Map<String, Map<String, String>> perModule;
+    private final Map<String, Map<String, Map<String, String>>> perFeaturePacks;
     private final String moduleRuntimeKey;
     private final String moduleRuntimeValue;
 
-    ScannedModules(Map<String, Map<String, String>> perModule, String moduleRuntimeKey, String moduleRuntimeValue) {
-        this.perModule = perModule;
+    ScannedModules(Map<String, Map<String, Map<String, String>>> perFeaturePacks, String moduleRuntimeKey, String moduleRuntimeValue) {
+        this.perFeaturePacks = perFeaturePacks;
         this.moduleRuntimeKey = moduleRuntimeKey;
         this.moduleRuntimeValue = moduleRuntimeValue;
     }
 
-    Map<String, Map<String, String>> getPerModuleArtifacts() {
-        return perModule;
+    Map<String, Map<String, Map<String, String>>> getPerFeaturePackArtifacts() {
+        return perFeaturePacks;
     }
 
     String getModuleRuntime() {
@@ -70,17 +70,31 @@ final class ScannedModules {
 
     Map<String, String> getProvisionedArtifacts() {
         Map<String, String> all = new HashMap<>();
-        for (Map<String, String> artifacts : perModule.values()) {
-            all.putAll(artifacts);
+        for (String producer : perFeaturePacks.keySet()) {
+            Map<String, Map<String, String>> perModule = perFeaturePacks.get(producer);
+            for (Map<String, String> artifacts : perModule.values()) {
+                all.putAll(artifacts);
+            }
         }
         all.put(moduleRuntimeKey, moduleRuntimeValue);
+        return all;
+    }
+
+    Map<String, String> getProvisionedArtifacts(String producer) {
+        Map<String, String> all = new HashMap<>();
+        Map<String, Map<String, String>> perModule = perFeaturePacks.get(producer);
+        if (perModule != null) {
+            for (Map<String, String> artifacts : perModule.values()) {
+                all.putAll(artifacts);
+            }
+        }
         return all;
     }
 
     static ScannedModules scanProvisionedArtifacts(ProvisioningManager pm, ProvisioningConfig config)
             throws ProvisioningException, MojoExecutionException {
         Map<String, String> propsMap = new HashMap<>();
-        Map<String, Map<String, String>> perModule = new TreeMap<>();
+        Map<String, Map<String, Map<String, String>>> perFeaturePack = new TreeMap<>();
         try (ProvisioningRuntime rt = pm.getRuntime(config)) {
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
                 Path artifactProps = fprt.getResource(AbstractBuildBootableJarMojo.WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
@@ -91,6 +105,8 @@ final class ScannedModules {
                 }
             }
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
+                Map<String, Map<String, String>> perModule = new TreeMap<>();
+                perFeaturePack.put(fprt.getFPID().getProducer().getName(), perModule);
                 processPackages(fprt, perModule, propsMap);
             }
         }
@@ -99,7 +115,7 @@ final class ScannedModules {
         if (moduleRuntimeValue == null) {
             throw new ProvisioningException("No JBoss Modules runtime found");
         }
-        return new ScannedModules(perModule, MODULE_RUNTIME_KEY, moduleRuntimeValue);
+        return new ScannedModules(perFeaturePack, MODULE_RUNTIME_KEY, moduleRuntimeValue);
     }
 
     private static void processPackages(final FeaturePackRuntime fp,

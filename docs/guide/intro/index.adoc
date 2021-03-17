@@ -506,7 +506,16 @@ Each artifact version is the one that would get installed when building the Boot
 
 The Maven artifacts to upgrade must be added to the `<dependencies>` of your Maven project (with a `provided` scope 
 to avoid the dependency to be added to your application). In addition, the plugin configuration element
-`<overridden-server-artifacts>` must contain the artifacts. For example, the version 3.0.0 of `io.undertow:undertow-core` will 
+`<overridden-server-artifacts>` must contain the artifacts.
+
+In order to narrow artifact upgrade inside a Galleon feature-pack, the `<FeaturePack>` configuration element is evolved 
+with an `<overridden-artifacts>` set that contains the artifacts (JBoss Modules module 
+artifacts only) that are in use for the upgrade. These artifacts are upgraded only in the feature-pack that define them. 
+A `<Feature-Pack>` element can be added to the pom.xml as a dependency only. A dependency feature-pack 
+is used to override artifacts present in a dependency feature-pack.
+Use the `<dependency>true</dependency>` element to create a dependency feature-pack .
+
+For example, the version 3.0.0 of `io.undertow:undertow-core` will 
 replace the version referenced in the WildFly Galleon feature-pack used to build the bootable JAR:
 
 [source,xml]
@@ -541,15 +550,21 @@ Some notes:
 ** The JBoss module runtime jar (jboss-modules.jar file).
 ** All jar artifacts referenced from JBoss Modules modules.
 
-* If an overridden artifact is no present in the dependencies, then a failure occurs during build.
+* If an overridden artifact is not present in the dependencies, then a failure occurs during build.
 
 * An artifact upgraded to the same version as the one referenced in the Galleon feature-pack is not upgraded. In this case a warning is displayed during build.
 
 * It is possible to downgrade an artifact to an older version. In this case a warning is displayed during build.
 
-* An artifact is referenced in the `overridden-artifacts` by GroupId, Artifactid and optionally Classifier. Version is being retrieved from the Maven dependencies. 
+* An artifact is referenced in the `overridden-server-artifacts` by GroupId, Artifactid and optionally Classifier. Version is being retrieved from the Maven dependencies. 
 
-* An artifact presents in the `overridden-artifacts` list must be unique. Any duplicate will make the packaging to fail.
+* An artifact presents in the `overridden-server-artifacts` list must be unique. Any duplicate will make the packaging to fail.
+
+* An artifact is referenced in the `<FeaturePack>` `overridden-artifacts` by GroupId, ArtifactId, optionally Classifier and optionally Version. 
+Version is being retrieved from the Maven dependencies if not set. Being able to set the version allows to have 
+multiple artifacts with the same GA to be upgraded to different versions according to the feature-pack that contain them.
+
+* An overridden artifact presents in the `<FeaturePack>` `overridden-artifacts` must be unique. Any duplicate will make the packaging to fail.
 
 * Adding an overridden artifact that is not part of the provisioned server artifacts will lead to a failure during build.
 

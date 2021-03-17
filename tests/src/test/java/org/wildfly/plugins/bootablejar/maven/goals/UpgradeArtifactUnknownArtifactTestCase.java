@@ -37,7 +37,7 @@ public class UpgradeArtifactUnknownArtifactTestCase extends AbstractBootableJarM
             mojo.execute();
             throw new Exception("Should have failed");
         } catch (MojoExecutionException ex) {
-            Assert.assertTrue(ex.toString().contains("Overridden artifact jakarta.platform:jakarta.jakartaee-api not know in provisioned feature-packs"));
+            Assert.assertTrue(ex.toString().contains("Overridden artifact jakarta.platform:jakarta.jakartaee-api not known in provisioned feature-packs"));
             // XXX OK, expected
         }
     }
