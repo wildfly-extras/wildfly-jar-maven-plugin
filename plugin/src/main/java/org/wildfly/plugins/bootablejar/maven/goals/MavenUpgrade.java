@@ -187,7 +187,7 @@ final class MavenUpgrade {
         Map<String, OverriddenArtifact> allArtifacts = new HashMap<>();
         for (OverriddenArtifact a : mojo.overriddenServerArtifacts) {
             if (a.getGroupId() == null || a.getArtifactId() == null) {
-                throw new MojoExecutionException("Invalid Artifact , groupId and artifactId are required");
+                throw new MojoExecutionException("Invalid overridden artifact " + a.getGAC() + ". GroupId and ArtifactId are required.");
             }
             String key = a.getGAC();
             if (allArtifacts.containsKey(key)) {
@@ -202,12 +202,15 @@ final class MavenUpgrade {
                     throw new MojoExecutionException("No version for Galleon feature-pack " + a.getGAC());
                 } else {
                     checkScope(fpArtifact);
+                    if (a.getVersion() != null) {
+                        fpArtifact.setVersion(a.getVersion());
+                    }
                     FeaturePack dep = dependencies.get(key);
                     DefaultArtifactVersion orig = new DefaultArtifactVersion(dep.getVersion());
                     DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(fpArtifact.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        if (mojo.warnArtifactDowngrade) {
+                        if (!mojo.disableWarnForArtifactDowngrade) {
                             mojo.getLog().warn("[UPDATE] Downgrading dependency " + key + " from " + dep.getVersion() + " to " + fpArtifact.getVersion());
                         }
                     } else {
@@ -251,7 +254,7 @@ final class MavenUpgrade {
                     DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(a.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        if (mojo.warnArtifactDowngrade) {
+                        if (!mojo.disableWarnForArtifactDowngrade) {
                             mojo.getLog().warn("[UPDATE] Downgrading artifact " + a.getGAC() + " from " + originalVersion + " to " + a.getVersion());
                         }
                     } else {

@@ -371,8 +371,8 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
      * The version comparison is done based on Maven versioning. This warning can be disabled by setting this parameter to
      * true.
      */
-    @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "true")
-    boolean warnArtifactDowngrade;
+    @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "false")
+    boolean disableWarnForArtifactDowngrade;
 
     MavenProjectArtifactVersions artifactVersions;
 
