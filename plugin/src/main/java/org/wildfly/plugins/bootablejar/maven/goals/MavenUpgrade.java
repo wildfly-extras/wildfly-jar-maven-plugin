@@ -207,7 +207,7 @@ final class MavenUpgrade {
                     DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(fpArtifact.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        if (mojo.warnArtifactDowngrade) {
+                        if (!mojo.disableWarnForArtifactDowngrade) {
                             mojo.getLog().warn("[UPDATE] Downgrading dependency " + key + " from " + dep.getVersion() + " to " + fpArtifact.getVersion());
                         }
                     } else {
@@ -251,7 +251,7 @@ final class MavenUpgrade {
                     DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(a.getVersion());
                     int compared = orig.compareTo(overriddenVersion);
                     if (compared > 0) {
-                        if (mojo.warnArtifactDowngrade) {
+                        if (!mojo.disableWarnForArtifactDowngrade) {
                             mojo.getLog().warn("[UPDATE] Downgrading artifact " + a.getGAC() + " from " + originalVersion + " to " + a.getVersion());
                         }
                     } else {
