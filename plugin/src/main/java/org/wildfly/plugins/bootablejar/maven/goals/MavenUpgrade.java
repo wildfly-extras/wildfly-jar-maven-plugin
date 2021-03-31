@@ -187,7 +187,7 @@ final class MavenUpgrade {
         Map<String, OverriddenArtifact> allArtifacts = new HashMap<>();
         for (OverriddenArtifact a : mojo.overriddenServerArtifacts) {
             if (a.getGroupId() == null || a.getArtifactId() == null) {
-                throw new MojoExecutionException("Invalid Artifact , groupId and artifactId are required");
+                throw new MojoExecutionException("Invalid overridden artifact " + a.getGAC() + ". GroupId and ArtifactId are required.");
             }
             String key = a.getGAC();
             if (allArtifacts.containsKey(key)) {
