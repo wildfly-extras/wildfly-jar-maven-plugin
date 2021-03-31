@@ -202,6 +202,9 @@ final class MavenUpgrade {
                     throw new MojoExecutionException("No version for Galleon feature-pack " + a.getGAC());
                 } else {
                     checkScope(fpArtifact);
+                    if (a.getVersion() != null) {
+                        fpArtifact.setVersion(a.getVersion());
+                    }
                     FeaturePack dep = dependencies.get(key);
                     DefaultArtifactVersion orig = new DefaultArtifactVersion(dep.getVersion());
                     DefaultArtifactVersion overriddenVersion = new DefaultArtifactVersion(fpArtifact.getVersion());

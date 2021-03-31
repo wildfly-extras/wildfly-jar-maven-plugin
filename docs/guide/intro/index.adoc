@@ -547,9 +547,10 @@ Some notes:
 
 * It is possible to downgrade an artifact to an older version. In this case a warning is displayed during build.
 
-* An artifact is referenced in the `overridden-artifacts` by GroupId, Artifactid and optionally Classifier. Version is being retrieved from the Maven dependencies. 
+* An artifact is referenced in the `overridden-server-artifacts` by GroupId, Artifactid and optionally Classifier. Version is being retrieved from the Maven dependencies if not set 
+in the overridden artifact.
 
-* An artifact presents in the `overridden-artifacts` list must be unique. Any duplicate will make the packaging to fail.
+* An artifact presents in the `overridden-server-artifacts` list must be unique. Any duplicate will make the packaging to fail.
 
 * Adding an overridden artifact that is not part of the provisioned server artifacts will lead to a failure during build.
 
