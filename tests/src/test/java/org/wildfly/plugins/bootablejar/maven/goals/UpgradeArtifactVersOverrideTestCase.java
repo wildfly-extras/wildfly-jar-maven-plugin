@@ -22,6 +22,7 @@ import org.apache.maven.artifact.Artifact;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -35,6 +36,7 @@ public class UpgradeArtifactVersOverrideTestCase extends AbstractBootableJarMojo
 
     @Test
     public void testUpgrade() throws Exception {
+        Assume.assumeFalse("Not stupported on XP", isXP());
         BuildBootableJarMojo mojo = lookupMojo("package");
         MavenProjectArtifactVersions artifacts = MavenProjectArtifactVersions.getInstance(mojo.project);
         // We have an older release of undertow-core and wildfly-ee-galleon-pack in the pom.xml

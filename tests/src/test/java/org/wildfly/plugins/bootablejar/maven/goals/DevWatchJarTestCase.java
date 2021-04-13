@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.Assume;
 
 import org.junit.Test;
 
@@ -40,6 +41,7 @@ public class DevWatchJarTestCase extends AbstractDevWatchTestCase {
 
     @Test
     public void testDevWatchJar() throws Exception {
+        Assume.assumeFalse("Not stupported on XP", isXP());
         startGoal();
 
         // Does not contain extra layers added during the test

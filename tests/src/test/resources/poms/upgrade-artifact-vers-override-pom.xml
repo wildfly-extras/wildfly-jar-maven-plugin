@@ -18,14 +18,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>WF_GROUPID</groupId>
             <artifactId>wildfly-galleon-pack</artifactId>
             <version>WF_VERSION</version>
             <scope>provided</scope>
             <type>zip</type>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>WF_GROUPID</groupId>
             <artifactId>wildfly-ee-galleon-pack</artifactId>
             <version>WF_EE_VERSION</version>
             <scope>provided</scope>
@@ -40,7 +40,7 @@
                 <configuration>
                     <feature-packs>
                         <feature-pack>
-                            <groupId>org.wildfly</groupId>
+                            <groupId>WF_GROUPID</groupId>
                             <artifactId>wildfly-galleon-pack</artifactId>
                         </feature-pack>
                     </feature-packs>
@@ -55,7 +55,7 @@
                             <version>2.2.3.Final</version>
                         </artifact>
                         <artifact>
-                            <groupId>org.wildfly</groupId>
+                            <groupId>WF_GROUPID</groupId>
                             <artifactId>wildfly-ee-galleon-pack</artifactId>
                              <version>WF_VERSION</version>
                         </artifact>

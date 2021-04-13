@@ -12,7 +12,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>WF_GROUPID</groupId>
             <artifactId>wildfly-ee-galleon-pack</artifactId>
             <version>WF_EE_VERSION</version>
             <scope>provided</scope>
@@ -31,7 +31,7 @@
                     </layers>
                     <overridden-server-artifacts>
                         <artifact>
-                            <groupId>org.wildfly</groupId>
+                            <groupId>WF_GROUPID</groupId>
                             <artifactId>wildfly-ee-galleon-pack</artifactId>
                         </artifact>
                     </overridden-server-artifacts>
