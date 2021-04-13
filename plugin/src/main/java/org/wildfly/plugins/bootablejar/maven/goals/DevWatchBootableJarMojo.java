@@ -38,10 +38,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.aether.repository.RemoteRepository;
+
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.BuildPluginManager;
-
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -161,6 +164,9 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
      */
     @Parameter(property = PropertyNames.TIMEOUT, defaultValue = "60")
     protected int timeout;
+
+    @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
+    private List<RemoteRepository> pluginRepos;
 
     private Process process;
     private Path currentServerDir;
@@ -563,7 +569,8 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         final String compilerPluginKey = ORG_APACHE_MAVEN_PLUGINS + ":" + MAVEN_COMPILER_PLUGIN;
         final Plugin compilerPlugin = project.getPlugin(compilerPluginKey);
         if (compilerPlugin != null) {
-            executeGoal(project, compilerPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_COMPILER_PLUGIN, MAVEN_COMPILER_GOAL, getPluginConfig(compilerPlugin));
+            executeGoal(project, compilerPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_COMPILER_PLUGIN, MAVEN_COMPILER_GOAL,
+                    getPluginConfig(compilerPlugin, MAVEN_COMPILER_GOAL));
         }
     }
 
@@ -583,12 +590,14 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         final String ejbPluginKey = ORG_APACHE_MAVEN_PLUGINS + ":" + MAVEN_EJB_PLUGIN;
         final Plugin ejbPlugin = project.getPlugin(ejbPluginKey);
         if (ejbPlugin != null) {
-            executeGoal(project, ejbPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_EJB_PLUGIN, MAVEN_EJB_GOAL, getPluginConfig(ejbPlugin));
+            executeGoal(project, ejbPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_EJB_PLUGIN, MAVEN_EJB_GOAL,
+                    getPluginConfig(ejbPlugin, MAVEN_EJB_GOAL));
         } else {
             final String jarPluginKey = ORG_APACHE_MAVEN_PLUGINS + ":" + MAVEN_JAR_PLUGIN;
             final Plugin jarPlugin = project.getPlugin(jarPluginKey);
             if (jarPlugin != null) {
-                executeGoal(project, jarPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_JAR_PLUGIN, MAVEN_JAR_GOAL, getPluginConfig(jarPlugin));
+                executeGoal(project, jarPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_JAR_PLUGIN, MAVEN_JAR_GOAL,
+                        getPluginConfig(jarPlugin, MAVEN_JAR_GOAL));
             } else {
                 getLog().warn("Can't package jar application, jar nor ejb plugins found");
             }
@@ -802,7 +811,8 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         if (resourcesPlugin == null) {
             return;
         }
-        executeGoal(project, resourcesPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_RESOURCES_PLUGIN, MAVEN_RESOURCES_GOAL, getPluginConfig(resourcesPlugin));
+        executeGoal(project, resourcesPlugin, ORG_APACHE_MAVEN_PLUGINS, MAVEN_RESOURCES_PLUGIN, MAVEN_RESOURCES_GOAL,
+                getPluginConfig(resourcesPlugin, MAVEN_RESOURCES_GOAL));
     }
 
     void cleanClasses(MavenProject project) throws MojoExecutionException {
@@ -812,7 +822,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         final Plugin compilerPlugin = project.getPlugin(compilerPluginKey);
         if (compilerPlugin != null) {
             Path p;
-            Xpp3Dom config = getPluginConfig(compilerPlugin);
+            Xpp3Dom config = getPluginConfig(compilerPlugin, MAVEN_COMPILER_GOAL);
             Xpp3Dom genSources = config.getChild("generatedSourcesDirectory");
             if (genSources == null) {
                 p = buildDir.resolve("generated-sources").resolve("annotations");
@@ -867,21 +877,51 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         return configuration;
     }
 
-    private Xpp3Dom getPluginConfig(Plugin plugin) {
+    private Xpp3Dom getPluginConfig(Plugin plugin, String goal) throws MojoExecutionException {
+        Xpp3Dom mergedConfig = null;
+        if (!plugin.getExecutions().isEmpty()) {
+            for (PluginExecution exec : plugin.getExecutions()) {
+                if (exec.getConfiguration() != null && exec.getGoals().contains(goal)) {
+                    mergedConfig = mergedConfig == null ? (Xpp3Dom) exec.getConfiguration()
+                            : Xpp3Dom.mergeXpp3Dom(mergedConfig, (Xpp3Dom) exec.getConfiguration(), true);
+                }
+            }
+        }
 
-        Xpp3Dom configuration = configuration();
+        if ((Xpp3Dom) plugin.getConfiguration() != null) {
+            mergedConfig = mergedConfig == null ? (Xpp3Dom) plugin.getConfiguration()
+                    : Xpp3Dom.mergeXpp3Dom(mergedConfig, (Xpp3Dom) plugin.getConfiguration(), true);
+        }
 
-        Xpp3Dom pluginConfiguration = (Xpp3Dom) plugin.getConfiguration();
-        if (pluginConfiguration != null) {
-            //Filter out `test*` configurations
-            for (Xpp3Dom child : pluginConfiguration.getChildren()) {
-                if (!child.getName().startsWith("test")) {
+        final Xpp3Dom configuration = configuration();
+
+        if (mergedConfig != null) {
+            Set<String> supportedParams = null;
+            // Filter out `test*` configurations
+            for (Xpp3Dom child : mergedConfig.getChildren()) {
+                if (child.getName().startsWith("test")) {
+                    continue;
+                }
+                if (supportedParams == null) {
+                    supportedParams = getMojoDescriptor(plugin, goal).getParameterMap().keySet();
+                }
+                if (supportedParams.contains(child.getName())) {
                     configuration.addChild(child);
                 }
             }
         }
 
         return configuration;
+    }
+
+    // Required to retrieve the actual set of supported configuration items.
+    private MojoDescriptor getMojoDescriptor(Plugin plugin, String goal) throws MojoExecutionException {
+        try {
+            return pluginManager.getMojoDescriptor(plugin, goal, pluginRepos, repoSession);
+        } catch (Exception e) {
+            throw new MojoExecutionException(
+                    "Failed to obtain descriptor for Maven plugin " + plugin.getId() + " goal " + goal, e);
+        }
     }
 
     private ModelControllerClient createClient() throws UnknownHostException {
