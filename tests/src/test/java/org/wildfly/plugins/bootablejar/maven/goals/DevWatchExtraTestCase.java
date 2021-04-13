@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.Assume;
 
 import org.junit.Test;
 
@@ -32,6 +33,7 @@ public class DevWatchExtraTestCase extends AbstractDevWatchTestCase {
 
     @Test
     public void testExtraContent() throws Exception {
+        Assume.assumeFalse("Not stupported on XP", isXP());
         startGoal();
 
         Path targetDir = getTestDir().resolve("target").resolve("deployments").resolve("ROOT.war");

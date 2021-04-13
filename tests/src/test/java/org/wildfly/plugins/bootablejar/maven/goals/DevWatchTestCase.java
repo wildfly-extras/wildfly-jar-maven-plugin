@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.junit.Test;
-
+import org.junit.Assume;
 /**
  * @author jdenise
  */
@@ -34,6 +34,7 @@ public class DevWatchTestCase extends AbstractDevWatchTestCase {
 
     @Test
     public void testDevWatchWeb() throws Exception {
+        Assume.assumeFalse("Not stupported on XP", isXP());
         startGoal();
         // Does not contain extra layers added during the test
         assertFalse(layerExists("jmx"));

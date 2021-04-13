@@ -18,7 +18,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>WF_GROUPID</groupId>
             <artifactId>wildfly-galleon-pack</artifactId>
             <version>WF_VERSION</version>
             <scope>provided</scope>
@@ -33,7 +33,7 @@
                 <configuration>
                     <feature-packs>
                         <feature-pack>
-                            <groupId>org.wildfly</groupId>
+                            <groupId>WF_GROUPID</groupId>
                             <artifactId>wildfly-galleon-pack</artifactId>
                         </feature-pack>
                     </feature-packs>

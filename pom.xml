@@ -357,10 +357,11 @@
           </activation>
           <properties>
             <wildfly.groupId>org.jboss.eap</wildfly.groupId>
-            <version.wildfly>2.0.0.GA-redhat-SNAPSHOT</version.wildfly>
+            <version.wildfly>3.0.0.GA-redhat-SNAPSHOT</version.wildfly>
+            <test.version.wildfly-ee.upgrade>7.3.6.GA-redhat-00002</test.version.wildfly-ee.upgrade>
             <test.fpl>${wildfly.groupId}:${wildfly.artifactId}:${version.wildfly}</test.fpl>
             <test.patch.product>JBoss EAP</test.patch.product>
-            <test.patch.version>7.3.3.GA</test.patch.version>
+            <test.patch.version>7.4.0.GA</test.patch.version>
           </properties>
       </profile>
   </profiles>

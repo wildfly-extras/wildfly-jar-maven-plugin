@@ -117,7 +117,7 @@
     <build>
         <plugins>
             <!-- provision a full server to be used as patching distribution source -->
-            
+
             <plugin>
                 <groupId>org.jboss.galleon</groupId>
                 <artifactId>galleon-maven-plugin</artifactId>
@@ -195,6 +195,10 @@
                                 <property>
                                     <name>jbossas.dist</name>
                                     <value>${jbossas.dist}</value>
+                                </property>
+                                <property>
+                                    <name>test.groupid.wildfly</name>
+                                    <value>${wildfly.groupId}</value>
                                 </property>
                             </systemProperties>
                             <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
