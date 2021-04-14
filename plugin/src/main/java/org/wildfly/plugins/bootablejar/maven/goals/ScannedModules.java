@@ -48,20 +48,28 @@ final class ScannedModules {
     private static final String PM = "pm";
     private static final String WILDFLY = "wildfly";
     private static final String MODULE = "module";
+    private static final String TASKS_XML = "tasks.xml";
     private static final String MODULE_RUNTIME_KEY = "org.jboss.modules:jboss-modules";
 
     private final Map<String, Map<String, String>> perModule;
+    private final Map<String, String> copiedArtifacts;
     private final String moduleRuntimeKey;
     private final String moduleRuntimeValue;
 
-    ScannedModules(Map<String, Map<String, String>> perModule, String moduleRuntimeKey, String moduleRuntimeValue) {
+    ScannedModules(Map<String, Map<String, String>> perModule, String moduleRuntimeKey, String moduleRuntimeValue,
+            Map<String, String> copiedArtifacts) {
         this.perModule = perModule;
         this.moduleRuntimeKey = moduleRuntimeKey;
         this.moduleRuntimeValue = moduleRuntimeValue;
+        this.copiedArtifacts = copiedArtifacts;
     }
 
     Map<String, Map<String, String>> getPerModuleArtifacts() {
         return perModule;
+    }
+
+    Map<String, String> getCopiedArtifacts() {
+        return copiedArtifacts;
     }
 
     String getModuleRuntime() {
@@ -74,6 +82,7 @@ final class ScannedModules {
             all.putAll(artifacts);
         }
         all.put(moduleRuntimeKey, moduleRuntimeValue);
+        all.putAll(copiedArtifacts);
         return all;
     }
 
@@ -81,6 +90,7 @@ final class ScannedModules {
             throws ProvisioningException, MojoExecutionException {
         Map<String, String> propsMap = new HashMap<>();
         Map<String, Map<String, String>> perModule = new TreeMap<>();
+        Map<String, String> copiedArtifacts = new HashMap<>();
         try (ProvisioningRuntime rt = pm.getRuntime(config)) {
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
                 Path artifactProps = fprt.getResource(AbstractBuildBootableJarMojo.WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
@@ -91,7 +101,7 @@ final class ScannedModules {
                 }
             }
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
-                processPackages(fprt, perModule, propsMap);
+                processPackages(fprt, perModule, propsMap, copiedArtifacts);
             }
         }
 
@@ -99,11 +109,13 @@ final class ScannedModules {
         if (moduleRuntimeValue == null) {
             throw new ProvisioningException("No JBoss Modules runtime found");
         }
-        return new ScannedModules(perModule, MODULE_RUNTIME_KEY, moduleRuntimeValue);
+        return new ScannedModules(perModule, MODULE_RUNTIME_KEY, moduleRuntimeValue, copiedArtifacts);
     }
 
     private static void processPackages(final FeaturePackRuntime fp,
-            Map<String, Map<String, String>> perModule, Map<String, String> propsMap) throws ProvisioningException {
+            Map<String, Map<String, String>> perModule,
+            Map<String, String> propsMap,
+            Map<String, String> copiedArtifacts) throws ProvisioningException {
         Map<Path, PackageRuntime> jbossModules = new HashMap<>();
         for (PackageRuntime pkg : fp.getPackages()) {
             final Path pmWfDir = pkg.getResource(PM, WILDFLY);
@@ -114,6 +126,10 @@ final class ScannedModules {
             if (Files.exists(moduleDir)) {
                 processModules(pkg, moduleDir, jbossModules);
             }
+            final Path tasks = pmWfDir.resolve(TASKS_XML);
+            if (Files.exists(tasks)) {
+               processTasks(pkg, tasks, propsMap, copiedArtifacts);
+            }
         }
         for (Map.Entry<Path, PackageRuntime> entry : jbossModules.entrySet()) {
             final PackageRuntime pkg = entry.getValue();
@@ -123,6 +139,42 @@ final class ScannedModules {
                 throw new ProvisioningException("Failed to process JBoss module XML template for feature-pack "
                         + pkg.getFeaturePackRuntime().getFPID() + " package " + pkg.getName(), e);
             }
+        }
+    }
+
+    private static void processTasks(PackageRuntime pkg, Path tasks, Map<String, String> propsMap,
+            Map<String, String> artifacts) throws ProvisioningException {
+        try {
+            try (InputStream reader = Files.newInputStream(tasks)) {
+                DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+                Document document = documentBuilder.parse(reader);
+                Element root = document.getDocumentElement();
+                NodeList lst = root.getChildNodes();
+                for (int i = 0; i < lst.getLength(); i++) {
+                    Node n = lst.item(i);
+                    if (n instanceof Element) {
+                        if ("copy-artifact".equals(n.getNodeName())) {
+                            Element copyArtifact = (Element) n;
+                            String artifact = copyArtifact.getAttribute("artifact");
+                            String optional = copyArtifact.getAttribute("optional");
+                            String value = propsMap.get(artifact);
+                            if (value == null) {
+                                if ("true".equals(optional)) {
+                                    // Could be unknown.
+                                    artifacts.put(artifact, artifact + ":unknown::jar");
+                                }
+                            } else {
+                                artifacts.put(artifact, value);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SAXException | ParserConfigurationException | IOException e) {
+            throw new ProvisioningException("Failed to process tasks from package " + pkg.getName()
+                    + " from feature-pack " + pkg.getFeaturePackRuntime().getFPID(), e);
         }
     }
 
