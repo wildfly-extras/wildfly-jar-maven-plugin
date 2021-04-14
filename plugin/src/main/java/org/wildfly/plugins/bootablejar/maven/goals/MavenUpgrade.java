@@ -140,6 +140,22 @@ final class MavenUpgrade {
         builder.append("    <version>").append(jbossModules.getVersion()).append("</version>").append(System.lineSeparator());
         builder.append("    <type>").append(jbossModules.getType()).append("</type>").append(System.lineSeparator());
         builder.append("  </jboss-modules-runtime>").append(System.lineSeparator());
+        if (!getScannedModules().getCopiedArtifacts().isEmpty()) {
+            builder.append("  <copied-artifacts>").append(System.lineSeparator());
+            for (String gav : getScannedModules().getCopiedArtifacts().values()) {
+                Artifact a = AbstractBuildBootableJarMojo.getArtifact(gav);
+                builder.append("    <artifact>").append(System.lineSeparator());
+                builder.append("      <groupId>").append(a.getGroupId()).append("</groupId>").append(System.lineSeparator());
+                builder.append("      <artifactId>").append(a.getArtifactId()).append("</artifactId>").append(System.lineSeparator());
+                if (a.getClassifier() != null && !a.getClassifier().isEmpty()) {
+                    builder.append("      <classifier>").append(a.getClassifier()).append("</classifier>").append(System.lineSeparator());
+                }
+                builder.append("      <version>").append(a.getVersion()).append("</version>").append(System.lineSeparator());
+                builder.append("      <type>").append(a.getType()).append("</type>").append(System.lineSeparator());
+                builder.append("    </artifact>").append(System.lineSeparator());
+            }
+            builder.append("  </copied-artifacts>").append(System.lineSeparator());
+        }
         builder.append("  <modules>").append(System.lineSeparator());
         for (Entry<String, Map<String, String>> module : perModules.entrySet()) {
             builder.append("    <module name=\"").append(module.getKey()).append("\">").append(System.lineSeparator());
