@@ -50,7 +50,7 @@
   </modules>
 
   <properties>
-    <version.wildfly>23.0.0.Final</version.wildfly>
+    <version.wildfly>23.0.1.Final</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
     <docs.wildfly.major>23</docs.wildfly.major>
@@ -60,7 +60,7 @@
     <version.org.apache.maven.plugin-tools>3.5.1</version.org.apache.maven.plugin-tools>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
     <version.org.jboss.galleon>4.2.8.Final</version.org.jboss.galleon>
-    <version.org.wildfly.core.wildfly-core>15.0.0.Final</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>15.0.1.Final</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.5.4.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>2.0.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
     <!-- required by tests -->
