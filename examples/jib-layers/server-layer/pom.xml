@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>jib-layers-parent</artifactId>
-        <version>4.0.3.Final-SNAPSHOT</version>
+        <version>4.0.3.Final</version>
     </parent>
 
     <artifactId>jib-server-layer</artifactId>
