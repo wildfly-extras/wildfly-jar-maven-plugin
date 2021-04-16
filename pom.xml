@@ -87,7 +87,8 @@
     <test.patch.version>${version.wildfly}</test.patch.version>
     <wildfly.artifactId>wildfly-galleon-pack</wildfly.artifactId>
     <wildfly.groupId>org.wildfly</wildfly.groupId>
-    
+    <wildfly-preview.artifactId>wildfly-preview-feature-pack</wildfly-preview.artifactId>
+    <wildfly-preview-build-repo-phase>process-test-resources</wildfly-preview-build-repo-phase>
     <surefire.redirect.to.file>true</surefire.redirect.to.file>
   </properties>
 
@@ -362,6 +363,7 @@
             <test.fpl>${wildfly.groupId}:${wildfly.artifactId}:${version.wildfly}</test.fpl>
             <test.patch.product>JBoss EAP</test.patch.product>
             <test.patch.version>7.4.0.GA</test.patch.version>
+            <wildfly-preview-build-repo-phase>none</wildfly-preview-build-repo-phase>
           </properties>
       </profile>
   </profiles>
