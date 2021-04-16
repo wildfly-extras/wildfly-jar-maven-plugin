@@ -30,6 +30,7 @@ import org.apache.maven.execution.MavenExecutionRequestPopulator;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.Mojo;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuilder;
@@ -37,6 +38,8 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.internal.impl.SimpleLocalRepositoryManagerFactory;
 import org.eclipse.aether.repository.LocalRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A class to construct a properly configured MOJO.
@@ -105,7 +108,90 @@ public abstract class AbstractConfiguredMojoTestCase extends AbstractMojoTestCas
 
 
         Mojo mojo = lookupConfiguredMojo(project, goal);
+        // We need to set a logger, the SystemStreamLog is incompatible with Galleon.
+        // There is an interface implementation mismatch that leads to NPE (exception is not checked for null).
+        Logger log = LoggerFactory.getLogger("bootable.jar.test");
+        mojo.setLog(new Log(){
+            @Override
+            public boolean isDebugEnabled() {
+                return log.isDebugEnabled();
+            }
 
+            @Override
+            public void debug(CharSequence cs) {
+                log.debug(cs == null ? null : String.valueOf(cs));
+            }
+
+            @Override
+            public void debug(CharSequence cs, Throwable thrwbl) {
+                log.debug(cs == null ? null : String.valueOf(cs), thrwbl);
+            }
+
+            @Override
+            public void debug(Throwable thrwbl) {
+                log.debug(null, thrwbl);
+            }
+
+            @Override
+            public boolean isInfoEnabled() {
+                return log.isInfoEnabled();
+            }
+
+            @Override
+            public void info(CharSequence cs) {
+                log.info(cs == null ? null : String.valueOf(cs));
+            }
+
+            @Override
+            public void info(CharSequence cs, Throwable thrwbl) {
+                log.info(cs == null ? null : String.valueOf(cs), thrwbl);
+            }
+
+            @Override
+            public void info(Throwable thrwbl) {
+                log.info(null, thrwbl);
+            }
+
+            @Override
+            public boolean isWarnEnabled() {
+                return log.isWarnEnabled();
+            }
+
+            @Override
+            public void warn(CharSequence cs) {
+                log.warn(cs == null ? null : String.valueOf(cs));
+            }
+
+            @Override
+            public void warn(CharSequence cs, Throwable thrwbl) {
+                log.warn(cs == null ? null : String.valueOf(cs), thrwbl);
+            }
+
+            @Override
+            public void warn(Throwable thrwbl) {
+                log.warn(null, thrwbl);
+            }
+
+            @Override
+            public boolean isErrorEnabled() {
+                return log.isErrorEnabled();
+            }
+
+            @Override
+            public void error(CharSequence cs) {
+                log.error(cs == null ? null : String.valueOf(cs));
+            }
+
+            @Override
+            public void error(CharSequence cs, Throwable thrwbl) {
+                log.error(cs == null ? null : String.valueOf(cs), thrwbl);
+            }
+
+            @Override
+            public void error(Throwable thrwbl) {
+                log.error(null, thrwbl);
+            }
+        });
         // For some reasons, the configuration item gets ignored in lookupConfiguredMojo
         // explicitly configure it
         configureMojo(mojo, ARTIFACTID, pom);
