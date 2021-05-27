@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,8 +45,8 @@ import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 final class MavenUpgrade {
 
-    private final Map<String, FeaturePack> dependencies = new HashMap<>();
-    private final Map<String, FeaturePack> topLevels = new HashMap<>();
+    private final Map<String, FeaturePack> dependencies = new LinkedHashMap<>();
+    private final Map<String, FeaturePack> topLevels = new LinkedHashMap<>();
     private final AbstractBuildBootableJarMojo mojo;
     private final ProvisioningConfig config;
     private final Map<ProducerSpec, String> producerToGAC = new HashMap<>();
@@ -66,7 +67,7 @@ final class MavenUpgrade {
         }
 
         // Resolve the FP to retrieve dependencies as expressed in fp spec.
-        Map<String, Path> resolvedFeaturePacks = new HashMap<>();
+        Map<String, Path> resolvedFeaturePacks = new LinkedHashMap<>();
         for (FeaturePack fp : topLevels.values()) {
             resolvedFeaturePacks.put(fp.getGAC(), mojo.resolveMaven(fp));
         }
