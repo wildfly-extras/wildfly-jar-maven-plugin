@@ -12,7 +12,7 @@
     <properties>
         <version.bootable.jar>5.0.0.Beta1-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
-        <version.wildfly>23.0.2.Final</version.wildfly>
+        <version.wildfly>24.0.0.Beta1</version.wildfly>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
         <maven.compiler.source>1.8</maven.compiler.source>
