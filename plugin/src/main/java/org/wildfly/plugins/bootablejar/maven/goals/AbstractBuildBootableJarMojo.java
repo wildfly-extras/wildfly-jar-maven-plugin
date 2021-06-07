@@ -124,9 +124,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private static final String BOOT_ARTIFACT_ID = "wildfly-jar-boot";
 
-    private static final String STANDALONE = "standalone";
-    private static final String STANDALONE_XML = "standalone.xml";
-    private static final String STANDALONE_MICROPROFILE_XML = "standalone-microprofile.xml";
+    public static final String STANDALONE = "standalone";
+    public static final String STANDALONE_XML = "standalone.xml";
     private static final String SERVER_CONFIG = "--server-config";
     private static final String MAVEN_REPO_PLUGIN_OPTION = "jboss-maven-repo";
 
@@ -860,7 +859,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         return excludedLayers;
     }
 
-    private GalleonConfig buildFeaturePacksConfig(ProvisioningManager pm, boolean hasLayers) throws ProvisioningException, MojoExecutionException {
+    private GalleonConfig buildFeaturePacksConfig(ProvisioningManager pm, boolean hasLayers,
+            ConfigId defaultConfig) throws ProvisioningException, MojoExecutionException {
         ProvisioningConfig.Builder state = ProvisioningConfig.builder();
         ConfigId provisionedConfigId = null;
         for (FeaturePack fp : featurePacks) {
@@ -899,7 +899,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             } else {
                 // We don't have an explicit default config and we have no layers, must include the default one.
                 if (!hasLayers && provisionedConfigId == null) {
-                    provisionedConfigId = getDefaultConfig();
+                    provisionedConfigId =defaultConfig;
                     fpConfig.includeDefaultConfig(provisionedConfigId);
                 }
             }
@@ -1014,7 +1014,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
         }
     }
-
 
     /**
      * Galleon layers based config that uses the set of feature-packs.
@@ -1137,7 +1136,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         return location;
     }
 
-    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
+    private GalleonConfig buildGalleonConfig(ProvisioningManager pm, ConfigId defaultConfig) throws ProvisioningException, MojoExecutionException {
         boolean isLayerBasedConfig = !layers.isEmpty();
         boolean hasFeaturePack = !featurePacks.isEmpty();
         boolean hasProvisioningFile = Files.exists(getProvisioningFile());
@@ -1154,13 +1153,13 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (!hasFeaturePack) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
             }
-            return buildFeaturePacksConfig(pm, true);
+            return buildFeaturePacksConfig(pm, true, defaultConfig);
         }
 
         // Based on default config
         if (!featurePacks.isEmpty()) {
             getLog().info("Provisioning server using feature-packs");
-            return buildFeaturePacksConfig(pm, isLayerBasedConfig);
+            return buildFeaturePacksConfig(pm, isLayerBasedConfig, defaultConfig);
         }
 
         if (hasProvisioningFile) {
@@ -1170,13 +1169,13 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         throw new ProvisioningException("Invalid Galleon configuration");
     }
 
-    private void willProvision(List<FeaturePack> featurePacks, ProvisioningManager pm)
+    private ConfigId willProvision(List<FeaturePack> featurePacks, ProvisioningManager pm)
             throws MojoExecutionException, ProvisioningException, IOException {
         ProvisioningSpecifics specifics = Utils.getSpecifics(featurePacks, pm);
-        willProvision(specifics);
+        return willProvision(specifics);
     }
 
-    protected abstract void willProvision(ProvisioningSpecifics specifics) throws MojoExecutionException;
+    protected abstract ConfigId willProvision(ProvisioningSpecifics specifics) throws MojoExecutionException;
 
     private Artifact provisionServer(Path home, Path outputProvisioningFile, Path workDir) throws ProvisioningException,
             MojoExecutionException, IOException, XMLStreamException {
@@ -1190,8 +1189,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             // Prior to build the config, sub classes could have to inject content to the config according to the
             // provisioned FP.
             normalizeFeaturePackList();
-            willProvision(featurePacks, pm);
-            ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
+            ConfigId defaultConfig = willProvision(featurePacks, pm);
+            ProvisioningConfig config = buildGalleonConfig(pm, defaultConfig).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
             MavenUpgrade mavenUpgrade = null;
@@ -1310,10 +1309,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             return bootArtifact;
         }
-    }
-
-    protected ConfigId getDefaultConfig() {
-        return new ConfigId(STANDALONE, STANDALONE_MICROPROFILE_XML);
     }
 
     // Get Artifact, syntax comply with WildFly feature-pack versions file.

@@ -19,7 +19,7 @@
                     <feature-packs>
                         <feature-pack>
                             <location>TEST_REPLACE</location>
-                            <included-default-config>standalone-microprofile.xml</included-default-config>
+                            <included-default-config>TEST_DEFAULT_CONFIG_REPLACE</included-default-config>
                         </feature-pack>
                     </feature-packs>
                     <cloud/>

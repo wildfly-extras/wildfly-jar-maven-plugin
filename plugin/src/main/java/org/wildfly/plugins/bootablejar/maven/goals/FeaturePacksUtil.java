@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2023 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.wildfly.plugins.bootablejar.maven.common;
+package org.wildfly.plugins.bootablejar.maven.goals;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
 import org.jboss.galleon.config.ConfigId;
@@ -37,13 +28,15 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
+import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE_XML;
+
 /**
+ *
  * @author jdenise
  */
-public class Utils {
+public class FeaturePacksUtil {
 
     private static final String HEALTH = "health";
     private static final String MP_HEALTH = "microprofile-health";
@@ -67,11 +60,7 @@ public class Utils {
             }
         }
 
-        public String getHealthLayer() {
-            return healthLayer;
-        }
-
-        public ConfigId getDefaultConfig(boolean isCloud) {
+        ConfigId getDefaultConfig(boolean isCloud) {
             if (isCloud) {
                 if (isMicroprofile) {
                     return new ConfigId(STANDALONE, "standalone-microprofile-ha.xml");
@@ -86,49 +75,18 @@ public class Utils {
                 }
             }
         }
+
+        String getHealthLayer() {
+            return healthLayer;
+        }
     }
 
-    private static final Pattern WHITESPACE_IF_NOT_QUOTED = Pattern.compile("(\\S+\"[^\"]+\")|\\S+");
-
-    public static String getBootableJarPath(String jarFileName, MavenProject project, String goal) throws MojoExecutionException {
-        String jarName = jarFileName;
-        if (jarName == null) {
-            String finalName = project.getBuild().getFinalName();
-            jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
-        }
-        String path = project.getBuild().getDirectory() + File.separator + jarName;
-        if (!Files.exists(Paths.get(path))) {
-            throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
-        }
-        return path;
-    }
-
-    /**
-     * Splits the arguments into a list. The arguments are split based on whitespace while ignoring whitespace that is
-     * within quotes.
-     *
-     * @param arguments the arguments to split
-     *
-     * @return the list of the arguments
-     */
-    public static List<String> splitArguments(final CharSequence arguments) {
-        final List<String> args = new ArrayList<>();
-        final Matcher m = WHITESPACE_IF_NOT_QUOTED.matcher(arguments);
-        while (m.find()) {
-            final String value = m.group();
-            if (!value.isEmpty()) {
-                args.add(value);
-            }
-        }
-        return args;
-    }
-
-    public static ProvisioningSpecifics getSpecifics(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
+    static ProvisioningSpecifics getSpecifics(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
         return new ProvisioningSpecifics(getAllLayers(fps, pm));
     }
 
     private static Set<String> getAllLayers(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
-        ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
+        Set<String> allLayers = new HashSet<>();
         for (FeaturePack fp : fps) {
             final FeaturePackLocation fpl;
             if (fp.getNormalizedPath() != null) {
@@ -139,13 +97,14 @@ public class Utils {
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
-            builder.addFeaturePackDep(FeaturePackConfig.builder(fpl).build());
+            ProvisioningConfig pConfig = ProvisioningConfig.builder().
+                    addFeaturePackDep(FeaturePackConfig.builder(fpl).build()).build();
+            try (ProvisioningLayout<FeaturePackLayout> layout = pm.
+                    getLayoutFactory().newConfigLayout(pConfig)) {
+                allLayers.addAll(getAllLayers(layout));
+            }
         }
-        ProvisioningConfig pConfig = builder.build();
-        try (ProvisioningLayout<FeaturePackLayout> layout = pm.
-                getLayoutFactory().newConfigLayout(pConfig)) {
-            return getAllLayers(layout);
-        }
+        return allLayers;
     }
 
     private static Set<String> getAllLayers(ProvisioningLayout<FeaturePackLayout> pLayout)
@@ -158,17 +117,4 @@ public class Utils {
         }
         return layers;
     }
-
-    public static boolean isModularJVM() {
-        final String javaSpecVersion = System.getProperty("java.specification.version");
-        boolean modularJvm = false;
-        if (javaSpecVersion != null) {
-            final Matcher matcher = Pattern.compile("^(?:1\\.)?(\\d+)$").matcher(javaSpecVersion);
-            if (matcher.find()) {
-                modularJvm = Integer.parseInt(matcher.group(1)) >= 9;
-            }
-        }
-        return modularJvm;
-    }
-
 }
