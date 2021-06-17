@@ -43,7 +43,7 @@
                         <feature-pack>
                             <groupId>org.wildfly</groupId>
                             <artifactId>wildfly-datasources-galleon-pack</artifactId>
-                            <version>1.2.2.Final</version>
+                            <version>2.0.2.Final</version>
                         </feature-pack>
                     </feature-packs>
                     <layers>
