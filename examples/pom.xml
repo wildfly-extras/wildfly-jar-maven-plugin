@@ -20,8 +20,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
-        <version.server.bom>${version.wildfly}</version.server.bom>
+        <!-- WARNING This will have to be back to ${version.wildfly} for both boms -->
+        <version.microprofile.bom>24.0.0.SP1</version.microprofile.bom>
+        <version.server.bom>24.0.0.SP1</version.server.bom>
         <version.org.wildfly.arquillian>3.0.0.Final</version.org.wildfly.arquillian>
         <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
         <version.junit>4.13.1</version.junit>
