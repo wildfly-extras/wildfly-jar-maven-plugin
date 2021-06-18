@@ -16,6 +16,7 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,7 +54,7 @@ public final class DevBootableJarMojo extends AbstractDevBootableJarMojo {
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
             boolean inherit = "inherit".equalsIgnoreCase(stdout);
-            final Launcher launcher = Launcher.of(buildCommandBuilder(!inherit));
+            final Launcher launcher = buildLauncher(!inherit);
 
             if (inherit) {
                 launcher.inherit();
@@ -63,6 +64,9 @@ public final class DevBootableJarMojo extends AbstractDevBootableJarMojo {
                 launcher.setRedirectErrorStream(true)
                         .redirectOutput(redirect);
             }
+            launcher.addEnvironmentVariable("JBOSS_HOME",
+                    project.getBuild().getDirectory()+ File.separator + getServerDirectoryName());
+            launcher.addEnvironmentVariable("JAVA_OPTS_APPEND", "-Dorg.jboss.logmanager.nocolor=true");
             launcher.launch();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);

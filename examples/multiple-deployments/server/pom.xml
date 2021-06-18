@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>multiple-deployments-parent</artifactId>
+        <version>6.0.0.Alpha1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>multiple-deployments-server</artifactId>
+    <packaging>pom</packaging>
+
+    <name>WildFly Bootable Jar - Multiple deployments server creation</name>
+    <description>This project demonstrates how to package multiple deployments in a server
+    </description>
+    
+    <properties>
+        <jkube.generator.from>quay.io/jfdenise/wildfly-s2i-v2:latest</jkube.generator.from>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>war1</artifactId>
+            <type>war</type>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>war2</artifactId>
+            <type>war</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.parent.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}
+                    </feature-pack-location>
+                    <layers>
+                        <layer>jaxrs</layer>
+                    </layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>${plugin.fork.embedded}</jboss-fork-embedded>
+                    </plugin-options>
+                    <skip>false</skip>
+                    <external-deployments>
+                        <deployment>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>war1</artifactId>
+                            <runtime-name>war1</runtime-name>
+                        </deployment>
+                        <deployment>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>war2</artifactId>
+                            <runtime-name>war2</runtime-name>
+                        </deployment>
+                    </external-deployments>
+                    <!-- Enable server mode -->
+                    <server/>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>openshift</id>
+            <build>
+                <finalName>${project.parent.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+                        <configuration>
+                            <cloud/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

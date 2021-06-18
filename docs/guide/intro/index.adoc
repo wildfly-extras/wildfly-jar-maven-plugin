@@ -3,6 +3,9 @@
 
 The WildFly JAR Maven plugin is aimed to build a bootable JAR for WildFly (starting version 20.0.0.Final). 
 A WildFly bootable JAR contains both the server and your packaged application (a JAR, an EAR or a WAR).
+
+N.B.: It is possible to configure the plugin to produce a server installation instead of a bootable JAR by enabling the link:#wildfly_jar_server_mode[server mode].
+
 Once the application has been built and packaged as a bootable JAR, you can start the application using the following command:
 
 ```
@@ -167,6 +170,8 @@ By default, a WAR deployed inside a bootable JAR is located in the root context 
 If your use-case requires it, you can create a bootable JAR that doesn't contain a deployment. It can be handy to re-use a bootable JAR artifact with various deployments.
 Use the link:#hollowJar[hollow-jar] configuration element to create an hollow JAR.
 
+N.B.: Hollow concept also applies to the link:#wildfly_jar_server_mode[server mode]. In this mode a WildFly server containing no deployments is produced.
+
 The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/hollow-jar[hollow-jar] shows how to build an hollow JAR.
 
 When starting an hollow JAR you can provide the path to a deployment you want to see deployed inside the server. For example:
@@ -176,6 +181,59 @@ When starting an hollow JAR you can provide the path to a deployment you want to
 ``
 
 NB: In order to have your deployment be located in the root context, name the WAR file _ROOT.war_.
+
+[[wildfly_jar_server_mode]]
+## Server Mode
+
+In order to enable the server mode add the ```<server/>``` configuration element to the plugin configuration. The plugin will then produce 
+a WildFly server in the ```<project root>/target/server``` directory instead of producing a bootable JAR.
+
+* All plugin's goals (```start, shutdown, ...```) are applicable to this mode.
+* All features offered by the plugin are applicable to this mode (e.g.: CLI scripts execution, extra-content installation, artifact update).
+* Once the ```server``` element is present in the plugin configuration, the mode is enabled. You can enable/disable the server mode with the ```enabled``` element. 
+* You can override the default ```server``` directory name with the ``directory-name``` element. The plugin will install the server in the ```<project root>/target/<your server name>```
+* You can specify a launch script (eg: ```openshift-launch.sh```) to be used by goals that start the server (e.g.: ```start, dev```). The launch script must 
+be located in the server installation ```bin``` directory. NB: The ability to execute a specific launch script is to address special use-cases when developing in the cloud (e.g.: developing in the cloud using ODO) 
+and is not advised for any other usage.
+
+[source,xml]
+----
+<server>
+  <enabled>false</enabled>
+  <directory-name>my-server</directory-name>
+  <launch-script>my-script.sh</launch-script>
+</server>
+----
+
+The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/server-mode[server-mode] shows how to enable 
+the server mode on both bare-metal and cloud contexts.
+
+[[wildfly_jar_external_deployments]]
+## Deploying external deployments
+
+You can deploy external deployments (deployment that is not built by the current Maven project) in the server 
+by adding an ```<external-deployments>``` element to the plugin configuration.
+
+Each external deployment is composed of a groupId, artifactId, optional classifier and optional runtime-name. An external deployment must exist as a 
+"non provided" Maven dependency. If no dependency for an external deployment is found, the plugin exits with an error.
+
+The version and type of the deployment is retrieved from the Maven dependencies of the project. If no runtime name is provided, the artifact file name is used.
+
+When building a Bootable JAR, a single deployment is allowed. In link:#wildfly_jar_server_mode[server mode] multiple deployments are allowed.
+
+[source,xml]
+----
+<external-deployments>
+  <deployment>
+     <groupId>com.my.group</groupId>
+     <artifactId>my-artifact-Id</artifactId>
+     <runtime-name>my-deployment</runtime-name>
+  </deployment>
+</external-deployments>
+----
+
+The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/multiple-deployments[multiple-deployments] shows how to enable 
+the server mode with multiple deployments on both bare-metal and cloud contexts.
 
 [[wildfly_jar_configuring_build]]
 ## Configuring the server during packaging

@@ -71,7 +71,6 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
-import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.BootableAppEventHandler;
 import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.ProjectContext;
@@ -447,7 +446,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     Paths.get(projectBuildDir), sourceDir.toPath(), contextRoot, cliSessions, extraServerContentDirs);
             DevWatchContext ctx = new DevWatchContext(projectContext, watcher);
             ctx.build(true);
-            process = Launcher.of(buildCommandBuilder(false))
+            process = buildLauncher(false)
                     .inherit()
                     .launch();
             deploymentController.deploy(ctx.getTargetDirectory());
@@ -512,7 +511,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
 
                         handler = ctx.newEventHandler();
                         ctx.build(false);
-                        process = Launcher.of(buildCommandBuilder(false))
+                        process = buildLauncher(false)
                                 .inherit()
                                 .launch();
                         deploymentController.deploy(ctx.getTargetDirectory());

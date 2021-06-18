@@ -23,6 +23,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
+import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
@@ -33,6 +34,7 @@ import org.wildfly.plugins.bootablejar.maven.common.Utils;
  * @author jfdenise
  */
 public abstract class AbstractDevBootableJarMojo extends BuildBootableJarMojo {
+
     /**
      * Additional JVM options.
      */
@@ -61,15 +63,19 @@ public abstract class AbstractDevBootableJarMojo extends BuildBootableJarMojo {
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
 
-    protected BootableJarCommandBuilder buildCommandBuilder(boolean redirect) throws MojoExecutionException {
-        BootableJarCommandBuilder builder =  BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
-                .addJavaOptions(jvmArguments)
-                .addServerArguments(arguments);
-        if (redirect) {
-            // Always disable color when printing to file.
-            builder.addJavaOption("-Dorg.jboss.logmanager.nocolor=true");
+    protected Launcher buildLauncher(boolean redirect) throws MojoExecutionException {
+        if (isJarPackaging()) {
+           BootableJarCommandBuilder builder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
+                    .addJavaOptions(jvmArguments)
+                    .addServerArguments(arguments);
+            if (redirect) {
+                // Always disable color when printing to file.
+                builder.addJavaOption(Utils.NO_COLOR_OPTION);
+            }
+            return Launcher.of(builder);
+        } else {
+           return server.createServerLauncher(project, jvmArguments, arguments, redirect, "dev");
         }
-        return builder;
     }
 
     /**

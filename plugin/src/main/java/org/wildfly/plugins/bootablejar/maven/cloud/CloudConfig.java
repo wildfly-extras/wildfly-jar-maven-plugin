@@ -89,14 +89,16 @@ public class CloudConfig {
             Path target = wildflyDir.resolve("standalone").resolve("configuration").resolve("logging.properties");
             Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
         }
-        Path marker = contentDir.resolve(type + ".properties");
-        Properties props = new Properties();
-        // TODO, if we need it, add properties there.
-        try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
-            props.store(s, type + " properties");
+        if (mojo.isJarPackaging()) {
+            Path marker = contentDir.resolve(type + ".properties");
+            Properties props = new Properties();
+            // TODO, if we need it, add properties there.
+            try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
+                props.store(s, type + " properties");
+            }
+            Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
+            ZipUtils.unzip(extensionJar, contentDir);
         }
-        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
-        ZipUtils.unzip(extensionJar, contentDir);
     }
 
     public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {

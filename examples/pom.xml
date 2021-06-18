@@ -60,6 +60,11 @@
                 <artifactId>wildfly-arquillian-container-bootable</artifactId>
                 <version>${version.org.wildfly.arquillian}</version>
             </dependency>
+             <dependency>
+                <groupId>org.wildfly.arquillian</groupId>
+                <artifactId>wildfly-arquillian-container-managed</artifactId>
+                <version>${version.org.wildfly.arquillian}</version>
+            </dependency>
             <dependency>
                 <groupId>org.jboss.arquillian.junit</groupId>
                 <artifactId>arquillian-junit-container</artifactId>
@@ -104,8 +109,10 @@
         <module>logging-log4j-appender</module>
         <module>mdb-rar</module>
         <module>microprofile-config</module>
+        <module>multiple-deployments</module>
         <module>postgresql</module>
         <module>secmanager</module>
+        <module>server-mode</module>
         <module>slim</module>
         <module>web-clustering</module>
         <module>web-console</module>
