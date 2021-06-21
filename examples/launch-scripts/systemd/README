@@ -1,0 +1,28 @@
+= How to configure a WildFly Bootable JAR as a systemd service
+
+As a pre-requisite, you must have built a Bootable JAR.
+
+== Create a wildfly user
+
+    # groupadd -r wildfly
+    # useradd -r -g wildfly -d /opt/wildfly-bootable -s /sbin/nologin wildfly
+
+== Install a WildFly Bootable JAR
+
+    # mkdir -p /opt/wildfly-bootable/bin
+    # cp launch.sh /opt/wildfly-bootable/bin/
+    # cp <your bootable JAR file> /opt/wildfly-bootable/wildfly-bootable.jar
+    # chown -R wildfly:wildfly /opt/wildfly-bootable
+
+== Configure systemd
+
+    # mkdir -p /etc/wildfly-bootable
+    # cp wildfly-bootable.conf /etc/wildfly-bootable/
+    # cp wildfly-bootable.service /etc/systemd/system/
+    
+    # chmod +x /opt/wildfly-bootable/bin/launch.sh
+
+== Start and enable
+
+    # systemctl start wildfly-bootable.service
+    # systemctl enable wildfly-bootable.service
