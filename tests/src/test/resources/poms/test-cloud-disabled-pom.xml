@@ -19,12 +19,12 @@
                     <feature-pack-location>TEST_REPLACE</feature-pack-location>
                     <layers>
                         <layer>jaxrs</layer>
+                        <layer>management</layer>
                     </layers>
                     <excluded-layers>
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
-                    <server/>
-                    <cloud><enabled>true</enabled></cloud>
+                    <cloud><enabled>false</enabled></cloud>
                 </configuration>
                 
             </plugin>

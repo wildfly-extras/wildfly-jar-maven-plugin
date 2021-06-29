@@ -35,6 +35,7 @@ public class OpenShiftConfigurationTestCase extends AbstractBootableJarMojoTestC
         assertNotNull(mojo);
         assertFalse(mojo.layers.isEmpty());
         assertNotNull(mojo.cloud);
+        assertTrue(mojo.cloud.isEnabled());
         assertEquals(1, mojo.layers.size());
         assertEquals("jaxrs", mojo.layers.get(0));
         mojo.recordState = true;

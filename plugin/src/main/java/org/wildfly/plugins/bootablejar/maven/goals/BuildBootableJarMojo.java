@@ -37,6 +37,8 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     /**
      * To enable cloud support. When cloud support is enabled, the created bootable JAR will operate properly in context such as openshift.
+     * Adding the &lt;cloud/&gt; element to the plugin configuration automatically enables the cloud support.
+     * You can set the cloud child element &lt;enabled&gt;false&lt;/enabled&gt; to disable the cloud support.
      * <br/>
      * In order to enable authenticated cluster jgroups protocol,
      * set &lt;enable-jgroups-password&gt;true&lt;/enable-jgroups-password&gt;. The environment variable JGROUPS_CLUSTER_PASSWORD
@@ -45,6 +47,10 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
     @Parameter(alias = "cloud")
     CloudConfig cloud;
 
+    boolean isCloudEnabled() {
+        return cloud != null && cloud.isEnabled();
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -52,7 +58,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             return;
         }
         if (!isPackageDev()) {
-            if (cloud != null) {
+            if (isCloudEnabled()) {
                 getLog().info("Cloud support is enabled");
                 cloud.validate();
                 for (String layer : cloud.getExtraLayers(this)) {
@@ -65,7 +71,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected void configureCli(List<String> commands) {
-        if (cloud != null) {
+        if (isCloudEnabled()) {
             try {
                 cloud.addCLICommands(this, commands);
             } catch (Exception ex) {
@@ -76,7 +82,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected ConfigId getDefaultConfig() {
-        if(cloud == null) {
+        if(!isCloudEnabled()) {
             return super.getDefaultConfig();
         } else {
             return new ConfigId("standalone", "standalone-microprofile-ha.xml");
@@ -85,7 +91,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected void copyExtraContentInternal(Path wildflyDir, Path contentDir) throws Exception {
-        if (cloud != null) {
+        if (isCloudEnabled()) {
            cloud.copyExtraContent(this, wildflyDir, contentDir);
         }
     }

@@ -310,6 +310,8 @@ CLI configuration example:
 The configuration item ```<cloud></cloud>``` allows to build a bootable JAR for cloud environment. By default the server is configured to run inside an OpenShift context.
 Set the cloud child element ```<type>openshift|kubernetes</type>``` to select the targeted cloud platform.
 
+Adding the ```<cloud/>``` element to the plugin configuration automatically enables the cloud support. Set the cloud child element ```<enabled>false</enabled>``` to disable the cloud support. 
+
 The sever configuration is updated in order to properly operate in a cloud environment:
 
 * If no Galleon layers are provisioned, the provisioned configuration is ```standalone-microprofile-ha.xml``` instead of ```standalone-microprofile.xml```.
