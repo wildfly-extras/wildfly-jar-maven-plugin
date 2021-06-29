@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,10 @@ import org.junit.Test;
 /**
  * @author jdenise
  */
-public class ServerModeOpenShiftConfigurationTestCase extends AbstractBootableJarMojoTestCase {
+public class OpenShiftDisabledConfigurationTestCase extends AbstractBootableJarMojoTestCase {
 
-    public ServerModeOpenShiftConfigurationTestCase() {
-        super("test-servermode5-pom.xml", true, null);
+    public OpenShiftDisabledConfigurationTestCase() {
+        super("test-cloud-disabled-pom.xml", true, null);
     }
 
     @Test
@@ -35,14 +35,15 @@ public class ServerModeOpenShiftConfigurationTestCase extends AbstractBootableJa
         assertNotNull(mojo);
         assertFalse(mojo.layers.isEmpty());
         assertNotNull(mojo.cloud);
-        assertTrue(mojo.cloud.isEnabled());
-        assertEquals(1, mojo.layers.size());
+        assertFalse(mojo.cloud.isEnabled());
+        assertEquals(2, mojo.layers.size());
         assertEquals("jaxrs", mojo.layers.get(0));
+        assertEquals("management", mojo.layers.get(1));
         mojo.recordState = true;
         mojo.execute();
-        String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
+        String[] layers = {"jaxrs", "management"};
         final Path dir = getTestDir();
-        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null);
-        checkDeployment(false, dir, true);
+        checkJar(dir, true, true, layers, null);
+        checkDeployment(dir, true);
     }
 }
