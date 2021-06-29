@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>multiple-deployments-parent</artifactId>
-        <version>6.0.0.Alpha1-SNAPSHOT</version>
+        <version>6.0.0.Alpha1</version>
     </parent>
 
     <artifactId>multiple-deployments-server</artifactId>
