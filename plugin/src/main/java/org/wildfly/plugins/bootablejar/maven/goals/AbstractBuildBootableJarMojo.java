@@ -98,6 +98,7 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
+import org.wildfly.plugins.bootablejar.maven.common.ExternalDeploymentArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
@@ -374,6 +375,30 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "false")
     boolean disableWarnForArtifactDowngrade;
 
+    /**
+     * Disable JAR packaging. A directory (named {@code server} by default) containing
+     * the server and deployments is created in the project {@code target} directory.
+     * In this mode, multiple deployments can be added (in addition to the primary
+     * project artifact) by adding ear/war to the {@code external-deployments} configuration element.
+     *
+     * <br/>
+     * &lt;server&gt;<br/>
+     * &lt;enabled&gt; {@code true} or {@code false} ({@code true} by default)&lt;/enabled&gt;<br/>
+     * &lt;directory-name&gt;name of a directory inside the project target directory ({@code server} by default)&lt;/directory-name&gt;<br/>
+     * &lt;/server&gt;<br/>
+     */
+    @Parameter(alias = "server")
+    ServerModeConfig server;
+
+    /**
+     * You can deploy external deployments (deployment that is not built by the current Maven project) in the server
+     * by adding an {@code external-deployments} element to the plugin configuration.
+     * Each external deployment is composed of a groupId, artifactId, optional classifier and optional runtime-name. An external deployment must exist as a
+     * "non provided" Maven dependency. If no dependency for an external deployment is found, the plugin exits with an error.
+     */
+    @Parameter(alias = "external-deployments")
+    private List<ExternalDeploymentArtifact> externalDeployments = Collections.emptyList();
+
     MavenProjectArtifactVersions artifactVersions;
 
     @Inject
@@ -397,6 +422,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     public Path getJBossHome() {
         return wildflyDir;
+    }
+
+    public boolean isJarPackaging() {
+        return server == null || !server.isEnabled();
+    }
+
+    public String getServerDirectoryName() {
+        return (server == null) ? null : server.getDirectoryName();
     }
 
     @Override
@@ -430,8 +463,13 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(outputFileName);
         IoUtils.recursiveDelete(contentRoot);
+         if (isJarPackaging()) {
+            wildflyDir = contentRoot.resolve("wildfly");
+         } else {
+             wildflyDir = Paths.get(project.getBuild().getDirectory()).resolve(getServerDirectoryName());
+         }
+         IoUtils.recursiveDelete(wildflyDir);
 
-        wildflyDir = contentRoot.resolve("wildfly");
         Path contentDir = contentRoot.resolve("jar-content");
         try {
             Files.createDirectories(contentRoot);
@@ -503,7 +541,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             Path loggingFile = copyLoggingFile(contentRoot);
             if (bootLoggingConfig == null) {
-                generateLoggingConfig(wildflyDir);
+                if (isJarPackaging()) {
+                    generateLoggingConfig(wildflyDir);
+                }
             } else {
                 // Copy the user overridden logging.properties
                 final Path loggingConfig = resolvePath(bootLoggingConfig.toPath());
@@ -514,9 +554,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 Files.copy(loggingConfig, target, StandardCopyOption.REPLACE_EXISTING);
             }
             cleanupServer(wildflyDir);
-            zipServer(wildflyDir, contentDir);
-            buildJar(contentDir, jarFile, bootArtifact);
-            restoreLoggingFile(loggingFile);
+
+            if (isJarPackaging()) {
+                zipServer(wildflyDir, contentDir);
+                buildJar(contentDir, jarFile, bootArtifact);
+                restoreLoggingFile(loggingFile);
+            } else {
+                IoUtils.recursiveDelete(contentRoot);
+            }
         } catch (Exception ex) {
             if (ex instanceof MojoExecutionException) {
                 throw (MojoExecutionException) ex;
@@ -535,8 +580,9 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
             // End EE-9
         }
-
-        attachJar(jarFile);
+        if (isJarPackaging()) {
+            attachJar(jarFile);
+        }
     }
 
     protected boolean isPackageDev() {
@@ -657,12 +703,16 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private void cleanupServer(Path jbossHome) throws IOException {
         Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
         IoUtils.recursiveDelete(history);
+        Path tmp = jbossHome.resolve("standalone").resolve("tmp");
+        IoUtils.recursiveDelete(tmp);
+        Path log = jbossHome.resolve("standalone").resolve("log");
+        IoUtils.recursiveDelete(log);
         Files.deleteIfExists(jbossHome.resolve("README.txt"));
     }
 
     protected File validateProjectFile() throws MojoExecutionException {
         File f = getProjectFile();
-        if (f == null && !hollowJar) {
+        if (f == null && !hollowJar && externalDeployments.isEmpty()) {
             throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-jar:package from the command-line");
         }
         return f;
@@ -1209,14 +1259,16 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                     } catch (Exception ex) {
                         throw new MojoExecutionException("Error reading artifact versions", ex);
                     }
-                    for(Entry<String,String> entry : propsMap.entrySet()) {
-                        String value = entry.getValue();
-                        Artifact a = getArtifact(value);
-                        if ( BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
-                            // We got it.
-                            getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
-                            bootArtifact = a;
-                            break;
+                    if (isJarPackaging()) {
+                        for (Entry<String, String> entry : propsMap.entrySet()) {
+                            String value = entry.getValue();
+                            Artifact a = getArtifact(value);
+                            if (BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
+                                // We got it.
+                                getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                                bootArtifact = a;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1292,7 +1344,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                     // End patching dependencies.
                 }
             }
-            if (bootArtifact == null) {
+            if (isJarPackaging() && bootArtifact == null) {
                 throw new ProvisioningException("Server doesn't support bootable jar packaging");
             }
             pm.provision(rt.getLayout());
@@ -1341,14 +1393,29 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
             return;
         }
         File f = validateProjectFile();
-
-        String runtimeName = f.getName();
-        if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
-            if (contextRoot) {
-                runtimeName = "ROOT." + WAR;
+        if (f == null) {
+            if (externalDeployments.isEmpty()) {
+                throw new MojoExecutionException("No external deployment found");
             }
+            if (externalDeployments.size() == 1) {
+                deployExternalDeployment(externalDeployments.get(0), true, commands);
+            } else {
+                if (isJarPackaging()) {
+                     throw new MojoExecutionException("Multiple deployments not allowed for bootable JAR packaging.");
+                }
+                for (ExternalDeploymentArtifact externalDeployment : externalDeployments) {
+                    deployExternalDeployment(externalDeployment, false, commands);
+                }
+            }
+        } else {
+            String runtimeName = f.getName();
+            if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
+                if (contextRoot) {
+                    runtimeName = "ROOT." + WAR;
+                }
+            }
+            commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
         }
-        commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
     }
 
     private static void zipServer(Path home, Path contentDir) throws IOException {
@@ -1553,5 +1620,31 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setClassifier(coordinate.getClassifier());
         artifactResolver.resolve(artifact);
         return artifact.getPath();
+    }
+
+    private String getDeploymentRuntimeName(ExternalDeploymentArtifact externalDeployment, Artifact a, File artifactFile) throws MojoExecutionException {
+        String runtimeName = externalDeployment.getRuntimeName();
+        if (runtimeName == null) {
+            return null;
+        }
+        int index = artifactFile.getName().lastIndexOf(".");
+        if (index != -1) {
+            runtimeName = runtimeName + "." + artifactFile.getName().substring(index + 1);
+        }
+        return runtimeName;
+    }
+
+    private void deployExternalDeployment(ExternalDeploymentArtifact externalDeployment, boolean singleDeployment, List<String> commands) throws MojoExecutionException {
+        Artifact a = artifactVersions.getDeployment(externalDeployment);
+        File f = resolveArtifact(a).toFile();
+        String customRuntimeName = getDeploymentRuntimeName(externalDeployment, a, f);
+        String runtimeName = customRuntimeName == null ? f.getName() : customRuntimeName;
+        if (singleDeployment && a.getType().equalsIgnoreCase(WAR)) {
+            if (contextRoot) {
+                runtimeName = "ROOT." + WAR;
+            }
+        }
+        getLog().info("Deploying artifact " + f.getAbsolutePath() + ", runtime name " + runtimeName);
+        commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
     }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>37</version>
+    </parent>
+    <groupId>org.wildfly.plugins.tests</groupId>
+    <version>1.0.0.Final-SNAPSHOT</version>
+    <artifactId>test1</artifactId>
+    <packaging>war</packaging>
+
+    <properties>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>8.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- ###RESOURCES### !-->
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <version>PLUGIN_VERSION</version>
+                <configuration>
+                    <feature-pack-location>TEST_REPLACE</feature-pack-location>
+                    <record-state>true</record-state>
+                    <layers>
+                        <layer>jaxrs</layer>
+                        <layer>management</layer>
+                        <layer>logging</layer>
+                        <!-- ###LAYERS### !-->
+                    </layers>
+                    <excluded-layers>
+                        <layer>deployment-scanner</layer>
+                    </excluded-layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
+                    <cli-sessions>
+                        <cli-session>
+                            <script-files>
+                                <script>scripts/logging.cli</script>
+                            </script-files>
+                        </cli-session>
+                    </cli-sessions>
+                     <extra-server-content-dirs>
+                        <extra-content>extra-content</extra-content>
+                    </extra-server-content-dirs>
+                    <server/>
+                    <!-- The test requires it in CI-->
+                    <jvmArguments>
+                        <arg>-Dorg.wildfly.logging.skipLogManagerCheck=true</arg>
+                    </jvmArguments>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

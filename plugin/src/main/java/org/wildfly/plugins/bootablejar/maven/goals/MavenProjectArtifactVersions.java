@@ -16,11 +16,15 @@
  */
 package org.wildfly.plugins.bootablejar.maven.goals;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.wildfly.plugins.bootablejar.maven.common.ExternalDeploymentArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 final class MavenProjectArtifactVersions {
@@ -35,13 +39,33 @@ final class MavenProjectArtifactVersions {
     private final Map<String, Artifact> artifactVersions = new TreeMap<>();
     private final Map<String, Artifact> fpVersions = new TreeMap<>();
 
+    private final Set<Artifact> deployments = new HashSet<>();
+
     private MavenProjectArtifactVersions(MavenProject project) {
         for (Artifact artifact : project.getArtifacts()) {
             if (TEST_JAR.equals(artifact.getType()) || SYSTEM.equals(artifact.getScope())) {
                 continue;
             }
+            if ( ( artifact.getType().equalsIgnoreCase("ejb") || artifact.getType().equalsIgnoreCase("jar") ||
+                    artifact.getType().equalsIgnoreCase("war") || artifact.getType().equalsIgnoreCase("ear") ) && !artifact.getScope().equalsIgnoreCase("provided")) {
+                deployments.add(artifact);
+            }
             put(artifact);
         }
+    }
+
+    public Artifact getDeployment(ExternalDeploymentArtifact externalDeployment) throws MojoExecutionException {
+        for (Artifact a : deployments) {
+            if (externalDeployment.getGroupId() == null || externalDeployment.getArtifactId() == null) {
+                throw new MojoExecutionException("External deployment must have non null groupId and artifactId");
+            }
+            if (externalDeployment.getGroupId().equals(a.getGroupId()) && externalDeployment.getArtifactId().equals(a.getArtifactId())
+                    && (externalDeployment.getClassifier() == null || externalDeployment.getClassifier().equals(a.getClassifier()))) {
+                return a;
+            }
+        }
+        throw new MojoExecutionException("Deployment artifact not found in dependencies for " + externalDeployment.getGroupId() + ":" +
+                externalDeployment.getArtifactId());
     }
 
     public Artifact getArtifact(OverriddenArtifact artifact) {

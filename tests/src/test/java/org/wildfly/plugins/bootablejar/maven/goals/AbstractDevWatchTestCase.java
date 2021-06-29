@@ -19,7 +19,6 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -49,8 +48,16 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
     private Path logFile;
     private Path provisioningXml;
     private Path exitFile;
+    private boolean isJar;
+
     protected AbstractDevWatchTestCase(String projectName, String testName) {
         super(projectName, testName + "-watch-test", false, null);
+        isJar = true;
+    }
+
+    protected AbstractDevWatchTestCase(boolean isJar, String projectName, String testName) {
+        super(projectName, testName + "-watch-test", false, null);
+        this.isJar = isJar;
     }
 
     @Override
@@ -58,8 +65,10 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
         super.before();
         pomFile = getTestDir().resolve("pom.xml");
         patchPomFile(pomFile.toFile());
-        provisioningXml = getTestDir().resolve("target").
-                resolve("bootable-jar-build-artifacts").resolve("jar-content").resolve("provisioning.xml");
+        provisioningXml = isJar ? getTestDir().resolve("target").
+                resolve("bootable-jar-build-artifacts").resolve("jar-content").resolve("provisioning.xml") :
+                getTestDir().resolve("target").
+                resolve(SERVER_DEFAULT_DIR_NAME).resolve(".galleon").resolve("provisioning.xml");
         exitFile = getTestDir().resolve("please-exit-test" + System.currentTimeMillis());
     }
 
@@ -78,25 +87,10 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
                     // the clasloading context switch from AppClassloader to Maven RealmClass and all is reloaded without delegation
                     // breaking fully the loading env.
 
-                    // CI has a different executable path.
-                    Boolean isCI = Boolean.getBoolean("org.wildfly.bootable.jar.ci.execution");
                     String prop = "-D" + TEST_PROPERTY_EXIT + "=" + exitFile.getFileName().toString();
-                    List<String> cmd = new ArrayList<>();
-                    if (isWindows()) {
-                        if (isCI) {
-                            cmd.add("pwsh.EXE");
-                            cmd.add("-command ");
-                            cmd.add("mvn");
-                            prop = "'" + prop + "'";
-                        } else {
-                            cmd.add("mvn.cmd");
-                        }
-                    } else {
-                        cmd.add("mvn");
-                    }
-
-                    String[] mvnCmd = {"-f", pomFile.toAbsolutePath().toString(), "wildfly-jar:dev-watch", "-e", prop};
-                    cmd.addAll(Arrays.asList(mvnCmd));
+                    ArrayList<String> options = new ArrayList<>();
+                    options.add(prop);
+                    List<String> cmd = mvnCommand(pomFile, "wildfly-jar:dev-watch", options);
                     logFile = getTestDir().resolve("target").resolve("dev-watch-test-output.txt");
                     if (Files.exists(logFile)) {
                         Files.delete(logFile);

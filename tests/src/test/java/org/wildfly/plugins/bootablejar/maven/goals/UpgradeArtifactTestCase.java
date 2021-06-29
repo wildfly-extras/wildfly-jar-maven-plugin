@@ -33,9 +33,18 @@ import org.junit.Test;
  */
 public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
 
+    private final boolean isJar;
+
     public UpgradeArtifactTestCase() {
         super("upgrade-artifact-pom.xml", true, null);
+        isJar = true;
     }
+
+    protected UpgradeArtifactTestCase(boolean isJar, String pomFile) {
+        super(pomFile, true, null);
+        this.isJar = isJar;
+    }
+
 
     @Test
     public void testUpgrade() throws Exception {
@@ -78,9 +87,15 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
         mojo.execute();
         final Path dir = getTestDir();
         String[] layers = {"jaxrs-server"};
-        Path unzippedJar = checkAndGetWildFlyHome(dir, true, true, layers, null);
+        Path homeDir;
+        if (isJar) {
+            homeDir = checkAndGetWildFlyHome(dir, true, true, layers, null);
+        } else {
+            homeDir = dir.resolve("target").resolve(SERVER_DEFAULT_DIR_NAME);
+            checkWildFlyHome(homeDir, 1, true, layers, null);
+        }
         try {
-            Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
+            Path modulesDir = homeDir.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
             Assert.assertTrue(undertow.toString(), Files.exists(undertow));
             Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-" + wildflyeeVersion + ".jar");
@@ -88,11 +103,16 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
             Path resteasy = modulesDir.resolve("org").resolve("jboss").resolve("resteasy").resolve("resteasy-spring").resolve("main").
                     resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + ".jar");
             Assert.assertTrue(ee.toString(), Files.exists(ee));
+
+            if (isJar) {
+                checkJar(dir, true, true, layers, null);
+            } else {
+                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null);
+            }
+            checkDeployment(isJar, dir, true);
         } finally {
-            BuildBootableJarMojo.deleteDir(unzippedJar);
+            BuildBootableJarMojo.deleteDir(homeDir);
         }
-        checkJar(dir, true, true, layers, null);
-        checkDeployment(dir, true);
     }
 
     @Test

@@ -39,8 +39,16 @@ import org.wildfly.plugins.bootablejar.patching.ResourceItem;
  */
 public class PatchExistingModuleTestCase extends AbstractBootableJarMojoTestCase {
 
+    private final boolean isJar;
+
     public PatchExistingModuleTestCase() {
         super("test15-pom.xml", true, null);
+        isJar = true;
+    }
+
+     protected PatchExistingModuleTestCase(boolean isJar, String pomFile) {
+        super(pomFile, true, null);
+        this.isJar = isJar;
     }
 
     @Test
@@ -69,7 +77,13 @@ public class PatchExistingModuleTestCase extends AbstractBootableJarMojoTestCase
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
+        Path home;
+        if (isJar) {
+            home = checkAndGetWildFlyHome(dir, true, true, null, null);
+        } else {
+            home = dir.resolve("target").resolve(SERVER_DEFAULT_DIR_NAME);
+            checkWildFlyHome(home, 1, true, null, null);
+        }
         try {
             // original module
             final String modulePath = home.toString() + FILE_SEPARATOR + RELATIVE_MODULES_PATH
@@ -79,8 +93,12 @@ public class PatchExistingModuleTestCase extends AbstractBootableJarMojoTestCase
             final String patchedModulePath = home.toString() + FILE_SEPARATOR + RELATIVE_PATCHES_PATH
                     + FILE_SEPARATOR + baseLayerPatchID + FILE_SEPARATOR + moduleName.replace(".", FILE_SEPARATOR) + FILE_SEPARATOR + "main";
             assertTrue(Files.exists(Paths.get(patchedModulePath)));
-            checkJar(dir, true, true, null, null);
-            checkDeployment(dir, true);
+            if (isJar) {
+                checkJar(dir, true, true, null, null);
+            } else {
+                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, null, null);
+            }
+            checkDeployment(isJar, dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);
         }
