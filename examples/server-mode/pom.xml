@@ -107,7 +107,6 @@
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-jar-maven-plugin</artifactId>
-                        <version>1.4.0-SNAPSHOT</version>
                         <configuration>
                             <cloud/>
                         </configuration>
@@ -115,6 +114,7 @@
                     <plugin>
                         <groupId>org.eclipse.jkube</groupId>
                         <artifactId>openshift-maven-plugin</artifactId>
+                        <version>1.4.0-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <goals>
