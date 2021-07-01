@@ -466,6 +466,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
          if (isJarPackaging()) {
             wildflyDir = contentRoot.resolve("wildfly");
          } else {
+             getLog().info("Server mode is enabled");
              wildflyDir = Paths.get(project.getBuild().getDirectory()).resolve(getServerDirectoryName());
          }
          IoUtils.recursiveDelete(wildflyDir);
