@@ -41,7 +41,7 @@ public class WebServicesTestCase extends AbstractBootableJarMojoTestCase {
         assertEquals("webservices", mojo.layers.get(1));
         mojo.recordState = true;
         mojo.execute();
-        String[] layers = {"datasources-web-server", "webservices", "microprofile-health", "core-tools"};
+        String[] layers = {"datasources-web-server", "webservices", HEALTH, "core-tools"};
         final Path dir = getTestDir();
         checkJar(dir, true, true, layers, null, mojo.recordState,
                 "<wsdl-host>jbossws.undefined.host</wsdl-host>",

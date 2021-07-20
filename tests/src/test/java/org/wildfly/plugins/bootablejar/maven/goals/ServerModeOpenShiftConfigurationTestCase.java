@@ -40,7 +40,7 @@ public class ServerModeOpenShiftConfigurationTestCase extends AbstractBootableJa
         assertEquals("jaxrs", mojo.layers.get(0));
         mojo.recordState = true;
         mojo.execute();
-        String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
+        String[] layers = {"jaxrs", HEALTH, "core-tools"};
         final Path dir = getTestDir();
         checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null, mojo.recordState);
         checkDeployment(false, dir, true);
