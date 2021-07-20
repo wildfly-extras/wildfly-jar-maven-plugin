@@ -40,7 +40,7 @@ public class DevServerTestCase extends AbstractBootableJarMojoTestCase {
         assertEquals("deployment-scanner", mojo.excludedLayers.get(0));
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, false, false, null, null, "target" + File.separator + "deployments");
+        checkJar(dir, false, false, null, null, mojo.recordState, "target" + File.separator + "deployments");
         Path config = dir.resolve("target").resolve("build-artifacts").
                 resolve("wildfly").resolve("standalone").resolve("configuration").resolve("standalone.xml");
         assertTrue(Files.exists(config));

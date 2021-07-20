@@ -89,10 +89,10 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
         String[] layers = {"jaxrs-server"};
         Path homeDir;
         if (isJar) {
-            homeDir = checkAndGetWildFlyHome(dir, true, true, layers, null);
+            homeDir = checkAndGetWildFlyHome(dir, true, true, layers, null, mojo.recordState);
         } else {
             homeDir = dir.resolve("target").resolve(SERVER_DEFAULT_DIR_NAME);
-            checkWildFlyHome(homeDir, 1, true, layers, null);
+            checkWildFlyHome(homeDir, 1, true, layers, null, mojo.recordState);
         }
         try {
             Path modulesDir = homeDir.resolve("modules").resolve("system").resolve("layers").resolve("base");
@@ -105,9 +105,9 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
             Assert.assertTrue(ee.toString(), Files.exists(ee));
 
             if (isJar) {
-                checkJar(dir, true, true, layers, null);
+                checkJar(dir, true, true, layers, null, mojo.recordState);
             } else {
-                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null);
+                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null, mojo.recordState);
             }
             checkDeployment(isJar, dir, true);
         } finally {

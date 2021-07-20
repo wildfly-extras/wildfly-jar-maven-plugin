@@ -68,13 +68,13 @@ public class PatchUnexistingModuleTestCase extends AbstractBootableJarMojoTestCa
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
+        Path home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
         try {
             // The module exists because override-all
             final String modulePath = home.toString() + FILE_SEPARATOR + RELATIVE_PATCHES_PATH
                     + FILE_SEPARATOR + baseLayerPatchID + FILE_SEPARATOR + moduleName.replace(".", FILE_SEPARATOR) + FILE_SEPARATOR + "main";
             assertTrue(Files.exists(Paths.get(modulePath)));
-            checkJar(dir, true, true, null, null);
+            checkJar(dir, true, true, null, null, mojo.recordState);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);

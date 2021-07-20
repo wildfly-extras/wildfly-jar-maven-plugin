@@ -48,7 +48,7 @@ public class DefaultConfigurationSecurityManagerTestCase extends AbstractBootabl
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null);
+        checkJar(dir, true, true, null, null, mojo.recordState);
         checkDeployment(dir, true, "-secmgr");
     }
 }

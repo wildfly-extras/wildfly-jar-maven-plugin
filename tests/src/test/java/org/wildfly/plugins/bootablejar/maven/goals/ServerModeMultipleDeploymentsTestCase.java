@@ -49,7 +49,7 @@ public class ServerModeMultipleDeploymentsTestCase extends AbstractBootableJarMo
         Path serverPomFile = serverDir.resolve("pom.xml");
         BuildBootableJarMojo mojo = lookupMojo(serverPomFile, "package");
         mojo.execute();
-        checkServer(serverDir, SERVER_DEFAULT_DIR_NAME, 2, false, null, null);
+        checkServer(serverDir, SERVER_DEFAULT_DIR_NAME, 2, false, null, null, mojo.recordState);
         checkURL(false, serverDir, null, createUrl(TestEnvironment.getHttpPort(), "war1"), true);
         checkURL(false, serverDir, null, createUrl(TestEnvironment.getHttpPort(), "war2"), true);
     }

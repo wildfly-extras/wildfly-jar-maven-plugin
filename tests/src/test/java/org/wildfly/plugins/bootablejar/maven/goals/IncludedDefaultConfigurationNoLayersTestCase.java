@@ -38,7 +38,7 @@ public class IncludedDefaultConfigurationNoLayersTestCase extends AbstractBootab
         assertTrue(mojo.layers.isEmpty());
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null);
+        checkJar(dir, true, true, null, null, mojo.recordState);
         checkDeployment(dir, true);
     }
 }

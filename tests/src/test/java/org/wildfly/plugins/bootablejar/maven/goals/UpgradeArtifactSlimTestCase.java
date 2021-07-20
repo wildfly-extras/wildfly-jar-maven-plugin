@@ -46,7 +46,7 @@ public class UpgradeArtifactSlimTestCase extends AbstractBootableJarMojoTestCase
         mojo.execute();
         final Path dir = getTestDir();
         String[] layers = {"jaxrs-server"};
-        Path unzippedJar = checkAndGetWildFlyHome(dir, true, true, layers, null);
+        Path unzippedJar = checkAndGetWildFlyHome(dir, true, true, layers, null, mojo.recordState);
         try {
             Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path module = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("module.xml");
@@ -58,7 +58,7 @@ public class UpgradeArtifactSlimTestCase extends AbstractBootableJarMojoTestCase
         } finally {
             BuildBootableJarMojo.deleteDir(unzippedJar);
         }
-        checkJar(dir, true, true, layers, null);
+        checkJar(dir, true, true, layers, null, mojo.recordState);
         checkDeployment(dir, true);
     }
 }

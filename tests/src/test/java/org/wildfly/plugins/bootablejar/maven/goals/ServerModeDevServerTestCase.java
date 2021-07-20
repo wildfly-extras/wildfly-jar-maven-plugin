@@ -40,7 +40,7 @@ public class ServerModeDevServerTestCase extends AbstractBootableJarMojoTestCase
         assertEquals("deployment-scanner", mojo.excludedLayers.get(0));
         mojo.execute();
         final Path dir = getTestDir();
-        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 0, false, null, null, "target" + File.separator + "deployments");
+        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 0, false, null, null, mojo.recordState, "target" + File.separator + "deployments");
         Path config = dir.resolve("target").
                 resolve(SERVER_DEFAULT_DIR_NAME).resolve("standalone").resolve("configuration").resolve("standalone.xml");
         assertTrue(Files.exists(config));

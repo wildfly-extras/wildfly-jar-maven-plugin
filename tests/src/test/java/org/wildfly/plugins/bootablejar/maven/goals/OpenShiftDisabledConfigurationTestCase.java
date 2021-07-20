@@ -43,7 +43,7 @@ public class OpenShiftDisabledConfigurationTestCase extends AbstractBootableJarM
         mojo.execute();
         String[] layers = {"jaxrs", "management"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, layers, null);
+        checkJar(dir, true, true, layers, null, mojo.recordState);
         checkDeployment(dir, true);
     }
 }
