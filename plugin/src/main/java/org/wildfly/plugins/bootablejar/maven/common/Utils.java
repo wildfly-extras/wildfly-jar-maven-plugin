@@ -17,21 +17,59 @@
 package org.wildfly.plugins.bootablejar.maven.common;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.universe.FeaturePackLocation;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
  * @author jdenise
  */
 public class Utils {
+
+    private static final String HEALTH = "health";
+    private static final String MP_HEALTH = "microprofile-health";
+
+    public static class ProvisioningSpecifics {
+
+        private final boolean isMicroprofile;
+        private final String healthLayer;
+
+        ProvisioningSpecifics(Set<String> allLayers) {
+            if (allLayers.contains(MP_HEALTH)) {
+                healthLayer = MP_HEALTH;
+                isMicroprofile = true;
+            } else {
+                if (allLayers.contains(HEALTH)) {
+                    healthLayer = HEALTH;
+                } else {
+                    healthLayer = null;
+                }
+                isMicroprofile = false;
+            }
+        }
+
+        public String getHealthLayer() {
+            return healthLayer;
+        }
+    }
 
     private static final Pattern WHITESPACE_IF_NOT_QUOTED = Pattern.compile("(\\S+\"[^\"]+\")|\\S+");
 
@@ -68,4 +106,40 @@ public class Utils {
         return args;
     }
 
+    public static ProvisioningSpecifics getSpecifics(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
+        return new ProvisioningSpecifics(getAllLayers(fps, pm));
+    }
+
+    private static Set<String> getAllLayers(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
+        Set<String> allLayers = new HashSet<>();
+        for (FeaturePack fp : fps) {
+            final FeaturePackLocation fpl;
+            if (fp.getNormalizedPath() != null) {
+                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+            } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
+                String coords = fp.getMavenCoords();
+                fpl = FeaturePackLocation.fromString(coords);
+            } else {
+                fpl = FeaturePackLocation.fromString(fp.getLocation());
+            }
+            ProvisioningConfig pConfig = ProvisioningConfig.builder().
+                    addFeaturePackDep(FeaturePackConfig.builder(fpl).build()).build();
+            try (ProvisioningLayout<FeaturePackLayout> layout = pm.
+                    getLayoutFactory().newConfigLayout(pConfig)) {
+                allLayers.addAll(getAllLayers(layout));
+            }
+        }
+        return allLayers;
+    }
+
+    private static Set<String> getAllLayers(ProvisioningLayout<FeaturePackLayout> pLayout)
+            throws ProvisioningException, IOException {
+        Set<String> layers = new HashSet<>();
+        for (FeaturePackLayout fp : pLayout.getOrderedFeaturePacks()) {
+            for (ConfigId layer : fp.loadLayers()) {
+                layers.add(layer.getName());
+            }
+        }
+        return layers;
+    }
 }

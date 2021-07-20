@@ -255,7 +255,7 @@ Set the cloud child element ```<type>openshift|kubernetes</type>``` to select th
 The sever configuration is updated in order to properly operate in a cloud environment:
 
 * If no Galleon layers are provisioned, the provisioned configuration is ```standalone-microprofile-ha.xml``` instead of ```standalone-microprofile.xml```.
-* The ```microprofile-health``` and ```core-tools``` (that contains WildFly CLI) Galleon layers are provisioned. They are required for the  OpenShift probes and WildFly OpenShift Operator to properly operate.
+* The ```microprofile-health``` (or ```health``` layer if the WildFly Galleon feature-pack doesn't define ```microprofile-health``` layer) and ```core-tools``` (that contains WildFly CLI) Galleon layers are provisioned. They are required for the  OpenShift probes and WildFly OpenShift Operator to properly operate.
 * The public and private inet addresses are bound to the value of the ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS).
 * The management inet address is bound to the 0.0.0.0 inet address allowing for local (required by WildFly CLI) and remote access (required by OpenShift readiness and liveness probes).
 * The http and https socket-bindings are bound to 0.0.0.0 inet address.

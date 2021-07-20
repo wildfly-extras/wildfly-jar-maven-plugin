@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.jboss.galleon.config.ConfigId;
+import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
 
 /**
  * Build a bootable JAR containing application and provisioned server
@@ -51,16 +52,21 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
+        super.execute();
+    }
+
+    @Override
+    protected void willProvision(ProvisioningSpecifics specifics) throws
+            MojoExecutionException {
         if (!isPackageDev()) {
             if (cloud != null) {
                 getLog().info("Cloud support is enabled");
                 cloud.validate();
-                for (String layer : cloud.getExtraLayers(this)) {
+                for (String layer : cloud.getExtraLayers(this, specifics.getHealthLayer(), getLog())) {
                     addExtraLayer(layer);
                 }
             }
         }
-        super.execute();
     }
 
     @Override

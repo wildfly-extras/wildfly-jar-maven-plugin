@@ -75,7 +75,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
-
+    static final String HEALTH = System.getProperty("test.health");
     private final String projectFile;
     private final boolean copyWar;
     private final String provisioning;

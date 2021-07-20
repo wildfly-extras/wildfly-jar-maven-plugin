@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.jboss.galleon.util.ZipUtils;
@@ -99,9 +100,14 @@ public class CloudConfig {
         ZipUtils.unzip(extensionJar, contentDir);
     }
 
-    public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {
+    public Set<String> getExtraLayers(BuildBootableJarMojo mojo, String healthLayer, Log log) {
         Set<String> set = new HashSet<>();
-        set.add("microprofile-health");
+        if (healthLayer == null) {
+            log.warn("No health layer found in feature-packs, health endpoint will be not available.");
+        } else {
+            set.add(healthLayer);
+            log.debug("Adding health layer " + healthLayer);
+        }
         set.add("core-tools");
         return set;
     }

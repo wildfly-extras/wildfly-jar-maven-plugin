@@ -102,6 +102,8 @@ import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
+import org.wildfly.plugins.bootablejar.maven.common.Utils;
+import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -109,7 +111,7 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  *
  * @author jfdenise
  */
-public class AbstractBuildBootableJarMojo extends AbstractMojo {
+public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     public static final String BOOTABLE_SUFFIX = "bootable";
     public static final String JAR = "jar";
@@ -991,24 +993,6 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    /**
-     * Galleon layers based config that uses the FPL.
-     */
-    private class LayersFPLConfig extends AbstractLayersConfig {
-
-        private LayersFPLConfig() throws ProvisioningDescriptionException, ProvisioningException {
-        }
-        @Override
-        public ProvisioningConfig.Builder buildState() throws ProvisioningException {
-            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
-            FeaturePackConfig.Builder builder = FeaturePackConfig.
-                    builder(FeaturePackLocation.fromString(featurePackLocation)).
-                    setInheritPackages(false).setInheritConfigs(false);
-            FeaturePackConfig dependency = builder.build();
-            state.addFeaturePackDep(dependency);
-            return state;
-        }
-    }
 
     /**
      * Galleon layers based config that uses the set of feature-packs.
@@ -1058,31 +1042,6 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     /**
-     * A config based on a default config retrieved in the FPL.
-     */
-    private class DefaultFPLConfig extends AbstractDefaultConfig {
-        private final ConfigId configId;
-
-        private DefaultFPLConfig(ConfigId configId) throws ProvisioningException {
-            super(configId);
-            this.configId = configId;
-        }
-
-        @Override
-        protected ProvisioningConfig.Builder buildState() throws ProvisioningException {
-            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
-            FeaturePackConfig.Builder builder = FeaturePackConfig.
-                    builder(FeaturePackLocation.fromString(featurePackLocation)).
-                    setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(configId.getModel(),
-                    configId.getName());
-            FeaturePackConfig dependency = builder.build();
-            state.addFeaturePackDep(dependency);
-            return state;
-        }
-
-    }
-
-    /**
      * A config based on the set of feature-packs. Default config is explicitly
      * included or is the default.
      */
@@ -1103,26 +1062,18 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     }
 
-    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
-        boolean isLayerBasedConfig = !layers.isEmpty();
-        boolean hasFeaturePack = featurePackLocation != null || !featurePacks.isEmpty();
-        boolean hasProvisioningFile = Files.exists(getProvisioningFile());
-        if (!hasFeaturePack && !hasProvisioningFile) {
-            throw new ProvisioningException("No valid provisioning configuration, "
-                    + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
-        }
-
+    private void normalizeFeaturePackList() throws MojoExecutionException {
         if (featurePackLocation != null && !featurePacks.isEmpty()) {
             throw new MojoExecutionException("feature-pack-location can't be used with a list of feature-packs");
-        }
-
-        if (hasFeaturePack && hasProvisioningFile) {
-            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
         }
 
         // Retrieve versions from Maven in case versions not set.
         if (featurePackLocation != null) {
             featurePackLocation = MavenUpgrade.locationWithVersion(featurePackLocation, artifactVersions);
+            featurePacks = new ArrayList<>();
+            FeaturePack fp = new FeaturePack();
+            fp.setLocation(featurePackLocation);
+            featurePacks.add(fp);
         } else {
             for (FeaturePack fp : featurePacks) {
                 if (fp.getLocation() != null) {
@@ -1141,26 +1092,29 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
         }
+    }
+
+    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
+        boolean isLayerBasedConfig = !layers.isEmpty();
+        boolean hasFeaturePack = !featurePacks.isEmpty();
+        boolean hasProvisioningFile = Files.exists(getProvisioningFile());
+        if (!hasFeaturePack && !hasProvisioningFile) {
+            throw new ProvisioningException("No valid provisioning configuration, "
+                    + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
+        }
+
+        if (hasFeaturePack && hasProvisioningFile) {
+            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
+        }
 
         if (isLayerBasedConfig) {
             if (!hasFeaturePack) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
             }
-            if (featurePackLocation == null) {
-                getLog().info("Provisioning server using feature-packs");
-                return buildFeaturePacksConfig(pm, true);
-            } else {
-                getLog().info("Provisioning server configuration based on the set of configured layers");
-                return new LayersFPLConfig();
-            }
+            return buildFeaturePacksConfig(pm, true);
         }
 
-        if (featurePackLocation != null) {
-            ConfigId defaultConfig = getDefaultConfig();
-            getLog().info("Provisioning server configuration based on the " + defaultConfig.getName() + " default configuration");
-            return new DefaultFPLConfig(defaultConfig);
-        }
-
+        // Based on default config
         if (!featurePacks.isEmpty()) {
             getLog().info("Provisioning server using feature-packs");
             return buildFeaturePacksConfig(pm, isLayerBasedConfig);
@@ -1173,6 +1127,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
         throw new ProvisioningException("Invalid Galleon configuration");
     }
 
+    private void willProvision(List<FeaturePack> featurePacks, ProvisioningManager pm)
+            throws MojoExecutionException, ProvisioningException, IOException {
+        ProvisioningSpecifics specifics = Utils.getSpecifics(featurePacks, pm);
+        willProvision(specifics);
+    }
+
+    protected abstract void willProvision(ProvisioningSpecifics specifics) throws MojoExecutionException;
+
     private Artifact provisionServer(Path home, Path outputProvisioningFile, Path workDir) throws ProvisioningException,
             MojoExecutionException, IOException, XMLStreamException {
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
@@ -1182,6 +1144,10 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setRecordState(recordState)
                 .build()) {
 
+            // Prior to build the config, sub classes could have to inject content to the config according to the
+            // provisioned FP.
+            normalizeFeaturePackList();
+            willProvision(featurePacks, pm);
             ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
