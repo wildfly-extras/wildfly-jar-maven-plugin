@@ -47,7 +47,7 @@ public class IncludedDefaultConfigurationCloudTestCase extends AbstractBootableJ
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, "default-cache=\"passivation\"", "proxy-address-forwarding=\"true\"", "bindall");
+        checkJar(dir, true, true, null, null, mojo.recordState, "default-cache=\"passivation\"", "proxy-address-forwarding=\"true\"", "bindall");
         checkDeployment(dir, true);
     }
 }

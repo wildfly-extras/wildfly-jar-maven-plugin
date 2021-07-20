@@ -57,7 +57,7 @@ public class PatchAddModuleTestCase extends AbstractBootableJarMojoTestCase {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
+        Path home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
         try {
             // original module doesn't exist
             final String modulePath = home.toString() + FILE_SEPARATOR + RELATIVE_MODULES_PATH
@@ -66,7 +66,7 @@ public class PatchAddModuleTestCase extends AbstractBootableJarMojoTestCase {
             final String patchedModulePath = home.toString() + FILE_SEPARATOR + RELATIVE_PATCHES_PATH
                     + FILE_SEPARATOR + layerPatchID + FILE_SEPARATOR + moduleName.replace(".", FILE_SEPARATOR) + FILE_SEPARATOR + "main";
             assertTrue(Files.exists(Paths.get(patchedModulePath)));
-            checkJar(dir, true, true, null, null);
+            checkJar(dir, true, true, null, null, mojo.recordState);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);

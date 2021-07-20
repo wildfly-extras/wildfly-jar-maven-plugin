@@ -127,6 +127,7 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
     private static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";
     private static final String JBOSS_PROVISIONING_MAVEN_REPO = "jboss-maven-provisioning-repo";
     private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
+    private static final String PLUGIN_PROVISIONING_FILE = ".wildfly-jar-plugin-provisioning.xml";
 
     static final String WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH = "wildfly/artifact-versions.properties";
     @Component
@@ -1296,6 +1297,14 @@ public class AbstractBuildBootableJarMojo extends AbstractMojo {
                 throw new ProvisioningException("Server doesn't support bootable jar packaging");
             }
             pm.provision(rt.getLayout());
+
+            if (!recordState) {
+                Path file = home.resolve(PLUGIN_PROVISIONING_FILE);
+                try (FileWriter writer = new FileWriter(file.toFile())) {
+                    ProvisioningXmlWriter.getInstance().write(config, writer);
+                }
+            }
+
             return bootArtifact;
         }
     }

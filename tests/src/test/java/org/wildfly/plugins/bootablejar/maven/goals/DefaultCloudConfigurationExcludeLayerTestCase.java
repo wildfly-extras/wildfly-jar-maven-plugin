@@ -48,7 +48,7 @@ public class DefaultCloudConfigurationExcludeLayerTestCase extends AbstractBoota
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, "org.jboss.as.clustering.jgroups", "proxy-address-forwarding=\"true\"", "bindall");
+        checkJar(dir, true, true, null, null, mojo.recordState, "org.jboss.as.clustering.jgroups", "proxy-address-forwarding=\"true\"", "bindall");
         checkDeployment(dir, true);
     }
 }

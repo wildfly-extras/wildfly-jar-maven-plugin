@@ -42,7 +42,7 @@ public class LayersOverrideProvisioningConfigurationTestCase extends AbstractBoo
         mojo.execute();
         String[] layers = {"jaxrs", "management"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, layers, null, "foobootable", "foobootable2");
+        checkJar(dir, true, true, layers, null, mojo.recordState, "foobootable", "foobootable2");
         checkDeployment(dir, true);
     }
 }
