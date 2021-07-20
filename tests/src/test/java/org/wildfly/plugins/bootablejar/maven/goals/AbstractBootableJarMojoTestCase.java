@@ -229,7 +229,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected Path checkAndGetWildFlyHome(Path dir, boolean expectDeployment, boolean isRoot,
-                            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
+                            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
         Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX);
         try {
@@ -244,7 +244,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             assertTrue(Files.exists(provisioningFile));
 
             ZipUtils.unzip(zippedWildfly, wildflyHome);
-            checkWildFlyHome(wildflyHome, expectDeployment ? 1 : 0, isRoot, layers, excludedLayers, configTokens);
+            checkWildFlyHome(wildflyHome, expectDeployment ? 1 : 0, isRoot, layers, excludedLayers, stateRecorded, configTokens);
         } finally {
             BuildBootableJarMojo.deleteDir(tmpDir);
         }
@@ -252,7 +252,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected void checkWildFlyHome(Path wildflyHome, int numDeployments, boolean isRoot,
-            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
+            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
         if (numDeployments > 0) {
             // Must retrieve all content directories.
             Path rootDir = wildflyHome.resolve("standalone/data/content");
@@ -301,13 +301,15 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                 assertTrue(str, str.contains(token));
             }
         }
+         assertEquals(Files.exists(wildflyHome.resolve(".galleon")), stateRecorded);
+         assertEquals(Files.exists(wildflyHome.resolve(".wildfly-jar-plugin-provisioning.xml")), !stateRecorded);
     }
 
     protected void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
-            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
+            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
         Path wildflyHome = null;
         try {
-            wildflyHome = checkAndGetWildFlyHome(dir, expectDeployment, isRoot, layers, excludedLayers, configTokens);
+            wildflyHome = checkAndGetWildFlyHome(dir, expectDeployment, isRoot, layers, excludedLayers, stateRecorded, configTokens);
         } finally {
             if (wildflyHome != null) {
                 BuildBootableJarMojo.deleteDir(wildflyHome);
@@ -316,9 +318,9 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected void checkServer(Path dir, String installDirName, int numDeployments, boolean isRoot,
-            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
+            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
         Path wildflyHome = dir.resolve("target").resolve(installDirName);
-        checkWildFlyHome(wildflyHome, numDeployments, isRoot, layers, excludedLayers, configTokens);
+        checkWildFlyHome(wildflyHome, numDeployments, isRoot, layers, excludedLayers, stateRecorded, configTokens);
     }
 
     protected void checkDeployment(Path dir, String fileName, boolean isRoot) throws Exception {

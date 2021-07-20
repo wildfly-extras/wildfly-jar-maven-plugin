@@ -42,7 +42,7 @@ public class ServerModeOpenShiftConfigurationTestCase extends AbstractBootableJa
         mojo.execute();
         String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
         final Path dir = getTestDir();
-        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null);
+        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, layers, null, mojo.recordState);
         checkDeployment(false, dir, true);
     }
 }

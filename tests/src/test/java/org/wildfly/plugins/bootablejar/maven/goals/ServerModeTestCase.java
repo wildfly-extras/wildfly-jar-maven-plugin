@@ -39,7 +39,7 @@ public class ServerModeTestCase extends AbstractBootableJarMojoTestCase {
         mojo.execute();
         String[] layers = {"jaxrs", "management"};
         final Path dir = getTestDir();
-        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, null, null);
+        checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, null, null, mojo.recordState);
         checkDeployment(false, dir, true);
     }
 }

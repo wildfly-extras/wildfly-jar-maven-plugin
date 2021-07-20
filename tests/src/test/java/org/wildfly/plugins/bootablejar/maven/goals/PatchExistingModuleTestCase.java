@@ -79,10 +79,10 @@ public class PatchExistingModuleTestCase extends AbstractBootableJarMojoTestCase
         mojo.execute();
         Path home;
         if (isJar) {
-            home = checkAndGetWildFlyHome(dir, true, true, null, null);
+            home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
         } else {
             home = dir.resolve("target").resolve(SERVER_DEFAULT_DIR_NAME);
-            checkWildFlyHome(home, 1, true, null, null);
+            checkWildFlyHome(home, 1, true, null, null, mojo.recordState);
         }
         try {
             // original module
@@ -94,9 +94,9 @@ public class PatchExistingModuleTestCase extends AbstractBootableJarMojoTestCase
                     + FILE_SEPARATOR + baseLayerPatchID + FILE_SEPARATOR + moduleName.replace(".", FILE_SEPARATOR) + FILE_SEPARATOR + "main";
             assertTrue(Files.exists(Paths.get(patchedModulePath)));
             if (isJar) {
-                checkJar(dir, true, true, null, null);
+                checkJar(dir, true, true, null, null, mojo.recordState);
             } else {
-                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, null, null);
+                checkServer(dir, SERVER_DEFAULT_DIR_NAME, 1, true, null, null, mojo.recordState);
             }
             checkDeployment(isJar, dir, true);
         } finally {

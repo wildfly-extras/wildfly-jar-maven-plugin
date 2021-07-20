@@ -44,13 +44,13 @@ public class PatchUnexistingMiscTestCase extends AbstractBootableJarMojoTestCase
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
+        Path home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
         try {
             Path patchedCli = home.resolve("bin").resolve("jboss-cli.sh");
             assertTrue(Files.exists(patchedCli));
             String patchedContent = readFile(patchedCli.toString());
             assertEquals("check content of file after patch", testContent, patchedContent);
-            checkJar(dir, true, true, null, null);
+            checkJar(dir, true, true, null, null, mojo.recordState);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);

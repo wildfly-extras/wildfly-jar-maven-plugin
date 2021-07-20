@@ -38,7 +38,7 @@ public class ProvisioningConfigurationTestCase extends AbstractBootableJarMojoTe
         mojo.execute();
         String[] layers = {"web-server", "management"};
         final Path dir = getTestDir();
-        checkJar(dir, true, false, layers, null);
+        checkJar(dir, true, false, layers, null, mojo.recordState);
         checkDeployment(dir, false);
     }
 }
