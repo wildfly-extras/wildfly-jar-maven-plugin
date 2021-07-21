@@ -79,10 +79,12 @@
 
     <maven.test.skip>false</maven.test.skip>
     <skipTests>${maven.test.skip}</skipTests>
-    
+
+    <test.ee.fpl>wildfly-ee@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.ee.fpl>
     <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
     <test.version.wildfly>${version.wildfly}</test.version.wildfly>
     <test.version.wildfly-ee.upgrade>22.0.0.Final</test.version.wildfly-ee.upgrade>
+    <test.patch.ee.product>WildFly EE</test.patch.ee.product>
     <test.patch.product>WildFly Full</test.patch.product>
     <test.patch.version>${version.wildfly}</test.patch.version>
     <wildfly.artifactId>wildfly-galleon-pack</wildfly.artifactId>
