@@ -12,7 +12,7 @@
     <properties>
         <version.bootable.jar>6.0.0.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
-        <version.wildfly>24.0.0.Final</version.wildfly>
+        <version.wildfly>24.0.1.Final</version.wildfly>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -20,9 +20,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <!-- WARNING This will have to be back to ${version.wildfly} for both boms -->
-        <version.microprofile.bom>24.0.0.SP1</version.microprofile.bom>
-        <version.server.bom>24.0.0.SP1</version.server.bom>
+        <version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
+        <version.server.bom>${version.wildfly}</version.server.bom>
         <version.org.wildfly.arquillian>3.0.0.Final</version.org.wildfly.arquillian>
         <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
         <version.junit>4.13.1</version.junit>
