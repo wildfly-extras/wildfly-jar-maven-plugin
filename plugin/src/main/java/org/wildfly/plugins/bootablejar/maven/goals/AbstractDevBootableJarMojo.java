@@ -62,7 +62,7 @@ public abstract class AbstractDevBootableJarMojo extends BuildBootableJarMojo {
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
 
     protected BootableJarCommandBuilder buildCommandBuilder(boolean redirect) throws MojoExecutionException {
-        BootableJarCommandBuilder builder =  BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
+        BootableJarCommandBuilder builder =  BootableJarCommandBuilder.of(Utils.getBootableJarPath(outputFileName, project, "dev"))
                 .addJavaOptions(jvmArguments)
                 .addServerArguments(arguments);
         if (redirect) {
