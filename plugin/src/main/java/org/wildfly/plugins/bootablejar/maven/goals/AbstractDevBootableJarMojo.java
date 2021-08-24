@@ -65,7 +65,7 @@ public abstract class AbstractDevBootableJarMojo extends BuildBootableJarMojo {
 
     protected Launcher buildLauncher(boolean redirect) throws MojoExecutionException {
         if (isJarPackaging()) {
-           BootableJarCommandBuilder builder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(null, project, "dev"))
+           BootableJarCommandBuilder builder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(outputFileName, project, "dev"))
                     .addJavaOptions(jvmArguments)
                     .addServerArguments(arguments);
             if (redirect) {
