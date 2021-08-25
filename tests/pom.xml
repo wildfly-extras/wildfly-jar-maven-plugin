@@ -213,7 +213,6 @@
                             </systemProperties>
                             <includes>
                                 <include>org/wildfly/plugins/bootablejar/maven/goals/OpenShiftConfigurationTestCase.java</include>
-                                <include>org/wildfly/plugins/bootablejar/maven/goals/ServerModeOpenShiftConfigurationTestCase.java</include>
                             </includes>
                         </configuration>
                     </execution>

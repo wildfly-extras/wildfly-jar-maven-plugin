@@ -271,7 +271,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
         } finally {
             BuildBootableJarMojo.deleteDir(tmpDir);
-        }        
+        }
          assertEquals(Files.exists(wildflyHome.resolve(".galleon")), stateRecorded);
          assertEquals(Files.exists(wildflyHome.resolve(".wildfly-jar-plugin-provisioning.xml")), !stateRecorded);
          return wildflyHome;
