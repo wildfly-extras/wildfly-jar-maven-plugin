@@ -54,9 +54,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.wildfly.core.launcher.ProcessHelper;
-import org.wildfly.core.launcher.StandaloneCommandBuilder;
 import org.wildfly.plugin.core.ServerHelper;
-import static org.wildfly.plugins.bootablejar.maven.goals.AbstractDevWatchTestCase.isWindows;
 
 /**
  * @author jdenise
@@ -77,8 +75,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
-    static final String HEALTH = System.getProperty("test.health");
-    static final String SERVER_DEFAULT_DIR_NAME ="server";
+
     private final String projectFile;
     private final boolean copyWar;
     private final String provisioning;
@@ -122,8 +119,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             //Delete the build artifact dir
             Path buildArtifacts = getTestDir().resolve("target").resolve("bootable-jar-build-artifacts/");
             BuildBootableJarMojo.deleteDir(buildArtifacts);
-            Path serverDir = getTestDir().resolve("target").resolve("server");
-            BuildBootableJarMojo.deleteDir(serverDir);
         }
     }
 
@@ -134,8 +129,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             //Delete the build artifact dir
             Path buildArtifacts = getTestDir().resolve("target").resolve("bootable-jar-build-artifacts/");
             BuildBootableJarMojo.deleteDir(buildArtifacts);
-            Path serverDir = getTestDir().resolve("target").resolve("server");
-            BuildBootableJarMojo.deleteDir(serverDir);
         }
     }
 
@@ -146,11 +139,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     @SuppressWarnings("unchecked")
     <T extends AbstractBuildBootableJarMojo> T lookupMojo(final String goal) throws Exception {
         return (T) lookupConfiguredMojo(testDir.resolve("pom.xml").toFile(), goal);
-    }
-
-    @SuppressWarnings("unchecked")
-    <T extends AbstractBuildBootableJarMojo> T lookupMojo(Path pomFile, final String goal) throws Exception {
-        return (T) lookupConfiguredMojo(pomFile.toFile(), goal);
     }
 
     @Override
@@ -230,7 +218,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected Path checkAndGetWildFlyHome(Path dir, boolean expectDeployment, boolean isRoot,
-                            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
+                            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
         Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX);
         try {
@@ -245,72 +233,53 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             assertTrue(Files.exists(provisioningFile));
 
             ZipUtils.unzip(zippedWildfly, wildflyHome);
-            checkWildFlyHome(wildflyHome, expectDeployment ? 1 : 0, isRoot, layers, excludedLayers, stateRecorded, configTokens);
+            if (expectDeployment) {
+                assertEquals(1, Files.list(wildflyHome.resolve("standalone/data/content")).count());
+            } else {
+                // The directory should be empty if no deployment is expected, however in some cases it may not even be
+                // created.
+                if (Files.exists(wildflyHome.resolve("standalone/data/content"))) {
+                    assertEquals(0, Files.list(wildflyHome.resolve("standalone/data/content")).count());
+                }
+            }
+            Path history = wildflyHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
+            assertFalse(Files.exists(history));
+
+            Path configFile = wildflyHome.resolve("standalone/configuration/standalone.xml");
+            assertTrue(Files.exists(configFile));
+            if (layers != null) {
+                Path provisioning = PathsUtils.getProvisioningXml(wildflyHome);
+                assertTrue(Files.exists(provisioning));
+                ProvisioningConfig config = ProvisioningXmlParser.parse(provisioning);
+                ConfigModel cm = config.getDefinedConfig(new ConfigId("standalone", "standalone.xml"));
+                assertNotNull(config.getDefinedConfigs().toString(), cm);
+                assertEquals(layers.length, cm.getIncludedLayers().size());
+                for (String layer : layers) {
+                    assertTrue(cm.getIncludedLayers().contains(layer));
+                }
+                if (excludedLayers != null) {
+                    for (String layer : excludedLayers) {
+                        assertTrue(cm.getExcludedLayers().contains(layer));
+                    }
+                }
+            }
+            if (configTokens != null) {
+                String str = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
+                for (String token : configTokens) {
+                    assertTrue(str, str.contains(token));
+                }
+            }
         } finally {
             BuildBootableJarMojo.deleteDir(tmpDir);
         }
         return wildflyHome;
     }
 
-    protected void checkWildFlyHome(Path wildflyHome, int numDeployments, boolean isRoot,
-            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
-        if (numDeployments > 0) {
-            // Must retrieve all content directories.
-            Path rootDir = wildflyHome.resolve("standalone/data/content");
-            List<Path> deployments = new ArrayList<>();
-            Files.walkFileTree(rootDir, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                        if ("content".equals(file.getFileName().toString())) {
-                            deployments.add(file);
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            assertEquals(numDeployments, deployments.size());
-        } else {
-            // The directory should be empty if no deployment is expected, however in some cases it may not even be
-            // created.
-            if (Files.exists(wildflyHome.resolve("standalone/data/content"))) {
-                assertEquals(0, Files.list(wildflyHome.resolve("standalone/data/content")).count());
-            }
-        }
-        Path history = wildflyHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
-        assertFalse(Files.exists(history));
-
-        Path configFile = wildflyHome.resolve("standalone/configuration/standalone.xml");
-        assertTrue(Files.exists(configFile));
-        if (layers != null) {
-            Path provisioning = PathsUtils.getProvisioningXml(wildflyHome);
-            assertTrue(Files.exists(provisioning));
-            ProvisioningConfig config = ProvisioningXmlParser.parse(provisioning);
-            ConfigModel cm = config.getDefinedConfig(new ConfigId("standalone", "standalone.xml"));
-            assertNotNull(config.getDefinedConfigs().toString(), cm);
-            assertEquals(layers.length, cm.getIncludedLayers().size());
-            for (String layer : layers) {
-                assertTrue(cm.getIncludedLayers().contains(layer));
-            }
-            if (excludedLayers != null) {
-                for (String layer : excludedLayers) {
-                    assertTrue(cm.getExcludedLayers().contains(layer));
-                }
-            }
-        }
-        if (configTokens != null) {
-            String str = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
-            for (String token : configTokens) {
-                assertTrue(str, str.contains(token));
-            }
-        }
-         assertEquals(Files.exists(wildflyHome.resolve(".galleon")), stateRecorded);
-         assertEquals(Files.exists(wildflyHome.resolve(".wildfly-jar-plugin-provisioning.xml")), !stateRecorded);
-    }
-
     protected void checkJar(Path dir, boolean expectDeployment, boolean isRoot,
-            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
+            String[] layers, String[] excludedLayers, String... configTokens) throws Exception {
         Path wildflyHome = null;
         try {
-            wildflyHome = checkAndGetWildFlyHome(dir, expectDeployment, isRoot, layers, excludedLayers, stateRecorded, configTokens);
+            wildflyHome = checkAndGetWildFlyHome(dir, expectDeployment, isRoot, layers, excludedLayers, configTokens);
         } finally {
             if (wildflyHome != null) {
                 BuildBootableJarMojo.deleteDir(wildflyHome);
@@ -318,63 +287,34 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         }
     }
 
-    protected void checkServer(Path dir, String installDirName, int numDeployments, boolean isRoot,
-            String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
-        Path wildflyHome = dir.resolve("target").resolve(installDirName);
-        checkWildFlyHome(wildflyHome, numDeployments, isRoot, layers, excludedLayers, stateRecorded, configTokens);
-    }
-
     protected void checkDeployment(Path dir, String fileName, boolean isRoot) throws Exception {
-        checkDeployment(true, dir, fileName, isRoot);
+        checkURL(dir, fileName, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true);
     }
 
     protected void checkDeployment(Path dir, boolean isRoot) throws Exception {
-        checkDeployment(true, dir, isRoot);
+        checkURL(dir, null, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true);
     }
 
     protected void checkDeployment(Path dir, boolean isRoot, String... args) throws Exception {
-        checkDeployment(true, dir, isRoot, args);
-    }
-
-    protected void checkDeployment(boolean isJar, Path dir, String fileName, boolean isRoot) throws Exception {
-        checkURL(isJar, dir, fileName, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true);
-    }
-
-    protected void checkDeployment(boolean isJar, Path dir, boolean isRoot) throws Exception {
-        checkURL(isJar, dir, null, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true);
-    }
-
-    protected void checkDeployment(boolean isJar, Path dir, boolean isRoot, String... args) throws Exception {
-        checkURL(isJar, dir, null, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true, args);
+        checkURL(dir, null, createUrl(TestEnvironment.getHttpPort(), isRoot ? "" : "test"), true, args);
     }
 
     protected void checkManagementItf(Path dir, boolean start) throws Exception {
-        checkManagementItf(true, dir, start);
-    }
-
-    protected void checkManagementItf(boolean isJar, Path dir, boolean start) throws Exception {
-        checkURL(isJar, dir, null, null, start);
+        checkURL(dir, null, null, start);
     }
 
     protected void checkMetrics(Path dir, boolean start) throws Exception {
-        checkMetrics(true, dir, start);
-    }
-
-    protected void checkMetrics(boolean isJar, Path dir, boolean start) throws Exception {
-        checkURL(isJar, dir, null, createUrl(TestEnvironment.getManagementPort(), "metrics"), start);
+        checkURL(dir, null, createUrl(TestEnvironment.getManagementPort(), "metrics"), start);
     }
 
     protected void checkURL(Path dir, String fileName, String url, boolean start, String... args) throws Exception {
-        checkURL(true, dir, fileName, url, start, args);
-    }
-    protected void checkURL(boolean isJar, Path dir, String fileName, String url, boolean start, String... args) throws Exception {
         Process process = null;
         int timeout = TestEnvironment.getTimeout() * 1000;
         long sleep = 1000;
         boolean success = false;
         try {
             if (start) {
-                process = startServer(isJar, dir, fileName, args);
+                process = startServer(dir, fileName, args);
             }
             // Check the server state in all cases. All test cases are provisioning the manager layer.
             try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(),
@@ -431,12 +371,13 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         return content;
     }
 
-    protected Process startServer(boolean isJar, Path dir, String fileName, String... args) throws Exception {
-        List<String> cmd = isJar ? jarCommand(dir, fileName, args) : serverCommand(dir, fileName, args);
-        return createProcess(cmd);
-    }
-
-    protected Process createProcess(List<String> cmd) throws Exception {
+    protected Process startServer(Path dir, String fileName, String... args) throws Exception {
+        List<String> cmd = new ArrayList<>();
+        cmd.add(getJavaCommand());
+        cmd.addAll(getJvmArgs());
+        cmd.add("-jar");
+        cmd.add(dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toAbsolutePath().toString());
+        cmd.addAll(Arrays.asList(args));
         final Path out = TestEnvironment.createTempPath("logs", getClass().getName() + "-process.txt");
         final Path parent = out.getParent();
         if (parent != null && Files.notExists(parent)) {
@@ -446,24 +387,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                 .redirectErrorStream(true)
                 .redirectOutput(out.toFile())
                 .start();
-    }
-
-    protected List<String> jarCommand(Path dir, String fileName, String... args) throws Exception {
-        List<String> cmd = new ArrayList<>();
-        cmd.add(getJavaCommand());
-        cmd.addAll(getJvmArgs());
-        cmd.add("-jar");
-        cmd.add(dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toAbsolutePath().toString());
-        cmd.addAll(Arrays.asList(args));
-        return cmd;
-    }
-
-    protected List<String> serverCommand(Path dir, String fileName, String... args) throws Exception {
-        StandaloneCommandBuilder builder = StandaloneCommandBuilder.of(dir.resolve("target").
-                resolve(fileName == null ? SERVER_DEFAULT_DIR_NAME : fileName))
-                    .addJavaOptions(getJvmArgs())
-                    .addServerArguments(args);
-        return builder.build();
     }
 
     protected boolean checkURL(String url) {
@@ -603,36 +526,5 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         final ModelNode op = Operations.createOperation("shutdown");
         op.get("timeout").set(timeout);
         client.executeAsync(op);
-    }
-
-    List<String> mvnCommand(Path pomFile, String goal, List<String> options) {
-        // We can't call into the plugin, when reloading itself (after a pom.xml change
-        // the clasloading context switch from AppClassloader to Maven RealmClass and all is reloaded without delegation
-        // breaking fully the loading env.
-
-        // CI has a different executable path.
-        Boolean isCI = Boolean.getBoolean("org.wildfly.bootable.jar.ci.execution");
-        List<String> cmd = new ArrayList<>();
-        if (isWindows()) {
-            if (isCI) {
-                cmd.add("pwsh.EXE");
-                cmd.add("-command ");
-                cmd.add("mvn");
-                List<String> extraOptions = new ArrayList<>();
-                for(String p : options) {
-                    extraOptions.add("'" + p + "'");
-                }
-                options = extraOptions;
-            } else {
-                cmd.add("mvn.cmd");
-            }
-        } else {
-            cmd.add("mvn");
-        }
-
-        String[] mvnCmd = {"-f", pomFile.toAbsolutePath().toString(), goal, "-e"};
-        cmd.addAll(Arrays.asList(mvnCmd));
-        cmd.addAll(options);
-        return cmd;
     }
 }

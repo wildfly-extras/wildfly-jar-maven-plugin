@@ -17,9 +17,6 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <context-root>false</context-root>
-                    <server>
-                        <enabled>false</enabled>
-                    </server>
                 </configuration>
                 
             </plugin>

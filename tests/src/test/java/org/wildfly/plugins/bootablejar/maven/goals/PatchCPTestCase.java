@@ -129,10 +129,10 @@ public class PatchCPTestCase extends AbstractBootableJarMojoTestCase {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
+        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
         try {
 
-            checkJar(dir, true, true, null, null, mojo.recordState);
+            checkJar(dir, true, true, null, null);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);

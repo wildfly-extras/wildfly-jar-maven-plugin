@@ -38,7 +38,7 @@ public class DefaultConfigurationWithFPTestCase extends AbstractBootableJarMojoT
         assertTrue(mojo.layers.isEmpty());
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, mojo.recordState);
+        checkJar(dir, true, true, null, null);
         checkDeployment(dir, true);
     }
 }

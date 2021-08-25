@@ -4,15 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-examples-parent</artifactId>
-    <version>6.0.0.Beta2-SNAPSHOT</version>
+    <version>5.0.2.Final-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
-        <version.bootable.jar>6.0.0.Beta2-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>5.0.2.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
-        <version.wildfly>24.0.1.Final</version.wildfly>
+        <version.wildfly>24.0.0.Final</version.wildfly>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -20,8 +20,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
-        <version.server.bom>${version.wildfly}</version.server.bom>
+        <!-- WARNING This will have to be back to ${version.wildfly} for both boms -->
+        <version.microprofile.bom>24.0.0.SP1</version.microprofile.bom>
+        <version.server.bom>24.0.0.SP1</version.server.bom>
         <version.org.wildfly.arquillian>3.0.0.Final</version.org.wildfly.arquillian>
         <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
         <version.junit>4.13.1</version.junit>
@@ -57,11 +58,6 @@
             <dependency>
                 <groupId>org.wildfly.arquillian</groupId>
                 <artifactId>wildfly-arquillian-container-bootable</artifactId>
-                <version>${version.org.wildfly.arquillian}</version>
-            </dependency>
-             <dependency>
-                <groupId>org.wildfly.arquillian</groupId>
-                <artifactId>wildfly-arquillian-container-managed</artifactId>
                 <version>${version.org.wildfly.arquillian}</version>
             </dependency>
             <dependency>
@@ -108,10 +104,8 @@
         <module>logging-log4j-appender</module>
         <module>mdb-rar</module>
         <module>microprofile-config</module>
-        <module>multiple-deployments</module>
         <module>postgresql</module>
         <module>secmanager</module>
-        <module>server-mode</module>
         <module>slim</module>
         <module>web-clustering</module>
         <module>web-console</module>

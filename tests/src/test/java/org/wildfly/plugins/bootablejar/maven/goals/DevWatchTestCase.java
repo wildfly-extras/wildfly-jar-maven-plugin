@@ -32,10 +32,6 @@ public class DevWatchTestCase extends AbstractDevWatchTestCase {
         super("jaxrs", "DevWatch");
     }
 
-    protected DevWatchTestCase(boolean isJar, String project, String name) {
-        super(isJar, project, name);
-    }
-
     @Test
     public void testDevWatchWeb() throws Exception {
         Assume.assumeFalse("Not stupported on XP", isXP());

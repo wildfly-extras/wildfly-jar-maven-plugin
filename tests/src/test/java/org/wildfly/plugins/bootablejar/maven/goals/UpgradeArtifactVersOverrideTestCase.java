@@ -68,7 +68,7 @@ public class UpgradeArtifactVersOverrideTestCase extends AbstractBootableJarMojo
         mojo.execute();
         final Path dir = getTestDir();
         String[] layers = {"jaxrs-server"};
-        Path unzippedJar = checkAndGetWildFlyHome(dir, true, true, layers, null, mojo.recordState);
+        Path unzippedJar = checkAndGetWildFlyHome(dir, true, true, layers, null);
         try {
             Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
@@ -78,7 +78,7 @@ public class UpgradeArtifactVersOverrideTestCase extends AbstractBootableJarMojo
         } finally {
             BuildBootableJarMojo.deleteDir(unzippedJar);
         }
-        checkJar(dir, true, true, layers, null, mojo.recordState);
+        checkJar(dir, true, true, layers, null);
         checkDeployment(dir, true);
     }
 }

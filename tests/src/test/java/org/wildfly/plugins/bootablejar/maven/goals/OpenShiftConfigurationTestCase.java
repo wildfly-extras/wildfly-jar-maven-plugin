@@ -35,14 +35,13 @@ public class OpenShiftConfigurationTestCase extends AbstractBootableJarMojoTestC
         assertNotNull(mojo);
         assertFalse(mojo.layers.isEmpty());
         assertNotNull(mojo.cloud);
-        assertTrue(mojo.cloud.isEnabled());
         assertEquals(1, mojo.layers.size());
         assertEquals("jaxrs", mojo.layers.get(0));
         mojo.recordState = true;
         mojo.execute();
-        String[] layers = {"jaxrs", HEALTH, "core-tools"};
+        String[] layers = {"jaxrs", "microprofile-health", "core-tools"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, layers, null, mojo.recordState);
+        checkJar(dir, true, true, layers, null);
         checkDeployment(dir, true);
     }
 }

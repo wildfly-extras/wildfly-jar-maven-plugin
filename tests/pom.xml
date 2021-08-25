@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-parent</artifactId>
-        <version>6.0.0.Beta2-SNAPSHOT</version>
+        <version>5.0.2.Final-SNAPSHOT</version>
     </parent>
 
     <artifactId>wildfly-jar-maven-plugin-tests</artifactId>
@@ -157,87 +157,51 @@
                 -->
                 <configuration>
                     <reuseForks>false</reuseForks>
-                    <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
-                    <systemProperties>
-                        <property>
-                            <name>test.version.wildfly-ee.upgrade</name>
-                            <value>${test.version.wildfly-ee.upgrade}</value>
-                        </property>
-                        <property>
-                            <name>test.version.wildfly</name>
-                            <value>${test.version.wildfly}</value>
-                        </property>
-                        <property>
-                            <name>test.plugin.version</name>
-                            <value>${project.version}</value>
-                        </property>
-                        <property>
-                            <name>test.patch.version</name>
-                            <value>${test.patch.version}</value>
-                        </property>
-                        <property>
-                            <name>jbossas.dist</name>
-                            <value>${jbossas.dist}</value>
-                        </property>
-                        <property>
-                            <name>test.groupid.wildfly</name>
-                            <value>${wildfly.groupId}</value>
-                        </property>
-                    </systemProperties>
                 </configuration>
                 <executions>
+                    <!-- Enable the default tests (which the parent pom turns off for this profile) -->
                     <execution>
                         <id>default-test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
-                        <phase>none</phase>
-                    </execution>
-                    <!-- run subset of tests with wildfly-ee -->
-                    <execution>
-                        <id>default-test-wildfly-ee</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
                         <phase>test</phase>
                         <configuration>
-                            <systemProperties combine.children="append">
-                                <property>
-                                    <name>test.fpl</name>
-                                    <value>${test.ee.fpl}</value>
-                                </property>
-                                <property>
-                                    <name>test.health</name>
-                                    <value>health</value>
-                                </property>
-                            </systemProperties>
-                            <includes>
-                                <include>org/wildfly/plugins/bootablejar/maven/goals/OpenShiftConfigurationTestCase.java</include>
-                                <include>org/wildfly/plugins/bootablejar/maven/goals/ServerModeOpenShiftConfigurationTestCase.java</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>default-test-wildfly-full</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <phase>test</phase>
-                        <configuration>
-                            <systemProperties combine.children="append">
+                            <systemProperties>
                                 <property>
                                     <name>test.fpl</name>
                                     <value>${test.fpl}</value>
+                                </property>
+                                <property>
+                                    <name>test.version.wildfly-ee.upgrade</name>
+                                    <value>${test.version.wildfly-ee.upgrade}</value>
+                                </property>
+                                <property>
+                                    <name>test.version.wildfly</name>
+                                    <value>${test.version.wildfly}</value>
+                                </property>
+                                <property>
+                                    <name>test.plugin.version</name>
+                                    <value>${project.version}</value>
+                                </property>
+                                <property>
+                                    <name>test.patch.version</name>
+                                    <value>${test.patch.version}</value>
                                 </property>
                                 <property>
                                     <name>test.patch.product</name>
                                     <value>${test.patch.product}</value>
                                 </property>
                                 <property>
-                                    <name>test.health</name>
-                                    <value>microprofile-health</value>
+                                    <name>jbossas.dist</name>
+                                    <value>${jbossas.dist}</value>
+                                </property>
+                                <property>
+                                    <name>test.groupid.wildfly</name>
+                                    <value>${wildfly.groupId}</value>
                                 </property>
                             </systemProperties>
+                            <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -252,80 +216,4 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
-            <!-- Run all tests with wildfly-ee galleon feature-pack -->
-            <id>wildfly-ee</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>default-test</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>default-test-wildfly-ee</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>default-test-wildfly-full</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>all-test-wildfly-ee</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>test</phase>
-                                <configuration>
-                                    <systemProperties combine.children="append">
-                                        <property>
-                                            <name>test.fpl</name>
-                                            <value>${test.ee.fpl}</value>
-                                        </property>
-                                        <property>
-                                            <name>test.health</name>
-                                            <value>health</value>
-                                        </property>
-                                        <property>
-                                            <name>test.patch.product</name>
-                                            <value>${test.patch.ee.product}</value>
-                                        </property>
-                                    </systemProperties>
-                                    <excludes>
-                                        <!-- Excluded due to no support for default configuration when provisioning wildfly-ee galleon feature-pack. -->
-                                        <!-- Exclusion will be removed when standalone.xml and standalone-ha.xml are expressed with Galleon layers 
-                                        and the plugin discovers default configurations. -->
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/UpgradeArtifactFPLTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/PatchExistingMiscTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationSecurityManagerTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationWithFPTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationCloudTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationNoLayersTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationWithFPTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationExcludeLayerTestCase.java</exclude>
-                                    </excludes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

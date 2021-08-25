@@ -26,7 +26,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.jboss.galleon.config.ConfigId;
-import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
 
 /**
  * Build a bootable JAR containing application and provisioned server
@@ -38,8 +37,6 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     /**
      * To enable cloud support. When cloud support is enabled, the created bootable JAR will operate properly in context such as openshift.
-     * Adding the &lt;cloud/&gt; element to the plugin configuration automatically enables the cloud support.
-     * You can set the cloud child element &lt;enabled&gt;false&lt;/enabled&gt; to disable the cloud support.
      * <br/>
      * In order to enable authenticated cluster jgroups protocol,
      * set &lt;enable-jgroups-password&gt;true&lt;/enable-jgroups-password&gt;. The environment variable JGROUPS_CLUSTER_PASSWORD
@@ -48,36 +45,27 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
     @Parameter(alias = "cloud")
     CloudConfig cloud;
 
-    boolean isCloudEnabled() {
-        return cloud != null && cloud.isEnabled();
-    }
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
             getLog().debug(String.format("Skipping run of %s:%s", project.getGroupId(), project.getArtifactId()));
             return;
         }
-        super.execute();
-    }
-
-    @Override
-    protected void willProvision(ProvisioningSpecifics specifics) throws
-            MojoExecutionException {
         if (!isPackageDev()) {
-            if (isCloudEnabled()) {
+            if (cloud != null) {
                 getLog().info("Cloud support is enabled");
                 cloud.validate();
-                for (String layer : cloud.getExtraLayers(this, specifics.getHealthLayer(), getLog())) {
+                for (String layer : cloud.getExtraLayers(this)) {
                     addExtraLayer(layer);
                 }
             }
         }
+        super.execute();
     }
 
     @Override
     protected void configureCli(List<String> commands) {
-        if (isCloudEnabled()) {
+        if (cloud != null) {
             try {
                 cloud.addCLICommands(this, commands);
             } catch (Exception ex) {
@@ -88,7 +76,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected ConfigId getDefaultConfig() {
-        if(!isCloudEnabled()) {
+        if(cloud == null) {
             return super.getDefaultConfig();
         } else {
             return new ConfigId("standalone", "standalone-microprofile-ha.xml");
@@ -97,7 +85,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
 
     @Override
     protected void copyExtraContentInternal(Path wildflyDir, Path contentDir) throws Exception {
-        if (isCloudEnabled()) {
+        if (cloud != null) {
            cloud.copyExtraContent(this, wildflyDir, contentDir);
         }
     }

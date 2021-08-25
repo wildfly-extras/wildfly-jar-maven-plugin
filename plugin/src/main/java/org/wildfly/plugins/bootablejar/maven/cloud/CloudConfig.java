@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.jboss.galleon.util.ZipUtils;
@@ -62,16 +61,6 @@ public class CloudConfig {
     //Can be openshift or kubernetes
     String type = OPENSHIFT;
 
-    private boolean enabled = true;
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     public boolean getEnableJGroupsPassword() {
         return enableJgroupsPassword;
     }
@@ -100,26 +89,19 @@ public class CloudConfig {
             Path target = wildflyDir.resolve("standalone").resolve("configuration").resolve("logging.properties");
             Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
         }
-        if (mojo.isJarPackaging()) {
-            Path marker = contentDir.resolve(type + ".properties");
-            Properties props = new Properties();
-            // TODO, if we need it, add properties there.
-            try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
-                props.store(s, type + " properties");
-            }
-            Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
-            ZipUtils.unzip(extensionJar, contentDir);
+        Path marker = contentDir.resolve(type + ".properties");
+        Properties props = new Properties();
+        // TODO, if we need it, add properties there.
+        try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
+            props.store(s, type + " properties");
         }
+        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
+        ZipUtils.unzip(extensionJar, contentDir);
     }
 
-    public Set<String> getExtraLayers(BuildBootableJarMojo mojo, String healthLayer, Log log) {
+    public Set<String> getExtraLayers(BuildBootableJarMojo mojo) {
         Set<String> set = new HashSet<>();
-        if (healthLayer == null) {
-            log.warn("No health layer found in feature-packs, health endpoint will be not available.");
-        } else {
-            set.add(healthLayer);
-            log.debug("Adding health layer " + healthLayer);
-        }
+        set.add("microprofile-health");
         set.add("core-tools");
         return set;
     }

@@ -40,7 +40,7 @@ public class IncludedDefaultConfigurationTestCase extends AbstractBootableJarMoj
         mojo.execute();
         String[] excludedLayers = {"h2-default-datasource"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, excludedLayers, mojo.recordState);
+        checkJar(dir, true, true, null, excludedLayers);
         checkDeployment(dir, true);
     }
 }

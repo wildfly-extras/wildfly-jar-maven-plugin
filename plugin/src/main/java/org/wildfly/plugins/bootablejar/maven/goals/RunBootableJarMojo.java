@@ -27,7 +27,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
-import org.wildfly.core.launcher.CommandBuilder;
 import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
@@ -69,25 +68,6 @@ public final class RunBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "jar-file-name", property = "wildfly.bootable.run.jar.file.name")
     String jarFileName;
 
-    /**
-     * Disable JAR packaging. A directory (named {@code server} by default) containing
-     * the server and deployments is created in the project {@code target} directory.
-     * In this mode, multiple deployments can be added (in addition to the primary
-     * project artifact) by adding ear/war to the {@code external-deployments} configuration element.
-     *
-     * <br/>
-     * &lt;server&gt;<br/>
-     * &lt;enabled&gt; {@code true} or {@code false} ({@code true} by default)&lt;/enabled&gt;<br/>
-     * &lt;directory-name&gt;name of a directory inside the project target directory ({@code server} by default)&lt;/directory-name&gt;<br/>
-     * &lt;/server&gt;<br/>
-     */
-    @Parameter(alias = "server")
-    ServerModeConfig server;
-
-    private boolean isJarPackaging() {
-        return server == null || !server.isEnabled();
-    }
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skip) {
@@ -95,17 +75,10 @@ public final class RunBootableJarMojo extends AbstractMojo {
             return;
         }
         try {
-            CommandBuilder builder;
-            Launcher launcher;
-            if (isJarPackaging()) {
-                builder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, "run"))
+            final BootableJarCommandBuilder commandBuilder = BootableJarCommandBuilder.of(Utils.getBootableJarPath(jarFileName, project, "run"))
                     .addJavaOptions(jvmArguments)
                     .addServerArguments(arguments);
-                launcher = Launcher.of(builder);
-            } else {
-                launcher = server.createServerLauncher(project, jvmArguments, arguments, false, "run");
-            }
-            final Process process = launcher.inherit().launch();
+            final Process process = Launcher.of(commandBuilder).inherit().launch();
             process.waitFor();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);

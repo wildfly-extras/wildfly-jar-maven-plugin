@@ -46,6 +46,6 @@ public class UpgradeArtifactDumpTestCase extends AbstractBootableJarMojoTestCase
         Assert.assertTrue(str.contains("jboss-modules"));
         Assert.assertTrue(str.contains("io.undertow"));
         Assert.assertTrue(str.contains("undertow-core"));
-        checkJar(dir, true, true, layers, null, mojo.recordState);
+        checkJar(dir, true, true, layers, null);
     }
 }

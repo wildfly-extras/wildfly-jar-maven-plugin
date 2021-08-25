@@ -48,7 +48,7 @@ public class DefaultConfigurationTestCase extends AbstractBootableJarMojoTestCas
         assertTrue(mojo.contextRoot);
         mojo.execute();
         final Path dir = getTestDir();
-        checkJar(dir, true, true, null, null, mojo.recordState);
+        checkJar(dir, true, true, null, null);
         checkDeployment(dir, true);
     }
 }

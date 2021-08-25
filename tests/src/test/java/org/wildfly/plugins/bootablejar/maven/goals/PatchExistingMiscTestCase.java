@@ -42,12 +42,12 @@ public class PatchExistingMiscTestCase extends AbstractBootableJarMojoTestCase {
         BuildBootableJarMojo mojo = lookupMojo("package");
         assertNotNull(mojo);
         mojo.execute();
-        Path home = checkAndGetWildFlyHome(dir, true, true, null, null, mojo.recordState);
+        Path home = checkAndGetWildFlyHome(dir, true, true, null, null);
         try {
             Path patchedLicense = home.resolve("LICENSE.txt");
             String patchedContent = readFile(patchedLicense.toString());
             assertEquals("check content of file after patch", testContent, patchedContent);
-            checkJar(dir, true, true, null, null, mojo.recordState);
+            checkJar(dir, true, true, null, null);
             checkDeployment(dir, true);
         } finally {
             BuildBootableJarMojo.deleteDir(home);

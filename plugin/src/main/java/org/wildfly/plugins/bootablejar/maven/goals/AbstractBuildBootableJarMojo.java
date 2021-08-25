@@ -98,13 +98,10 @@ import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
-import org.wildfly.plugins.bootablejar.maven.common.ExternalDeploymentArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
 import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
-import org.wildfly.plugins.bootablejar.maven.common.Utils;
-import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -112,7 +109,7 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  *
  * @author jfdenise
  */
-public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
+public class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     public static final String BOOTABLE_SUFFIX = "bootable";
     public static final String JAR = "jar";
@@ -130,7 +127,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";
     private static final String JBOSS_PROVISIONING_MAVEN_REPO = "jboss-maven-provisioning-repo";
     private static final String MAVEN_REPO_LOCAL = "maven.repo.local";
-    private static final String PLUGIN_PROVISIONING_FILE = ".wildfly-jar-plugin-provisioning.xml";
 
     static final String WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH = "wildfly/artifact-versions.properties";
     @Component
@@ -378,30 +374,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "false")
     boolean disableWarnForArtifactDowngrade;
 
-    /**
-     * Disable JAR packaging. A directory (named {@code server} by default) containing
-     * the server and deployments is created in the project {@code target} directory.
-     * In this mode, multiple deployments can be added (in addition to the primary
-     * project artifact) by adding ear/war to the {@code external-deployments} configuration element.
-     *
-     * <br/>
-     * &lt;server&gt;<br/>
-     * &lt;enabled&gt; {@code true} or {@code false} ({@code true} by default)&lt;/enabled&gt;<br/>
-     * &lt;directory-name&gt;name of a directory inside the project target directory ({@code server} by default)&lt;/directory-name&gt;<br/>
-     * &lt;/server&gt;<br/>
-     */
-    @Parameter(alias = "server")
-    ServerModeConfig server;
-
-    /**
-     * You can deploy external deployments (deployment that is not built by the current Maven project) in the server
-     * by adding an {@code external-deployments} element to the plugin configuration.
-     * Each external deployment is composed of a groupId, artifactId, optional classifier and optional runtime-name. An external deployment must exist as a
-     * "non provided" Maven dependency. If no dependency for an external deployment is found, the plugin exits with an error.
-     */
-    @Parameter(alias = "external-deployments")
-    private List<ExternalDeploymentArtifact> externalDeployments = Collections.emptyList();
-
     MavenProjectArtifactVersions artifactVersions;
 
     @Inject
@@ -425,14 +397,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     public Path getJBossHome() {
         return wildflyDir;
-    }
-
-    public boolean isJarPackaging() {
-        return server == null || !server.isEnabled();
-    }
-
-    public String getServerDirectoryName() {
-        return (server == null) ? null : server.getDirectoryName();
     }
 
     @Override
@@ -466,14 +430,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         Path jarFile = Paths.get(project.getBuild().getDirectory()).resolve(outputFileName);
         IoUtils.recursiveDelete(contentRoot);
-         if (isJarPackaging()) {
-            wildflyDir = contentRoot.resolve("wildfly");
-         } else {
-             getLog().info("Server mode is enabled");
-             wildflyDir = Paths.get(project.getBuild().getDirectory()).resolve(getServerDirectoryName());
-         }
-         IoUtils.recursiveDelete(wildflyDir);
 
+        wildflyDir = contentRoot.resolve("wildfly");
         Path contentDir = contentRoot.resolve("jar-content");
         try {
             Files.createDirectories(contentRoot);
@@ -545,9 +503,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             Path loggingFile = copyLoggingFile(contentRoot);
             if (bootLoggingConfig == null) {
-                if (isJarPackaging()) {
-                    generateLoggingConfig(wildflyDir);
-                }
+                generateLoggingConfig(wildflyDir);
             } else {
                 // Copy the user overridden logging.properties
                 final Path loggingConfig = resolvePath(bootLoggingConfig.toPath());
@@ -558,14 +514,9 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 Files.copy(loggingConfig, target, StandardCopyOption.REPLACE_EXISTING);
             }
             cleanupServer(wildflyDir);
-
-            if (isJarPackaging()) {
-                zipServer(wildflyDir, contentDir);
-                buildJar(contentDir, jarFile, bootArtifact);
-                restoreLoggingFile(loggingFile);
-            } else {
-                IoUtils.recursiveDelete(contentRoot);
-            }
+            zipServer(wildflyDir, contentDir);
+            buildJar(contentDir, jarFile, bootArtifact);
+            restoreLoggingFile(loggingFile);
         } catch (Exception ex) {
             if (ex instanceof MojoExecutionException) {
                 throw (MojoExecutionException) ex;
@@ -584,9 +535,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
             // End EE-9
         }
-        if (isJarPackaging()) {
-            attachJar(jarFile);
-        }
+
+        attachJar(jarFile);
     }
 
     protected boolean isPackageDev() {
@@ -707,16 +657,12 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private void cleanupServer(Path jbossHome) throws IOException {
         Path history = jbossHome.resolve("standalone").resolve("configuration").resolve("standalone_xml_history");
         IoUtils.recursiveDelete(history);
-        Path tmp = jbossHome.resolve("standalone").resolve("tmp");
-        IoUtils.recursiveDelete(tmp);
-        Path log = jbossHome.resolve("standalone").resolve("log");
-        IoUtils.recursiveDelete(log);
         Files.deleteIfExists(jbossHome.resolve("README.txt"));
     }
 
     protected File validateProjectFile() throws MojoExecutionException {
         File f = getProjectFile();
-        if (f == null && !hollowJar && externalDeployments.isEmpty()) {
+        if (f == null && !hollowJar) {
             throw new MojoExecutionException("Cannot package without a primary artifact; please `mvn package` prior to invoking wildfly-jar:package from the command-line");
         }
         return f;
@@ -1044,6 +990,24 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
+    /**
+     * Galleon layers based config that uses the FPL.
+     */
+    private class LayersFPLConfig extends AbstractLayersConfig {
+
+        private LayersFPLConfig() throws ProvisioningDescriptionException, ProvisioningException {
+        }
+        @Override
+        public ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+            FeaturePackConfig.Builder builder = FeaturePackConfig.
+                    builder(FeaturePackLocation.fromString(featurePackLocation)).
+                    setInheritPackages(false).setInheritConfigs(false);
+            FeaturePackConfig dependency = builder.build();
+            state.addFeaturePackDep(dependency);
+            return state;
+        }
+    }
 
     /**
      * Galleon layers based config that uses the set of feature-packs.
@@ -1093,6 +1057,31 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     /**
+     * A config based on a default config retrieved in the FPL.
+     */
+    private class DefaultFPLConfig extends AbstractDefaultConfig {
+        private final ConfigId configId;
+
+        private DefaultFPLConfig(ConfigId configId) throws ProvisioningException {
+            super(configId);
+            this.configId = configId;
+        }
+
+        @Override
+        protected ProvisioningConfig.Builder buildState() throws ProvisioningException {
+            ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+            FeaturePackConfig.Builder builder = FeaturePackConfig.
+                    builder(FeaturePackLocation.fromString(featurePackLocation)).
+                    setInheritPackages(false).setInheritConfigs(false).includeDefaultConfig(configId.getModel(),
+                    configId.getName());
+            FeaturePackConfig dependency = builder.build();
+            state.addFeaturePackDep(dependency);
+            return state;
+        }
+
+    }
+
+    /**
      * A config based on the set of feature-packs. Default config is explicitly
      * included or is the default.
      */
@@ -1113,18 +1102,26 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     }
 
-    private void normalizeFeaturePackList() throws MojoExecutionException {
+    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
+        boolean isLayerBasedConfig = !layers.isEmpty();
+        boolean hasFeaturePack = featurePackLocation != null || !featurePacks.isEmpty();
+        boolean hasProvisioningFile = Files.exists(getProvisioningFile());
+        if (!hasFeaturePack && !hasProvisioningFile) {
+            throw new ProvisioningException("No valid provisioning configuration, "
+                    + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
+        }
+
         if (featurePackLocation != null && !featurePacks.isEmpty()) {
             throw new MojoExecutionException("feature-pack-location can't be used with a list of feature-packs");
+        }
+
+        if (hasFeaturePack && hasProvisioningFile) {
+            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
         }
 
         // Retrieve versions from Maven in case versions not set.
         if (featurePackLocation != null) {
             featurePackLocation = MavenUpgrade.locationWithVersion(featurePackLocation, artifactVersions);
-            featurePacks = new ArrayList<>();
-            FeaturePack fp = new FeaturePack();
-            fp.setLocation(featurePackLocation);
-            featurePacks.add(fp);
         } else {
             for (FeaturePack fp : featurePacks) {
                 if (fp.getLocation() != null) {
@@ -1143,29 +1140,26 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 }
             }
         }
-    }
-
-    private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
-        boolean isLayerBasedConfig = !layers.isEmpty();
-        boolean hasFeaturePack = !featurePacks.isEmpty();
-        boolean hasProvisioningFile = Files.exists(getProvisioningFile());
-        if (!hasFeaturePack && !hasProvisioningFile) {
-            throw new ProvisioningException("No valid provisioning configuration, "
-                    + "you must set a feature-pack-location, a list of feature-packs or use a provisioning.xml file");
-        }
-
-        if (hasFeaturePack && hasProvisioningFile) {
-            getLog().warn("Feature packs defined in pom.xml override provisioning file located in " + getProvisioningFile());
-        }
 
         if (isLayerBasedConfig) {
             if (!hasFeaturePack) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
             }
-            return buildFeaturePacksConfig(pm, true);
+            if (featurePackLocation == null) {
+                getLog().info("Provisioning server using feature-packs");
+                return buildFeaturePacksConfig(pm, true);
+            } else {
+                getLog().info("Provisioning server configuration based on the set of configured layers");
+                return new LayersFPLConfig();
+            }
         }
 
-        // Based on default config
+        if (featurePackLocation != null) {
+            ConfigId defaultConfig = getDefaultConfig();
+            getLog().info("Provisioning server configuration based on the " + defaultConfig.getName() + " default configuration");
+            return new DefaultFPLConfig(defaultConfig);
+        }
+
         if (!featurePacks.isEmpty()) {
             getLog().info("Provisioning server using feature-packs");
             return buildFeaturePacksConfig(pm, isLayerBasedConfig);
@@ -1178,14 +1172,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         throw new ProvisioningException("Invalid Galleon configuration");
     }
 
-    private void willProvision(List<FeaturePack> featurePacks, ProvisioningManager pm)
-            throws MojoExecutionException, ProvisioningException, IOException {
-        ProvisioningSpecifics specifics = Utils.getSpecifics(featurePacks, pm);
-        willProvision(specifics);
-    }
-
-    protected abstract void willProvision(ProvisioningSpecifics specifics) throws MojoExecutionException;
-
     private Artifact provisionServer(Path home, Path outputProvisioningFile, Path workDir) throws ProvisioningException,
             MojoExecutionException, IOException, XMLStreamException {
         try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
@@ -1195,10 +1181,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setRecordState(recordState)
                 .build()) {
 
-            // Prior to build the config, sub classes could have to inject content to the config according to the
-            // provisioned FP.
-            normalizeFeaturePackList();
-            willProvision(featurePacks, pm);
             ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
@@ -1227,16 +1209,14 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                     } catch (Exception ex) {
                         throw new MojoExecutionException("Error reading artifact versions", ex);
                     }
-                    if (isJarPackaging()) {
-                        for (Entry<String, String> entry : propsMap.entrySet()) {
-                            String value = entry.getValue();
-                            Artifact a = getArtifact(value);
-                            if (BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
-                                // We got it.
-                                getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
-                                bootArtifact = a;
-                                break;
-                            }
+                    for(Entry<String,String> entry : propsMap.entrySet()) {
+                        String value = entry.getValue();
+                        Artifact a = getArtifact(value);
+                        if ( BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
+                            // We got it.
+                            getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                            bootArtifact = a;
+                            break;
                         }
                     }
                 }
@@ -1312,18 +1292,10 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                     // End patching dependencies.
                 }
             }
-            if (isJarPackaging() && bootArtifact == null) {
+            if (bootArtifact == null) {
                 throw new ProvisioningException("Server doesn't support bootable jar packaging");
             }
             pm.provision(rt.getLayout());
-
-            if (!recordState) {
-                Path file = home.resolve(PLUGIN_PROVISIONING_FILE);
-                try (FileWriter writer = new FileWriter(file.toFile())) {
-                    ProvisioningXmlWriter.getInstance().write(config, writer);
-                }
-            }
-
             return bootArtifact;
         }
     }
@@ -1369,29 +1341,14 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             return;
         }
         File f = validateProjectFile();
-        if (f == null) {
-            if (externalDeployments.isEmpty()) {
-                throw new MojoExecutionException("No external deployment found");
+
+        String runtimeName = f.getName();
+        if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
+            if (contextRoot) {
+                runtimeName = "ROOT." + WAR;
             }
-            if (externalDeployments.size() == 1) {
-                deployExternalDeployment(externalDeployments.get(0), true, commands);
-            } else {
-                if (isJarPackaging()) {
-                     throw new MojoExecutionException("Multiple deployments not allowed for bootable JAR packaging.");
-                }
-                for (ExternalDeploymentArtifact externalDeployment : externalDeployments) {
-                    deployExternalDeployment(externalDeployment, false, commands);
-                }
-            }
-        } else {
-            String runtimeName = f.getName();
-            if (project.getPackaging().equals(WAR) || runtimeName.endsWith(WAR)) {
-                if (contextRoot) {
-                    runtimeName = "ROOT." + WAR;
-                }
-            }
-            commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
         }
+        commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
     }
 
     private static void zipServer(Path home, Path contentDir) throws IOException {
@@ -1596,31 +1553,5 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 .setClassifier(coordinate.getClassifier());
         artifactResolver.resolve(artifact);
         return artifact.getPath();
-    }
-
-    private String getDeploymentRuntimeName(ExternalDeploymentArtifact externalDeployment, Artifact a, File artifactFile) throws MojoExecutionException {
-        String runtimeName = externalDeployment.getRuntimeName();
-        if (runtimeName == null) {
-            return null;
-        }
-        int index = artifactFile.getName().lastIndexOf(".");
-        if (index != -1) {
-            runtimeName = runtimeName + "." + artifactFile.getName().substring(index + 1);
-        }
-        return runtimeName;
-    }
-
-    private void deployExternalDeployment(ExternalDeploymentArtifact externalDeployment, boolean singleDeployment, List<String> commands) throws MojoExecutionException {
-        Artifact a = artifactVersions.getDeployment(externalDeployment);
-        File f = resolveArtifact(a).toFile();
-        String customRuntimeName = getDeploymentRuntimeName(externalDeployment, a, f);
-        String runtimeName = customRuntimeName == null ? f.getName() : customRuntimeName;
-        if (singleDeployment && a.getType().equalsIgnoreCase(WAR)) {
-            if (contextRoot) {
-                runtimeName = "ROOT." + WAR;
-            }
-        }
-        getLog().info("Deploying artifact " + f.getAbsolutePath() + ", runtime name " + runtimeName);
-        commands.add("deploy " + f.getAbsolutePath() + " --name=" + f.getName() + " --runtime-name=" + runtimeName);
     }
 }

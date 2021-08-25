@@ -44,7 +44,7 @@ public class HollowJarTestCase extends AbstractBootableJarMojoTestCase {
         String[] layers = {"cloud-profile", "management"};
         String[] excludedLayers = {"ee-security"};
         final Path dir = getTestDir();
-        checkJar(dir, false, false, layers, excludedLayers, mojo.recordState);
+        checkJar(dir, false, false, layers, excludedLayers);
         checkMetrics(dir, true);
     }
 }

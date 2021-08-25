@@ -41,7 +41,7 @@ public class LayersConfigurationTestCase extends AbstractBootableJarMojoTestCase
         mojo.execute();
         String[] layers = {"jaxrs", "management"};
         final Path dir = getTestDir();
-        checkJar(dir, true, true, layers, null, mojo.recordState);
+        checkJar(dir, true, true, layers, null);
         checkDeployment(dir, true);
     }
 }
