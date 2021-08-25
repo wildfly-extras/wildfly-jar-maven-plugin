@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>ejb-in-ear</artifactId>
-        <version>5.0.2.Final-SNAPSHOT</version>
+        <version>6.0.0.Final-SNAPSHOT</version>
     </parent>
 
     <artifactId>ejb-in-ear-ear</artifactId>
