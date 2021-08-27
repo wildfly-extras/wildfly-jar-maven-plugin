@@ -39,7 +39,6 @@ The build could take some time to end, so verify its status before creating the 
 
 ```
 oc new-app --name ejb-in-ear-bootable-jar-app \
-    --env GC_MAX_METASPACE_SIZE=256 \
     --env GC_METASPACE_SIZE=96 \
     ejb-in-ear-bootable-jar
 

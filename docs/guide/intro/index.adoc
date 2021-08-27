@@ -368,8 +368,7 @@ The WildFly OpenShift Operator can be used to manage deployments based on image 
 At boot time, the WildFly bootable JAR dumps in the file ```/opt/jboss/container/wildfly-bootable-jar/install-dir``` its installation path.
 This information is required by the WildFly OpenShift Operator to retrieve transaction logs and call into WildFly CLI.
 
-IMPORTANT: When deploying WildFly bootable JAR using openjdk image it is strongly advised to set 
-           ```GC_MAX_METASPACE_SIZE=256``` and ```GC_METASPACE_SIZE=96```environment variables.
+IMPORTANT: When deploying WildFly bootable JAR using openjdk image it is strongly advised to set ```GC_METASPACE_SIZE=96```environment variable.
            
 
 
