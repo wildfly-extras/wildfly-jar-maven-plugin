@@ -29,7 +29,6 @@ oc new-app --name wf-postgresql-app \
     --env POSTGRESQL_SERVICE_HOST=database-server \
     --env POSTGRESQL_SERVICE_PORT=5432 \
     --env POSTGRESQL_DATABASE=sampledb \
-    --env GC_MAX_METASPACE_SIZE=256 \
     --env GC_METASPACE_SIZE=96 \
     wf-postgresql
 

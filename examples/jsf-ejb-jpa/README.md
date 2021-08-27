@@ -24,7 +24,6 @@ oc new-build --strategy source --binary --image-stream openjdk-11 --name jsf-ejb
 oc start-build jsf-ejb-jpa-bootable-jar --from-dir ./os/
 
 oc new-app --name jsf-ejb-jpa-bootable-jar-app \
-    --env GC_MAX_METASPACE_SIZE=256 \
     --env GC_METASPACE_SIZE=96 \
     jsf-ejb-jpa-bootable-jar
 
