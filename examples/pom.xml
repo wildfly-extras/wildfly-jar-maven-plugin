@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-examples-parent</artifactId>
-    <version>6.0.0.Beta2-SNAPSHOT</version>
+    <version>6.0.0.Final-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
-        <version.bootable.jar>6.0.0.Beta2-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>6.0.0.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
         <version.wildfly>24.0.1.Final</version.wildfly>
         <version.jkube>1.0.1</version.jkube>
@@ -59,11 +59,6 @@
                 <artifactId>wildfly-arquillian-container-bootable</artifactId>
                 <version>${version.org.wildfly.arquillian}</version>
             </dependency>
-             <dependency>
-                <groupId>org.wildfly.arquillian</groupId>
-                <artifactId>wildfly-arquillian-container-managed</artifactId>
-                <version>${version.org.wildfly.arquillian}</version>
-            </dependency>
             <dependency>
                 <groupId>org.jboss.arquillian.junit</groupId>
                 <artifactId>arquillian-junit-container</artifactId>
@@ -108,10 +103,8 @@
         <module>logging-log4j-appender</module>
         <module>mdb-rar</module>
         <module>microprofile-config</module>
-        <module>multiple-deployments</module>
         <module>postgresql</module>
         <module>secmanager</module>
-        <module>server-mode</module>
         <module>slim</module>
         <module>web-clustering</module>
         <module>web-console</module>

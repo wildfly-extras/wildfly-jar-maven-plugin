@@ -19,7 +19,6 @@ package org.wildfly.plugins.bootablejar.maven.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,8 +71,6 @@ public class Utils {
         }
     }
 
-    public static final String NO_COLOR_OPTION="-Dorg.jboss.logmanager.nocolor=true";
-
     private static final Pattern WHITESPACE_IF_NOT_QUOTED = Pattern.compile("(\\S+\"[^\"]+\")|\\S+");
 
     public static String getBootableJarPath(String jarFileName, MavenProject project, String goal) throws MojoExecutionException {
@@ -85,22 +82,6 @@ public class Utils {
         String path = project.getBuild().getDirectory() + File.separator + jarName;
         if (!Files.exists(Paths.get(path))) {
             throw new MojoExecutionException("Cannot " + goal + " without a bootable jar; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
-        }
-        return path;
-    }
-
-    public static String getWildFlyPath(String serverDir, MavenProject project, String goal) throws MojoExecutionException {
-        Path path = Paths.get(project.getBuild().getDirectory()).resolve(serverDir);
-        if (!Files.exists(path)) {
-            throw new MojoExecutionException("Cannot " + goal + " without a server; please `mvn wildfly-jar:package` prior to invoking wildfly-jar:run from the command-line");
-        }
-        return path.toString();
-    }
-
-    public static Path getWildFlyLauncherPath(String serverDir, MavenProject project, String launchScript, String goal) throws MojoExecutionException {
-        Path path = Paths.get(project.getBuild().getDirectory()).resolve(serverDir).resolve("bin").resolve(launchScript);
-        if (!Files.exists(path)) {
-            throw new MojoExecutionException("The provided server launch script " + path + " doesn't exist.");
         }
         return path;
     }

@@ -17,12 +17,12 @@ public class TestUtil {
     private static String processResponse(HttpURLConnection conn) throws IOException {
         int responseCode = conn.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            try(InputStream err = conn.getErrorStream()) {
+            try (InputStream err = conn.getErrorStream()) {
                 String response = err != null ? read(err) : null;
                 throw new IOException(String.format("HTTP Status %d Response: %s", responseCode, response));
             }
         }
-        try(InputStream in = conn.getInputStream()) {
+        try (InputStream in = conn.getInputStream()) {
             return read(in);
         }
     }

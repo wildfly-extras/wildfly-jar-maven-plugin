@@ -1,3 +1,0 @@
-/subsystem=logging/logger=org.jboss.as.server.deployment.scanner:add()
-/subsystem=logging/logger=org.jboss.as.server.deployment.scanner:write-attribute(name=level,value=ALL)
-/subsystem=logging/console-handler=CONSOLE:write-attribute(name=level,value=ALL)
