@@ -377,6 +377,13 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "false")
     boolean disableWarnForArtifactDowngrade;
 
+    /**
+     * When calling mvn 'install', the bootable JAR artifact is attached to the project with the classifier 'bootable'. Use this parameter to
+     * configure the classifier.
+     */
+    @Parameter(alias = "install-artifact-classifier", property = "bootable.jar.install.artifact.classifier", defaultValue = BOOTABLE_SUFFIX)
+    String installArtifactClassifier;
+
     MavenProjectArtifactVersions artifactVersions;
 
     @Inject
@@ -1475,8 +1482,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     // End EE-9
 
     private void attachJar(Path jarFile) {
-        debug("Attaching bootable jar %s as a project artifact", jarFile);
-        projectHelper.attachArtifact(project, JAR, BOOTABLE_SUFFIX, jarFile.toFile());
+        debug("Attaching bootable jar %s as a project artifact with classifier %s", jarFile, installArtifactClassifier);
+        projectHelper.attachArtifact(project, JAR, installArtifactClassifier, jarFile.toFile());
     }
 
     void debug(String msg, Object... args) {
