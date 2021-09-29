@@ -1,4 +1,24 @@
-# WildFly bootable jar HTTPS example
+# WildFly bootable jar HTTPS examples
+
+Example 1, Self-signed certificate
+====================
+
+Starting WildFly 25, the galleon layer `undertow-https` can be use to provision a server containing an `https-listener` 
+that generates a self-signed certificate.
+
+A CLI script is executed during packaging to disable HTTP undertow listener.
+
+Build and run
+========
+
+* To build: `mvn package -Pself-signed`
+* To run: `mvn wildfly-jar:run`
+* Open the browser and navigate to: `https://127.0.0.1:8443/hello`
+* Your browser should warn you about the certificate. Accept the certificate.
+
+
+Example 2, packaged keystore inside the Bootable JAR
+=================================
 
 The file _extra-content/standalone/configuration/keystore.jks_ is packaged inside the bootable jar during packaging.
 CLI script enables HTTPS undertow listener and disables HTTP undertow listener.

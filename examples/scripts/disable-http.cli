@@ -1,0 +1,2 @@
+# Disable http
+/subsystem=undertow/server=${undertow.server}/http-listener=default:write-attribute(name=enabled, value=false)

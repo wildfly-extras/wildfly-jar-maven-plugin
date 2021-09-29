@@ -92,5 +92,34 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>self-signed</id>
+            <build>
+                <finalName>${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+                        <configuration>
+                            <recordState>true</recordState>
+                            <layers combine.children="append">
+                                <layer>undertow-https</layer>
+                            </layers>
+                            <cli-sessions combine.self="override">
+                                <cli-session>
+                                    <properties-file>
+                                        ../scripts/cli.properties
+                                    </properties-file>
+                                    <script-files>
+                                        <script>../scripts/disable-http.cli</script>
+                                    </script-files>
+                                </cli-session>
+                            </cli-sessions>
+                            <extra-server-content-dirs combine.self="override"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
