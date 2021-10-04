@@ -1,0 +1,7 @@
+{
+  "provider-url": "${org.wildfly.bootable.jar.example.oidc.provider-url}",
+  "ssl-required": "external",
+  "client-id": "simple-webapp",
+  "public-client": true,
+  "confidential-port": 0
+}

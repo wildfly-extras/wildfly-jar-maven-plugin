@@ -1,4 +1,8 @@
-# Keycloak WildFly bootable jar example
+# [DEPRECATED] Keycloak WildFly bootable jar example
+
+The example `../elytron-oidc-client` highlight the supported way to secure a deployment using OpenID Connect (OIDC).
+
+Usage of the Keycloak Galleon feature-pack highlighted in this example is deprecated.
 
 Build a bootable JAR containing an application secured with Keycloak.
 In order to enable keycloak, you must use the Galleon layer `keycloak-client-oidc` that brings in the 

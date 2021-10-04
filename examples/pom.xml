@@ -88,6 +88,7 @@
         <module>authentication</module>
         <module>ejb-in-ear</module>
         <module>ejb-in-war</module>
+        <module>elytron-oidc-client</module>
         <module>gradle-mdb-rar</module>
         <module>hollow-jar</module>
         <module>https</module>
