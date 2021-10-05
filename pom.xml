@@ -52,8 +52,8 @@
   <properties>
     <version.wildfly>25.0.0.Final</version.wildfly>
     <!-- docs properties -->
-    <docs.project.branch>master</docs.project.branch>
-    <docs.wildfly.major>24</docs.wildfly.major>
+    <docs.project.branch>6.0.0.Final</docs.project.branch>
+    <docs.wildfly.major>25</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>
     <version.org.apache.maven.core>3.3.1</version.org.apache.maven.core>
