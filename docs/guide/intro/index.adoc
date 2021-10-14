@@ -489,8 +489,32 @@ In this example, the directory _<project directory>/target/my-maven-repo_ is cre
 The https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/slim[slim] example shows how to build a slim bootable JAR 
 and generate a local Maven repository used at startup.
 
+[[wildfly_jar_advanced_channels_provisioning]]
+### Provisioning with WildFly Channels
+
+It is possible to configure the plugin to use https://github.com/wildfly-extras/wildfly-channel[WildFly channels]. WildFly Channel yaml files URL and/or Maven Coordinates 
+(version being optional) can be set thanks to the `<channels>` configuration item.
+
+[source,xml]
+----
+<channels>
+    <channel>
+      <url>file://${project.basedir}/my-channel.yaml</url>
+    </channel>
+    <channel>
+      <!-- Use latest channel version -->
+      <groupId>org.foo.bar</groupId>
+      <artifactId>my-channel</artifactId>
+      <!-- Uncomment to use a specific channel version -->
+      <!--<version>2.0.0.Final</version>-->
+    </channel>
+</channels>
+----
+
 [[wildfly_jar_advanced_upgrade]]
 ### Upgrading a bootable JAR
+
+NB: This feature can't be used when WildFly Channels are configured.
 
 The artifacts referenced from JBoss Modules modules and Galleon feature-packs dependencies can be overridden when building a bootable JAR. This mechanism is based on Maven
 dependencies resolution.
