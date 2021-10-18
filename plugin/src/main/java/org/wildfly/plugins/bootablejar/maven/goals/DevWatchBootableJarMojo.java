@@ -77,6 +77,7 @@ import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.BootableAppEv
 import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.ProjectContext;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
+import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.plugin.common.PropertyNames;
 import org.wildfly.plugin.core.ServerHelper;
 
@@ -131,7 +132,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     private static final String MAVEN_WILDFLY_JAR_PLUGIN = "wildfly-jar-maven-plugin";
     private static final String WATCH_GOAL = "dev-watch";
     private static final boolean IS_WINDOWS;
-
+    private static final String DEBUG_AGENT_OPTION="-agentlib:jdwp=";
     static {
         final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         IS_WINDOWS = os.contains("win");
@@ -167,6 +168,24 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
 
     @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
     private List<RemoteRepository> pluginRepos;
+
+    /**
+     * Enable/Disable debug. If debugger is explicitly enabled in JVM arguments, this option has no effect,
+     */
+    @Parameter(defaultValue = "false", property = "wildfly.bootable.debug")
+    private boolean debug;
+
+    /**
+     * Debug port.
+     */
+    @Parameter(alias= "debug-port", defaultValue = "8787", property = "wildfly.bootable.debug.port")
+    private int debugPort;
+
+    /**
+     * Debug suspend.
+     */
+    @Parameter(alias= "debug-suspend", defaultValue = "false", property = "wildfly.bootable.debug.suspend")
+    private boolean debugSuspend;
 
     private Process process;
     private Path currentServerDir;
@@ -455,6 +474,25 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         } catch (Exception e) {
             throw new MojoExecutionException(e.getLocalizedMessage(), e);
         }
+    }
+
+    @Override
+    protected BootableJarCommandBuilder buildCommandBuilder(boolean redirect) throws MojoExecutionException {
+        BootableJarCommandBuilder builder = super.buildCommandBuilder(redirect);
+        if (debug) {
+            boolean custom=false;
+            for (String opt : builder.getJavaOptions()) {
+                if (opt.startsWith(DEBUG_AGENT_OPTION)) {
+                    custom = true;
+                    break;
+                }
+            }
+            if (!custom) {
+                builder.addJavaOption(DEBUG_AGENT_OPTION + "transport=dt_socket,address=" + (Utils.isModularJVM() ? "*:" : "") + debugPort +
+                        ",server=y,suspend="+ (debugSuspend ? "y" : "n"));
+            }
+        }
+        return builder;
     }
 
     private void watch(WatchService watcher, DevWatchContext ctx) throws IOException, MojoExecutionException, InterruptedException, MojoFailureException, ProjectBuildingException {
@@ -767,6 +805,36 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 String value = resolve(timeout.getValue());
                 if (value != null) {
                     this.timeout = Integer.parseInt(value);
+                }
+            }
+
+            Xpp3Dom debug = config.getChild("debug");
+            this.debug = false;
+            if (debug != null) {
+                // Is null for defaultValue.
+                String value = resolve(debug.getValue());
+                if (value != null) {
+                    this.debug = Boolean.parseBoolean(value);
+                }
+            }
+
+            Xpp3Dom debugPort = config.getChild("debugPort");
+            this.debugPort = 8787;
+            if (debugPort != null) {
+                // Is null for defaultValue.
+                String value = resolve(debugPort.getValue());
+                if (value != null) {
+                    this.debugPort = Integer.parseInt(value);
+                }
+            }
+
+            Xpp3Dom debugSuspend = config.getChild("debugSuspend");
+            this.debugSuspend = false;
+            if (debugSuspend != null) {
+                // Is null for defaultValue.
+                String value = resolve(debugSuspend.getValue());
+                if (value != null) {
+                    this.debugSuspend = Boolean.parseBoolean(value);
                 }
             }
         }
