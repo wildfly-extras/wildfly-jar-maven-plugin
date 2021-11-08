@@ -142,4 +142,17 @@ public class Utils {
         }
         return layers;
     }
+
+    public static boolean isModularJVM() {
+        final String javaSpecVersion = System.getProperty("java.specification.version");
+        boolean modularJvm = false;
+        if (javaSpecVersion != null) {
+            final Matcher matcher = Pattern.compile("^(?:1\\.)?(\\d+)$").matcher(javaSpecVersion);
+            if (matcher.find()) {
+                modularJvm = Integer.parseInt(matcher.group(1)) >= 9;
+            }
+        }
+        return modularJvm;
+    }
+
 }
