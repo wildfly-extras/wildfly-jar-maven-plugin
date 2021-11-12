@@ -25,12 +25,6 @@
             <type>zip</type>
         </dependency>
         <dependency>
-            <groupId>WF_GROUPID</groupId>
-            <artifactId>wildfly-ee</artifactId>
-            <version>WF_EE_VERSION</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-spring</artifactId>
             <scope>provided</scope>
@@ -58,10 +52,6 @@
                         <artifact>
                             <groupId>io.undertow</groupId>
                             <artifactId>undertow-core</artifactId>
-                        </artifact>
-                        <artifact>
-                            <groupId>WF_GROUPID</groupId>
-                            <artifactId>wildfly-ee</artifactId>
                         </artifact>
                         <artifact>
                             <groupId>org.jboss.resteasy</groupId>
