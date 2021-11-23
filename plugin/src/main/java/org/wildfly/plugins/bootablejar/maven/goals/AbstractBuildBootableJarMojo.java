@@ -113,6 +113,9 @@ import org.wildfly.security.manager.WildFlySecurityManager;
  */
 public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
+    private static final String JBOSS_MODULES_GROUP_ID = "org.jboss.modules";
+    private static final String JBOSS_MODULES_ARTIFACT_ID = "jboss-modules";
+
     public static final String BOOTABLE_SUFFIX = "bootable";
     public static final String JAR = "jar";
     public static final String WAR = "war";
@@ -398,6 +401,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private final Set<Artifact> cliArtifacts = new HashSet<>();
 
     private boolean forkCli;
+    private Artifact jbossModules;
 
     // EE-9 specific
     private Path provisioningMavenRepo;
@@ -1256,18 +1260,27 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                         // We got it.
                         debug("Found version artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
+                        continue;
                     }
                     if ("vdx-core".equals(a.getArtifactId())
                             && "org.projectodd.vdx".equals(a.getGroupId())) {
                         // We got it.
                         debug("Found vdx-core artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
                         cliArtifacts.add(a);
+                        continue;
                     }
                     // End patching dependencies.
+                    if ("jboss-modules".equals(a.getArtifactId())
+                            && "org.jboss.modules".equals(a.getGroupId())) {
+                        jbossModules = a;
+                    }
                 }
             }
             if (bootArtifact == null) {
                 throw new ProvisioningException("Server doesn't support bootable jar packaging");
+            }
+            if (jbossModules == null) {
+                throw new ProvisioningException("JBoss Modules not found in dependency, can't create a Bootable JAR");
             }
             pm.provision(rt.getLayout());
 
@@ -1338,8 +1351,38 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         zip(home, target);
     }
 
+    private OverriddenArtifact getOverriddenArtifact(String grpId, String artifactId) {
+        OverriddenArtifact ret = null;
+        for (OverriddenArtifact art : overriddenServerArtifacts) {
+            if(art.getGroupId().equals(grpId) && art.getArtifactId().equals(artifactId)) {
+                ret = art;
+                break;
+            }
+        }
+        return ret;
+    }
+
     private void buildJar(Path contentDir, Path jarFile, Artifact artifact) throws MojoExecutionException, IOException {
         Path rtJarFile = resolveArtifact(artifact);
+        // Check if that is an older server for which we can't upgrade the jboss-modules dependency.
+        Path contentRoot = Paths.get(project.getBuild().getDirectory()).resolve(bootableJarBuildArtifacts);
+        Path tmpDir = contentRoot.resolve("tmp_runtime");
+        Files.createDirectories(tmpDir);
+        ZipUtils.unzip(rtJarFile, tmpDir);
+        OverriddenArtifact modules = getOverriddenArtifact(JBOSS_MODULES_GROUP_ID, JBOSS_MODULES_ARTIFACT_ID);
+        Path jbossModulesDependency = tmpDir.resolve("META-INF").resolve("maven").resolve(JBOSS_MODULES_GROUP_ID).
+                resolve(JBOSS_MODULES_ARTIFACT_ID).resolve("pom.xml");
+        if (Files.exists(jbossModulesDependency)) {
+            if (modules != null) {
+                getLog().warn("Bootable JAR dependency on jboss-modules can't be upgraded, you must use a more recent version of the server.");
+            }
+        } else {
+            if (modules != null) {
+                jbossModules.setVersion(modules.getVersion());
+            }
+            Path jbossModulesFile = resolveArtifact(jbossModules);
+            ZipUtils.unzip(jbossModulesFile, contentDir);
+        }
         ZipUtils.unzip(rtJarFile, contentDir);
         zip(contentDir, jarFile);
     }
