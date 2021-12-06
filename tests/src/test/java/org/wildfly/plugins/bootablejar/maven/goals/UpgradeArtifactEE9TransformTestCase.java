@@ -38,16 +38,12 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
     public void testUpgrade() throws Exception {
         Assume.assumeFalse("Not stupported on XP", isXP());
         BuildBootableJarMojo mojo = lookupMojo("package");
-        mojo.getLog().info("COUCOU");
         MavenProjectArtifactVersions artifacts = MavenProjectArtifactVersions.getInstance(mojo.project);
-        // We have an older release of undertow-core and wildfly-ee-galleon-pack in the pom.xml
-        Assert.assertEquals(3, mojo.overriddenServerArtifacts.size());
+        Assert.assertEquals(2, mojo.overriddenServerArtifacts.size());
         String undertowVersion = null;
-        String wildflyeeVersion = null;
         String restEasySpringVersion = null;
         boolean seenUndertow = false;
         boolean seenRestEasy = false;
-        boolean seenWildFlyEE = false;
         for (OverriddenArtifact oa : mojo.overriddenServerArtifacts) {
             Artifact a = null;
             if ("io.undertow".equals(oa.getGroupId())) {
@@ -60,18 +56,13 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
                 Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
                 seenRestEasy = true;
                 restEasySpringVersion = a.getVersion();
-            } else {
-                a = artifacts.getArtifact(oa);
-                Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
-                seenWildFlyEE = true;
-                wildflyeeVersion = a.getVersion();
             }
             Assert.assertNotNull(a);
             Assert.assertNotNull(a.getVersion());
             Assert.assertEquals(oa.getGroupId(), a.getGroupId());
             Assert.assertEquals(oa.getArtifactId(), a.getArtifactId());
         }
-        Assert.assertTrue(seenUndertow && seenWildFlyEE && seenRestEasy);
+        Assert.assertTrue(seenUndertow && seenRestEasy);
         mojo.recordState = true;
         mojo.execute();
         final Path dir = getTestDir();
@@ -81,11 +72,9 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
             Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
             Assert.assertTrue(undertow.toString(), Files.exists(undertow));
-            Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-" + wildflyeeVersion + "-ee9.jar");
-            Assert.assertTrue(ee.toString(), Files.exists(ee));
             Path resteasy = modulesDir.resolve("org").resolve("jboss").resolve("resteasy").resolve("resteasy-spring").resolve("main").
-                    resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + "ee9.jar");
-            Assert.assertTrue(ee.toString(), Files.exists(ee));
+                    resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + "-ee9.jar");
+            Assert.assertTrue(resteasy.toString(), Files.exists(resteasy));
         } finally {
             BuildBootableJarMojo.deleteDir(unzippedJar);
         }
