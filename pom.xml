@@ -50,7 +50,7 @@
   </modules>
 
   <properties>
-    <version.wildfly>25.0.1.Final</version.wildfly>
+    <version.wildfly>26.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>master</docs.project.branch>
     <docs.wildfly.major>25</docs.wildfly.major>

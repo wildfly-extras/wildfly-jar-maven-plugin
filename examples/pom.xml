@@ -12,7 +12,7 @@
     <properties>
         <version.bootable.jar>6.1.2.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
-        <version.wildfly>25.0.1.Final</version.wildfly>
+        <version.wildfly>26.0.0.Beta1</version.wildfly>
         <version.wildfly.datasources.galleon-pack>2.0.5.Final</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
