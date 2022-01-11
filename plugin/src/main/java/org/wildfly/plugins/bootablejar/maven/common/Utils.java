@@ -111,7 +111,7 @@ public class Utils {
     }
 
     private static Set<String> getAllLayers(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
-        Set<String> allLayers = new HashSet<>();
+        ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
         for (FeaturePack fp : fps) {
             final FeaturePackLocation fpl;
             if (fp.getNormalizedPath() != null) {
@@ -122,14 +122,13 @@ public class Utils {
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
-            ProvisioningConfig pConfig = ProvisioningConfig.builder().
-                    addFeaturePackDep(FeaturePackConfig.builder(fpl).build()).build();
-            try (ProvisioningLayout<FeaturePackLayout> layout = pm.
-                    getLayoutFactory().newConfigLayout(pConfig)) {
-                allLayers.addAll(getAllLayers(layout));
-            }
+            builder.addFeaturePackDep(FeaturePackConfig.builder(fpl).build());
         }
-        return allLayers;
+        ProvisioningConfig pConfig = builder.build();
+        try (ProvisioningLayout<FeaturePackLayout> layout = pm.
+                getLayoutFactory().newConfigLayout(pConfig)) {
+            return getAllLayers(layout);
+        }
     }
 
     private static Set<String> getAllLayers(ProvisioningLayout<FeaturePackLayout> pLayout)
