@@ -62,8 +62,12 @@ public class RemoteCLIExecutor implements CLIExecutor {
     @Override
     public String getOutput() throws Exception {
         StringBuilder out = new StringBuilder();
-        for (String s : Files.readAllLines(output)) {
-            out.append(s).append("\n");
+        if (Files.exists(output)) {
+            for (String s : Files.readAllLines(output)) {
+                out.append(s).append("\n");
+            }
+        } else {
+            out.append("ERROR, no CLI output file found, an error occured while executing CLI");
         }
         return out.toString();
     }
