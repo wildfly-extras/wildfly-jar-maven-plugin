@@ -59,8 +59,15 @@ public class ForkedCLIUtil {
         for (String loc : artifacts) {
             cp.append(loc).append(File.pathSeparator);
         }
-        collectCpUrls(getJavaHome(), Thread.currentThread().getContextClassLoader(), cp);
-
+        StringBuilder contextCP = new StringBuilder();
+        collectCpUrls(getJavaHome(), Thread.currentThread().getContextClassLoader(), contextCP);
+        // This happens when running tests, use the process classpath to retrieve the CLIForkedExecutor main class
+        if (contextCP.length() == 0) {
+            log.warn("Re-using process classpath to retrieve Maven plugin classes to fork CLI process.");
+            cp.append(System.getProperty("java.class.path"));
+        } else {
+            cp.append(contextCP);
+        }
         Path properties = storeSystemProps();
 
         final List<String> argsList = new ArrayList<>();
@@ -75,7 +82,7 @@ public class ForkedCLIUtil {
         for (String s : args) {
             argsList.add(s);
         }
-
+        log.debug("CLI process command line " + argsList);
         try {
             final Process p;
             try {
@@ -101,7 +108,7 @@ public class ForkedCLIUtil {
             int exitCode = p.exitValue();
             if (exitCode != 0) {
                 log.error("Error executing CLI:" + traces);
-                throw new Exception("CLI execution failed.");
+                throw new Exception("CLI execution failed:" + traces);
             }
         } finally {
             Files.deleteIfExists(properties);
