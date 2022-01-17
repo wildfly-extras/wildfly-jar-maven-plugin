@@ -467,7 +467,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         try {
             // We are forking CLI executions in order to avoid JBoss Modules static references to ModuleLoaders.
-            forkCli = Boolean.parseBoolean(pluginOptions.getOrDefault("jboss-fork-embedded", "false"));
+            forkCli = Boolean.parseBoolean(pluginOptions.getOrDefault("jboss-fork-embedded", "true"));
             if (forkCli) {
                 getLog().info("CLI executions are done in forked process");
             }
@@ -755,7 +755,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             try {
                 executor.execute(allCommands);
             } catch (Exception ex) {
-                getLog().error("Error executing CLI script " + ex.getLocalizedMessage());
+                getLog().error("Error executing CLI script " + ex.getLocalizedMessage(), ex);
                 getLog().error(executor.getOutput());
                 throw ex;
             }
