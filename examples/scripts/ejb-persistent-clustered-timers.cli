@@ -1,0 +1,4 @@
+batch
+/subsystem=ejb3/service=timer-service/database-data-store=ejb-timers-ds:add(datasource-jndi-name=java:jboss/datasources/PostgreSQLDS, database=postgresql, partition=ejb-timers-ds-part)
+/subsystem=ejb3/service=timer-service:write-attribute(name=default-data-store, value=ejb-timers-ds)
+run-batch
