@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest ]
-        java: ['1.8', '11']
+        java: ['11', '17']
 
     steps:
       - uses: actions/checkout@v2
