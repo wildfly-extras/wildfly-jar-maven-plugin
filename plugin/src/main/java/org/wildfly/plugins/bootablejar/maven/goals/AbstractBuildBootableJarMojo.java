@@ -804,10 +804,11 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         if (Files.notExists(filePath)) {
             throw new RuntimeException("Cli properties file " + filePath + " doesn't exist");
         }
-        final Properties props = new Properties();
+        final Properties props, rawProps = new Properties();
         try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(filePath.toFile()),
                 StandardCharsets.UTF_8)) {
-            props.load(inputStreamReader);
+            rawProps.load(inputStreamReader);
+            props = Utils.processProperties(rawProps);
         } catch (IOException e) {
             throw new Exception(
                     "Failed to load properties from " + propertiesFile + ": " + e.getLocalizedMessage());

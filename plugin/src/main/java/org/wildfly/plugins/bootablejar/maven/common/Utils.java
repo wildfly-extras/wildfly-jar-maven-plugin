@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -154,4 +155,20 @@ public class Utils {
         return modularJvm;
     }
 
+    public static Properties processProperties(Properties rawProps) {
+        final Properties props = new Properties();
+        rawProps.entrySet().stream()
+                .forEach(e -> {
+                    props.setProperty(e.getKey().toString(), escapeBackslashes(e.getValue().toString()));
+                });
+        return props;
+    }
+
+    private static String escapeBackslashes(final String propertyValue) {
+        String finalValue = propertyValue;
+        if (propertyValue.contains("\\")) {
+            finalValue = propertyValue.replace("\\", "\\\\");
+        }
+        return finalValue;
+    }
 }
