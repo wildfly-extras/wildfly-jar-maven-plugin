@@ -62,6 +62,9 @@
                     <!-- The test requires it in CI-->
                     <jvmArguments>
                         <arg>-Dorg.wildfly.logging.skipLogManagerCheck=true</arg>
+                        <!-- On windows, to remove when Upgraded to WILDFLY 26.1.1 that should contain XNIO 3.8.7
+                                https://issues.redhat.com/browse/XNIO-404 -->
+                        <arg>-Djdk.io.File.enableADS=true</arg>
                     </jvmArguments>
                 </configuration>
                 <executions>
