@@ -47,6 +47,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -638,6 +639,10 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     protected void copyExtraContentInternal(Path wildflyDir, Path contentDir) throws Exception {
 
+    }
+
+    protected boolean updateManifest(Manifest manifest) {
+        return false;
     }
 
     protected void addExtraLayer(String layer) {
@@ -1384,9 +1389,26 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             ZipUtils.unzip(jbossModulesFile, contentDir);
         }
         ZipUtils.unzip(rtJarFile, contentDir);
+        updateManifest(contentDir);
         zip(contentDir, jarFile);
     }
 
+    private void updateManifest(Path target) throws IOException {
+        Path targetMetaInf = target.resolve("META-INF");
+        Path targetManifestPath = targetMetaInf.resolve("MANIFEST.MF");
+        boolean updated;
+        Manifest manifest;
+        try (FileInputStream stream = new FileInputStream(targetManifestPath.toFile())) {
+            manifest = new Manifest(stream);
+            updated = updateManifest(manifest);
+        }
+        if (updated) {
+            Files.deleteIfExists(targetManifestPath);
+            try (FileOutputStream out = new FileOutputStream(targetManifestPath.toFile())) {
+                manifest.write(out);
+            }
+        }
+    }
     private static void zip(Path contentDir, Path jarFile) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(jarFile.toFile()); ZipOutputStream zos = new ZipOutputStream(fos)) {
             Files.walkFileTree(contentDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), 1,
