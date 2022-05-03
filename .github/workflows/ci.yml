@@ -18,8 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest ]
-        java: ['1.8', '11']
+        os: [windows-latest ]
+        java: ['11']
 
     steps:
       - uses: actions/checkout@v2
@@ -34,7 +34,10 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Build and Test on ${{ matrix.java }}
-        run: mvn clean install '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true' '-Dorg.wildfly.bootable.jar.ci.execution=true'
+        run: |
+          mvn clean install '-DskipTests'
+          cd tests
+          mvn clean install '-Dtest=org.wildfly.plugins.bootablejar.maven.goals.DevWatchCliTestCase' '-Dtest.jvm.args=-Dorg.wildfly.logging.skipLogManagerCheck=true' '-Dorg.wildfly.bootable.jar.ci.execution=true'
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
