@@ -36,6 +36,9 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <version>PLUGIN_VERSION</version>
                 <configuration>
+                    <jvmArguments>
+                        <arg>-Djdk.io.File.enableADS=true</arg>
+                    </jvmArguments>
                     <feature-pack-location>TEST_REPLACE</feature-pack-location>
                     <layers>
                         <layer>jaxrs</layer>
