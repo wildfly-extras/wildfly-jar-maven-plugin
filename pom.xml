@@ -52,7 +52,7 @@
   <properties>
     <version.wildfly>26.1.0.Final</version.wildfly>
     <!-- docs properties -->
-    <docs.project.branch>7.0.2.Final</docs.project.branch>
+    <docs.project.branch>master</docs.project.branch>
     <docs.wildfly.major>26.1</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>

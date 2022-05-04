@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
-        <version>7.0.2.Final</version>
+        <version>7.0.3.Final-SNAPSHOT</version>
     </parent>
     <artifactId>elytron-oidc-client</artifactId>
     <packaging>war</packaging>
