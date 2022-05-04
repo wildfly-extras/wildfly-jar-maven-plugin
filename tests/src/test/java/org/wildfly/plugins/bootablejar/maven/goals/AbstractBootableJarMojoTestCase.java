@@ -377,6 +377,9 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         List<String> cmd = new ArrayList<>();
         cmd.add(getJavaCommand());
         cmd.addAll(getJvmArgs());
+        // On windows, to remove when Upgraded to WILDFLY 26.1.1 that should contain XNIO 3.8.7
+        // https://issues.redhat.com/browse/XNIO-404
+        cmd.add("-Djdk.io.File.enableADS=true");
         cmd.add("-jar");
         cmd.add(dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toAbsolutePath().toString());
         cmd.addAll(Arrays.asList(args));

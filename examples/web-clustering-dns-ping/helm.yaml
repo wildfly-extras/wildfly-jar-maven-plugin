@@ -1,0 +1,17 @@
+build:
+  uri: https://github.com/wildfly-extras/wildfly-jar-maven-plugin.git
+  ref: 7.0.2.Final
+  contextDir: examples
+  mode: bootable-jar
+  bootableJar:
+    builderImage: registry.access.redhat.com/ubi8/openjdk-17:latest
+  env:
+    - name: MAVEN_ARGS_APPEND
+      value: -pl web-clustering-dns-ping/ -am
+    - name: ARTIFACT_DIR
+      value: web-clustering-dns-ping/target
+deploy:
+  replicas: 2
+  env:
+    - name: JGROUPS_CLUSTER_PASSWORD
+      value: "mypassword"
