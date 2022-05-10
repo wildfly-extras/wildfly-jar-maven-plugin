@@ -10,7 +10,7 @@
     <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
-        <version.bootable.jar>7.0.3.Final-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>8.0.0.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>13.0.1</version.keycloak>
         <version.wildfly>26.1.0.Final</version.wildfly>
         <version.wildfly.datasources.galleon-pack>2.2.0.Final</version.wildfly.datasources.galleon-pack>
