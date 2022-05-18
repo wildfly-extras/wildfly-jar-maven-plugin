@@ -64,10 +64,11 @@
     <version.org.apache.maven.plugin-tools>3.6.4</version.org.apache.maven.plugin-tools>
     <version.org.apache.maven.plugin-plugin>3.6.4</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
-    <version.org.jboss.galleon>5.0.0.Final</version.org.jboss.galleon>
+    <version.org.jboss.galleon>5.0.1.Final</version.org.jboss.galleon>
     <version.org.wildfly.core.wildfly-core>19.0.0.Beta6</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.5.4.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>3.0.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
+    <version.org.wildfly.channel>1.0.0.Alpha13</version.org.wildfly.channel>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
@@ -248,7 +249,19 @@
         <artifactId>wildfly-maven-plugin</artifactId>
         <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
       </dependency>
-      
+
+      <dependency>
+          <groupId>org.wildfly.channel</groupId>
+          <artifactId>channel-core</artifactId>
+          <version>${version.org.wildfly.channel}</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.wildfly.channel</groupId>
+          <artifactId>maven-resolver</artifactId>
+          <version>${version.org.wildfly.channel}</version>
+      </dependency>
+
     <!-- Needed by tests -->
       <dependency>
         <groupId>org.apache.maven.plugin-testing</groupId>

@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -95,6 +96,8 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
+import org.wildfly.channel.maven.ChannelCoordinate;
+import org.wildfly.channel.UnresolvedMavenArtifactException;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
@@ -289,7 +292,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private File provisioningFile;
 
     /**
-     * Path to a CLI script that applies legacy patches. Content of such script
+     * Deprecated. Path to a CLI script that applies legacy patches. Content of such script
      * should be composed of 'patch apply [path to zip file] [patch apply
      * options]' commands. Due to the nature of a bootable JAR trimmed with
      * Galleon, part of the content of the patch can be missing. In order to
@@ -301,14 +304,16 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * NB: The server is patched with a legacy patch right after the server
      * has been provisioned with Galleon.
      */
+    @Deprecated
     @Parameter(alias = "legacy-patch-cli-script")
     String legacyPatchCliScript;
 
     /**
-     * Set to true to enable patch cleanup. When cleanup is enabled, unused
+     * Deprecated. Set to true to enable patch cleanup. When cleanup is enabled, unused
      * added modules, patched modules original directories, unused overlay
      * directories and .installation/patches directory are deleted.
      */
+    @Deprecated
     @Parameter(alias = "legacy-patch-clean-up", defaultValue = "false")
     boolean legacyPatchCleanUp;
 
@@ -349,7 +354,8 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * {@code provided} scope). GroupId and ArtifactId are mandatory.
      * Classifier is required if non null. Version and Type are optional and are
      * retrieved from the project dependencies. Dependencies on Galleon
-     * feature-pack can also be referenced from this list. {@code zip} type must be used for Galleon feature-packs.<br/>
+     * feature-pack can also be referenced from this list. {@code zip} type must be used for Galleon feature-packs.
+     * NB: This configuration item can't be used when Channels are in use.<br/>
      *  Example of an override of the {@code io.undertow:undertow-core}
      * artifact:<br/>
      * &lt;overridden-server-artifacts&gt;<br/>
@@ -388,6 +394,12 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "install-artifact-classifier", property = "bootable.jar.install.artifact.classifier", defaultValue = BOOTABLE_SUFFIX)
     String installArtifactClassifier;
 
+    /**
+     * List of channel URL and/or Maven coordinates (version being optional).
+     */
+    @Parameter(alias = "channels", required = false)
+    List<ChannelCoordinate> channels;
+
     MavenProjectArtifactVersions artifactVersions;
 
     @Inject
@@ -418,9 +430,17 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         MavenRepositoriesEnricher.enrich(session, project, repositories);
-        artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
-                : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
-
+        if (isChannelsProvisioning()) {
+            try {
+                artifactResolver = offline ? new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession)
+                        : new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession, repositories);
+            } catch (MalformedURLException | UnresolvedMavenArtifactException ex) {
+                throw new MojoExecutionException(ex.getLocalizedMessage(), ex);
+            }
+        } else {
+            artifactResolver = offline ? new MavenArtifactRepositoryManager(repoSystem, repoSession)
+                    : new MavenArtifactRepositoryManager(repoSystem, repoSession, repositories);
+        }
         if (outputFileName == null) {
             outputFileName = this.project.getBuild().getFinalName() + "-" + BOOTABLE_SUFFIX + "." + JAR;
         }
@@ -458,6 +478,9 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         Artifact bootArtifact;
         try {
             bootArtifact = provisionServer(wildflyDir, contentDir.resolve("provisioning.xml"), contentRoot);
+            if (artifactResolver instanceof ChannelMavenArtifactRepositoryManager) {
+                ((ChannelMavenArtifactRepositoryManager) artifactResolver).done(wildflyDir);
+            }
         } catch (ProvisioningException | IOException | XMLStreamException ex) {
             throw new MojoExecutionException("Provisioning failed", ex);
         }
@@ -552,6 +575,10 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
 
         attachJar(jarFile);
+    }
+
+    private boolean isChannelsProvisioning() {
+        return channels != null;
     }
 
     protected boolean isPackageDev() {
@@ -1085,7 +1112,11 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
         // Retrieve versions from Maven in case versions not set.
         if (featurePackLocation != null) {
-            featurePackLocation = MavenUpgrade.locationWithVersion(featurePackLocation, artifactVersions);
+            if (isChannelsProvisioning()) {
+                featurePackLocation = formatLocation(featurePackLocation);
+            } else {
+                featurePackLocation = MavenUpgrade.locationWithVersion(featurePackLocation, artifactVersions);
+            }
             featurePacks = new ArrayList<>();
             FeaturePack fp = new FeaturePack();
             fp.setLocation(featurePackLocation);
@@ -1093,21 +1124,38 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         } else {
             for (FeaturePack fp : featurePacks) {
                 if (fp.getLocation() != null) {
-                    fp.setLocation(MavenUpgrade.locationWithVersion(fp.getLocation(), artifactVersions));
+                    if (isChannelsProvisioning()) {
+                        fp.setLocation(formatLocation(fp.getLocation()));
+                    } else {
+                        fp.setLocation(MavenUpgrade.locationWithVersion(fp.getLocation(), artifactVersions));
+                    }
                 } else {
                     if (fp.getGroupId() == null || fp.getArtifactId() == null) {
                         throw new MojoExecutionException("Invalid Maven coordinates for galleon feature-pack ");
                     }
                     if (fp.getVersion() == null) {
-                        Artifact fpArtifact = artifactVersions.getFeaturePackArtifact(fp.getGroupId(), fp.getArtifactId(), fp.getClassifier());
-                        if (fpArtifact == null) {
-                            throw new MojoExecutionException("No version found for " + fp.getGAC());
+                        if (!isChannelsProvisioning()) {
+                            Artifact fpArtifact = artifactVersions.getFeaturePackArtifact(fp.getGroupId(), fp.getArtifactId(), fp.getClassifier());
+                            if (fpArtifact == null) {
+                                throw new MojoExecutionException("No version found for " + fp.getGAC());
+                            }
+                            fp.setVersion(fpArtifact.getVersion());
                         }
-                        fp.setVersion(fpArtifact.getVersion());
                     }
                 }
             }
         }
+    }
+
+    private String formatLocation(String location) {
+        //Special case for G:A that conflicts with producer:channel that we can't have in the plugin.
+        if (!FeaturePackLocation.fromString(location).hasUniverse()) {
+            long numSeparators = location.chars().filter(ch -> ch == ':').count();
+            if (numSeparators <= 1) {
+                location += ":";
+            }
+        }
+        return location;
     }
 
     private GalleonConfig buildGalleonConfig(ProvisioningManager pm) throws ProvisioningException, MojoExecutionException {
@@ -1167,14 +1215,21 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             ProvisioningConfig config = buildGalleonConfig(pm).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
-            MavenUpgrade mavenUpgrade = new MavenUpgrade(this, config, pm);
-            // Dump artifacts
-            if (dumpOriginalArtifacts) {
-                Path file = workDir.resolve("bootable-jar-server-original-artifacts.xml");
-                getLog().info("Dumping original Maven artifacts in " + file);
-                mavenUpgrade.dumpArtifacts(file);
+            MavenUpgrade mavenUpgrade = null;
+            if (isChannelsProvisioning()) {
+                if (!overriddenServerArtifacts.isEmpty()) {
+                    throw new MojoExecutionException("overridden-server-artifacts can't be configured when channels are configured.");
+                }
+            } else {
+                mavenUpgrade = new MavenUpgrade(this, config, pm);
+                // Dump artifacts
+                if (dumpOriginalArtifacts) {
+                    Path file = workDir.resolve("bootable-jar-server-original-artifacts.xml");
+                    getLog().info("Dumping original Maven artifacts in " + file);
+                    mavenUpgrade.dumpArtifacts(file);
+                }
+                config = mavenUpgrade.upgrade();
             }
-            config = mavenUpgrade.upgrade();
             // store provisioning.xml
             try(FileWriter writer = new FileWriter(outputProvisioningFile.toFile())) {
                 ProvisioningXmlWriter.getInstance().write(config, writer);
@@ -1197,7 +1252,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                         Artifact a = getArtifact(value);
                         if ( BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
                             // We got it.
-                            getLog().info("Found boot artifact " + a + " in " + mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                            getLog().info("Found boot artifact " + a + " in " + (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                             bootArtifact = a;
                             break;
                         }
@@ -1240,7 +1295,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-cli".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        debug("Found cli artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                        debug("Found cli artifact %s in %s", a, (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                         cliArtifacts.add(new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "provided", JAR,
                                 "client", new DefaultArtifactHandler(JAR)));
                         continue;
@@ -1248,7 +1303,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-patching".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        debug("Found patching artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                        debug("Found patching artifact %s in %s", a, (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                         cliArtifacts.add(a);
                         continue;
                     }
@@ -1256,21 +1311,21 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                     if ("wildfly-controller".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        debug("Found controller artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                        debug("Found controller artifact %s in %s", a, (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                         cliArtifacts.add(a);
                         continue;
                     }
                     if ("wildfly-version".equals(a.getArtifactId())
                             && "org.wildfly.core".equals(a.getGroupId())) {
                         // We got it.
-                        debug("Found version artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                        debug("Found version artifact %s in %s", a, (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                         cliArtifacts.add(a);
                         continue;
                     }
                     if ("vdx-core".equals(a.getArtifactId())
                             && "org.projectodd.vdx".equals(a.getGroupId())) {
                         // We got it.
-                        debug("Found vdx-core artifact %s in %s", a, mavenUpgrade.getMavenFeaturePack(fprt.getFPID()));
+                        debug("Found vdx-core artifact %s in %s", a, (mavenUpgrade == null ? fprt.getFPID() : mavenUpgrade.getMavenFeaturePack(fprt.getFPID())));
                         cliArtifacts.add(a);
                         continue;
                     }
