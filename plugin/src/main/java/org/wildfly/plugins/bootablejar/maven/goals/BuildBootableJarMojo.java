@@ -19,6 +19,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import org.wildfly.plugins.bootablejar.maven.cloud.CloudConfig;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.jar.Manifest;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -53,6 +54,14 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             return;
         }
         super.execute();
+    }
+
+    @Override
+    protected boolean updateManifest(Manifest manifest) {
+        if (cloud != null) {
+            return cloud.updateManifest(manifest);
+        }
+        return false;
     }
 
     @Override
