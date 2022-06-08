@@ -56,6 +56,7 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
 
     private void generateChannel(List<MavenArtifact> artifacts, Path file) throws IOException {
         StringBuilder channel = new StringBuilder();
+        channel.append("schemaVersion: \"1.0.0\"").append(System.lineSeparator());
         channel.append("name: Test Channel").append(System.lineSeparator());
         channel.append("description: Test Channel").append(System.lineSeparator());
         channel.append("streams:").append(System.lineSeparator());

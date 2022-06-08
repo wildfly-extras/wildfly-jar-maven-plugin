@@ -68,7 +68,7 @@
     <version.org.wildfly.core.wildfly-core>19.0.0.Beta6</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.5.4.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>3.0.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
-    <version.org.wildfly.channel>1.0.0.Alpha13</version.org.wildfly.channel>
+    <version.org.wildfly.channel>1.0.0.Alpha14</version.org.wildfly.channel>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
