@@ -25,10 +25,10 @@
             <type>zip</type>
         </dependency>
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
+            <groupId>org.jboss.resteasy.spring</groupId>
             <artifactId>resteasy-spring</artifactId>
             <scope>provided</scope>
-            <version>3.15.0.Final</version>
+            <version>3.0.0.Alpha2</version>
         </dependency>
     </dependencies>
     <build>
@@ -54,7 +54,7 @@
                             <artifactId>undertow-core</artifactId>
                         </artifact>
                         <artifact>
-                            <groupId>org.jboss.resteasy</groupId>
+                            <groupId>org.jboss.resteasy.spring</groupId>
                             <artifactId>resteasy-spring</artifactId>
                         </artifact>
                     </overridden-server-artifacts>
