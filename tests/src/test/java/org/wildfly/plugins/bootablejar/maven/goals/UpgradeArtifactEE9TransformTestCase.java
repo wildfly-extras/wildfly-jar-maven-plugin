@@ -51,7 +51,7 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
                 Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
                 seenUndertow = true;
                 undertowVersion = a.getVersion();
-            } else if ("org.jboss.resteasy".equals(oa.getGroupId())) {
+            } else if ("org.jboss.resteasy.spring".equals(oa.getGroupId())) {
                 a = artifacts.getArtifact(oa);
                 Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
                 seenRestEasy = true;
@@ -73,7 +73,7 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
             Assert.assertTrue(undertow.toString(), Files.exists(undertow));
             Path resteasy = modulesDir.resolve("org").resolve("jboss").resolve("resteasy").resolve("resteasy-spring").resolve("main").
-                    resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + "-ee9.jar");
+                    resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + ".jar");
             Assert.assertTrue(resteasy.toString(), Files.exists(resteasy));
         } finally {
             BuildBootableJarMojo.deleteDir(unzippedJar);
