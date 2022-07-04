@@ -118,7 +118,7 @@ public class DevWatchContextTestCase {
             Path newFile = Files.createFile(project.webAppDir.resolve("index2.html"));
             Path expectedTargetFile = targetDir.resolve(newFile.getFileName());
             Files.write(newFile, "Hello".getBytes());
-            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -132,7 +132,7 @@ public class DevWatchContextTestCase {
             // Update an existing file
             Files.write(existingFile, "Hello2".getBytes());
 
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -149,7 +149,7 @@ public class DevWatchContextTestCase {
             Files.delete(existingFile);
             Files.createFile(existingFile);
             Files.write(existingFile, "Hello4".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1 && handler.deleted.size() == 1;
@@ -165,7 +165,7 @@ public class DevWatchContextTestCase {
 
             // Delete the existing file
             Files.delete(existingFile);
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.deleted.size() == 1;
@@ -181,7 +181,7 @@ public class DevWatchContextTestCase {
             Path newDir1 = project.webAppDir.resolve("foo");
             Path newDir2 = newDir1.resolve("bar");
             Files.createDirectories(newDir2);
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.monitored.size() == 2;
@@ -196,7 +196,7 @@ public class DevWatchContextTestCase {
             newFile = Files.createFile(newDir2.resolve("index3.html"));
             expectedTargetFile = targetDir.resolve(project.webAppDir.relativize(newFile));
             Files.write(newFile, "Hello3".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -210,7 +210,7 @@ public class DevWatchContextTestCase {
             // Delete directory, random failure on Windows.
             if (!isWindows()) {
                 IoUtils.recursiveDelete(newDir1);
-                handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+                handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                     @Override
                     public boolean isOk(BootableAppEventHandler handler) {
                         return handler.deleted.size() == 3;
@@ -230,7 +230,7 @@ public class DevWatchContextTestCase {
             // Create an empty file in the WEB-INF directory must re-deploy
             newFile = Files.createFile(project.webinfDir.resolve("web.xml"));
             expectedTargetFile = targetDir.resolve(project.webinfDir.getFileName()).resolve(newFile.getFileName());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -259,7 +259,7 @@ public class DevWatchContextTestCase {
             // Add a new file
             Path newFile = Files.createFile(project.javaDir.resolve("Foo2.java"));
             Files.write(newFile, "Hello".getBytes());
-            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, true, false, false, true, new Checker() {
+            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, true, false, false, true, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -273,7 +273,7 @@ public class DevWatchContextTestCase {
             // Update an existing file
             Files.write(existingFile, "Hello2".getBytes());
 
-            handler = checkEvent(ctx, projCtx, false, true, false, false, true, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, true, false, false, true, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -289,7 +289,7 @@ public class DevWatchContextTestCase {
             Files.delete(existingFile);
             Files.createFile(existingFile);
             Files.write(existingFile, "Hello4".getBytes());
-            handler = checkEvent(ctx, projCtx, true, true, false, false, true, new Checker() {
+            handler = checkEvent(ctx, projCtx, true, true, false, false, true, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.deleted.size() == 1 && handler.seenUpdated.size() == 1;
@@ -304,7 +304,7 @@ public class DevWatchContextTestCase {
 
             // Delete the existing file
             Files.delete(existingFile);
-            handler = checkEvent(ctx, projCtx, true, true, false, false, true, new Checker() {
+            handler = checkEvent(ctx, projCtx, true, true, false, false, true, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.deleted.size() == 1;
@@ -319,7 +319,7 @@ public class DevWatchContextTestCase {
             Path newDir1 = project.javaDir.resolve("foo");
             Path newDir2 = newDir1.resolve("bar");
             Files.createDirectories(newDir2);
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.monitored.size() == 2;
@@ -334,7 +334,7 @@ public class DevWatchContextTestCase {
             // Add a new file in the new sub directory
             newFile = Files.createFile(newDir2.resolve("Foo4.java"));
             Files.write(newFile, "Hello3".getBytes());
-            handler = checkEvent(ctx, projCtx, false, true, false, false, true, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, true, false, false, true, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -348,7 +348,7 @@ public class DevWatchContextTestCase {
             // Delete directory, random failure on Windows.
             if (!isWindows()) {
                 IoUtils.recursiveDelete(newDir1);
-                handler = checkEvent(ctx, projCtx, true, true, false, false, true, new Checker() {
+                handler = checkEvent(ctx, projCtx, true, true, false, false, true, false, new Checker() {
                     @Override
                     public boolean isOk(BootableAppEventHandler handler) {
                         return handler.deleted.size() == 3;
@@ -368,7 +368,7 @@ public class DevWatchContextTestCase {
             Path targetDir = project.deploymentsDir.resolve("ROOT.war");
             Path newResourceFile = Files.createFile(project.javaDir.resolve("foo2.properties"));
             Files.write(newResourceFile, "Hello".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, true, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -384,13 +384,14 @@ public class DevWatchContextTestCase {
             // Add a new file
             Path newResourceFile2 = Files.createFile(project.resourcesDir.resolve("foo3.properties"));
             Files.write(newResourceFile2, "Hello".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, true, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
                 }
             });
             Assert.assertTrue(handler.redeploy);
+            Assert.assertTrue(handler.resources);
             Assert.assertEquals(1, handler.copied.size());
             expectedTargetFile = targetDir.resolve("WEB-INF").resolve("classes").resolve(project.resourcesDir.relativize(newResourceFile2));
             Assert.assertEquals(expectedTargetFile, handler.copied.get(newResourceFile2));
@@ -415,7 +416,7 @@ public class DevWatchContextTestCase {
             // Add a new file
             Path newFile = Files.createFile(project.javaDir.resolve("Foo2.java"));
             Files.write(newFile, "Hello".getBytes());
-            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, true, false, true, false, new Checker() {
+            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, true, false, true, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -429,7 +430,7 @@ public class DevWatchContextTestCase {
             // Update an existing file
             Files.write(existingFile, "Hello2".getBytes());
 
-            handler = checkEvent(ctx, projCtx, false, true, false, true, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, true, false, true, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -445,7 +446,7 @@ public class DevWatchContextTestCase {
             Files.delete(existingFile);
             Files.createFile(existingFile);
             Files.write(existingFile, "Hello4".getBytes());
-            handler = checkEvent(ctx, projCtx, true, true, false, true, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, true, true, false, true, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.deleted.size() == 1 && handler.seenUpdated.size() == 1;
@@ -460,7 +461,7 @@ public class DevWatchContextTestCase {
 
             // Delete the existing file
             Files.delete(existingFile);
-            handler = checkEvent(ctx, projCtx, true, true, false, true, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, true, true, false, true, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.deleted.size() == 1;
@@ -475,7 +476,7 @@ public class DevWatchContextTestCase {
             Path newDir1 = project.javaDir.resolve("foo");
             Path newDir2 = newDir1.resolve("bar");
             Files.createDirectories(newDir2);
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.monitored.size() == 2;
@@ -490,7 +491,7 @@ public class DevWatchContextTestCase {
             // Add a new file in the new sub directory
             newFile = Files.createFile(newDir2.resolve("Foo4.java"));
             Files.write(newFile, "Hello3".getBytes());
-            handler = checkEvent(ctx, projCtx, false, true, false, true, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, true, false, true, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -504,7 +505,7 @@ public class DevWatchContextTestCase {
             // Delete directory, random failure on Windows.
             if (!isWindows()) {
                 IoUtils.recursiveDelete(newDir1);
-                handler = checkEvent(ctx, projCtx, true, true, false, true, false, new Checker() {
+                handler = checkEvent(ctx, projCtx, true, true, false, true, false, false, new Checker() {
                     @Override
                     public boolean isOk(BootableAppEventHandler handler) {
                         return handler.deleted.size() == 3;
@@ -524,7 +525,7 @@ public class DevWatchContextTestCase {
             Path targetDir = project.deploymentsDir.resolve("testjava1.jar");
             Path newResourceFile = Files.createFile(project.javaDir.resolve("foo2.properties"));
             Files.write(newResourceFile, "Hello".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, true, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.copied.size() == 1;
@@ -540,7 +541,7 @@ public class DevWatchContextTestCase {
             // Add a new file
             Path newResourceFile2 = Files.createFile(project.resourcesDir.resolve("foo3.properties"));
             Files.write(newResourceFile2, "Hello".getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, false, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, true, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     // In some very rare cases foo2.properties fire an additionnal change event.
@@ -549,6 +550,24 @@ public class DevWatchContextTestCase {
                 }
             });
             Assert.assertTrue(handler.redeploy);
+            Assert.assertTrue(handler.resources);
+            expectedTargetFile = targetDir.resolve(project.resourcesDir.relativize(newResourceFile2));
+            Assert.assertEquals(handler.copied.toString(), expectedTargetFile, handler.copied.get(newResourceFile2));
+            projCtx.reset();
+
+            // Resources in resources dir.
+            // Update new file
+            Files.write(newResourceFile2, "Toto".getBytes());
+            handler = checkEvent(ctx, projCtx, false, false, false, false, false, true, new Checker() {
+                @Override
+                public boolean isOk(BootableAppEventHandler handler) {
+                    // In some very rare cases foo2.properties fire an additionnal change event.
+                    // So size is not correct.
+                    return handler.copied.containsKey(newResourceFile2);
+                }
+            });
+            Assert.assertTrue(handler.redeploy);
+            Assert.assertTrue(handler.resources);
             expectedTargetFile = targetDir.resolve(project.resourcesDir.relativize(newResourceFile2));
             Assert.assertEquals(handler.copied.toString(), expectedTargetFile, handler.copied.get(newResourceFile2));
             projCtx.reset();
@@ -572,7 +591,7 @@ public class DevWatchContextTestCase {
             String expected = "<!-- An empty pom file, updated by test-->";
             Files.write(project.pomFile, expected.getBytes());
 
-            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, true, false, false, new Checker() {
+            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, true, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -590,7 +609,7 @@ public class DevWatchContextTestCase {
             // Update file
             expected = "<!-- An empty pom file, updated by test with change to the plugin config-->";
             Files.write(project.pomFile, expected.getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, true, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, true, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -629,7 +648,7 @@ public class DevWatchContextTestCase {
             // Update file
             String expected = "<!-- An empty pom file, updated by test-->";
             Files.write(project.pomFile, expected.getBytes());
-            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, true, false, false, new Checker() {
+            BootableAppEventHandler handler = checkEvent(ctx, projCtx, false, false, true, false, false, false, new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1 && handler.deleted.size() == 1;
@@ -650,7 +669,7 @@ public class DevWatchContextTestCase {
             Files.createFile(project.pomFile);
             expected = "<!-- An empty pom file, updated by test with change to the plugin config-->";
             Files.write(project.pomFile, expected.getBytes());
-            handler = checkEvent(ctx, projCtx, false, false, true, false, false, new Checker() {
+            handler = checkEvent(ctx, projCtx, false, false, true, false, false, false,  new Checker() {
                 @Override
                 public boolean isOk(BootableAppEventHandler handler) {
                     return handler.seenUpdated.size() == 1;
@@ -673,7 +692,7 @@ public class DevWatchContextTestCase {
 
     private BootableAppEventHandler checkEvent(DevWatchContext ctx, TestProjectContext projCtx,
             boolean cleanup, boolean compile, boolean checkPluginConfig,
-            boolean packageJar, boolean packageWar, Checker checker) throws Exception {
+            boolean packageJar, boolean packageWar, boolean resources, Checker checker) throws Exception {
 
         boolean ok = false;
         BootableAppEventHandler handler = null;
@@ -711,6 +730,7 @@ public class DevWatchContextTestCase {
         Assert.assertEquals(checkPluginConfig, projCtx.checkPluginCalled);
         Assert.assertEquals(packageWar, projCtx.packageWarCalled);
         Assert.assertEquals(packageJar, projCtx.packageJarCalled);
+        Assert.assertEquals(resources, projCtx.resourcesCalled);
         return handler;
     }
 
