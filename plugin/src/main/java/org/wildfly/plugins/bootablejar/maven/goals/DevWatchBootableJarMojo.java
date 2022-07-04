@@ -439,6 +439,11 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
             deploymentController.deploy(dir);
         }
 
+        @Override
+        public void resources() throws MojoExecutionException {
+            triggerResources(project);
+        }
+
     }
 
     @Override

@@ -82,6 +82,8 @@ class DevWatchContext {
 
         void compile(boolean autoCompile) throws MojoExecutionException;
 
+        void resources() throws MojoExecutionException;
+
         void packageWar(Path targetDir) throws MojoExecutionException;
 
         void packageJar(Path targetDir, Path artifactFile) throws IOException, MojoExecutionException;
@@ -99,6 +101,7 @@ class DevWatchContext {
         boolean repackage;
         boolean clean;
         boolean reset;
+        boolean resources;
 
         // Used by tests
         Map<Path, Path> copied = new HashMap<>();
@@ -154,7 +157,7 @@ class DevWatchContext {
         void applyChanges() throws IOException, MojoExecutionException {
             if (compile || redeploy) {
                 ctx.debug("[WATCH] updating application");
-                rebuild(false, compile, repackage, redeploy, clean);
+                rebuild(false, compile, repackage, redeploy, clean, resources);
             }
         }
 
@@ -185,6 +188,7 @@ class DevWatchContext {
                             ctx.debug("[WATCH] resources dir updated, need to re-deploy");
                             copyInDeployment(absolutePath, getResourcesPath().resolve(resourcesDir.relativize(absolutePath)));
                             redeploy = true;
+                            resources = true;
                             handledLocally = true;
                         }
                     }
@@ -489,15 +493,18 @@ class DevWatchContext {
     }
 
     void build(boolean autoCompile) throws IOException, MojoExecutionException {
-        rebuild(autoCompile, true, true, true, true);
+        rebuild(autoCompile, true, true, true, true, true);
     }
 
-    private void rebuild(boolean autoCompile, boolean compile, boolean repackage, boolean redeploy, boolean cleanup) throws IOException, MojoExecutionException {
+    private void rebuild(boolean autoCompile, boolean compile, boolean repackage, boolean redeploy, boolean cleanup, boolean resources) throws IOException, MojoExecutionException {
         if (cleanup) {
             ctx.cleanup();
         }
         if (compile || cleanup) {
             ctx.compile(autoCompile);
+        }
+        if (resources) {
+            ctx.resources();
         }
         if (repackage || cleanup) {
 

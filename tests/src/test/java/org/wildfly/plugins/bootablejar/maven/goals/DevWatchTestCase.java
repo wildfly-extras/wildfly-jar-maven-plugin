@@ -91,6 +91,20 @@ public class DevWatchTestCase extends AbstractDevWatchTestCase {
         String expectedNewContent = patchedRadical + testMsg;
         assertTrue(pollBodyContent(url, expectedNewContent));
 
+        Thread.sleep(3000);
+        // Update Java file and check that previous resources update is reflected
+        javaFile = getTestDir().resolve("src").resolve("main").resolve("java").
+                resolve("org").resolve("wildfly").resolve("plugins").resolve("demo").resolve("jaxrs").resolve("HelloWorldEndpoint.java");
+        str = new String(Files.readAllBytes(javaFile), "UTF-8");
+        radical = "Hi guys ";
+        patchedRadical = "FOOFOO ";
+        str = str.replace(radical, patchedRadical);
+        expectedNewContent = patchedRadical + testMsg;
+        Files.write(javaFile, str.getBytes());
+
+        assertTrue(pollBodyContent(url, expectedNewContent));
+        Thread.sleep(3000);
+
         // Add a new directory dir
         Path p = getTestDir().resolve("myresources");
         Files.createDirectory(p);

@@ -47,6 +47,7 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     boolean packageWarCalled;
     boolean checkPluginCalled;
     boolean cleanupCalled;
+    boolean resourcesCalled;
 
     TestProjectContext(Path baseDir, String finalName, String packaging,
             Path deploymentsDir,
@@ -179,5 +180,10 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     @Override
     public void deploy(Path dir) throws Exception {
         // NO OP.
+    }
+
+    @Override
+    public void resources() throws MojoExecutionException {
+        resourcesCalled = true;
     }
 }
