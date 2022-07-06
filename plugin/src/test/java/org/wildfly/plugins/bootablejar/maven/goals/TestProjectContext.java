@@ -150,7 +150,7 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     }
 
     @Override
-    public final void cleanup() throws MojoExecutionException {
+    public final void cleanup(boolean autoCompile) throws MojoExecutionException {
         cleanupCalled = true;
     }
 
