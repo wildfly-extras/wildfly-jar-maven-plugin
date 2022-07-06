@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-jar-examples-parent</artifactId>
+        <version>8.0.0.Final-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <artifactId>remote-microprofile-config</artifactId>
+    <packaging>war</packaging>
+
+    <name>WildFly Bootable JAR - Remote MicroProfile Config</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>   
+                <configuration>
+                <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                <layers>
+                    <layer>jaxrs-server</layer>
+                    <layer>microprofile-platform</layer>
+                </layers>
+                <plugin-options>
+                    <jboss-fork-embedded>true</jboss-fork-embedded>
+                </plugin-options>
+                <cli-sessions>
+                  <cli-session>
+                      <script-files>
+                          <script>../scripts/management-account.cli</script>
+                      </script-files>
+                  </cli-session>
+              </cli-sessions>
+              <cloud/>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>packaging</id>
+                    <goals>
+                        <goal>package</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+      <profile>
+        <id>bootable-jar-remote</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.wildfly.plugins</groupId>
+                    <artifactId>wildfly-jar-maven-plugin</artifactId>
+                    <inherited>false</inherited>
+                    <configuration>
+                    <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                        <layers>
+                            <layer>jaxrs-server</layer>
+                            <layer>microprofile-platform</layer>
+                        </layers>
+                        <plugin-options>
+                            <jboss-fork-embedded>true</jboss-fork-embedded>
+                        </plugin-options>
+                      <remote>true</remote>
+                      <protocol>remote+https</protocol>
+                      <!--<hostname>management-remote-microprofile-config-bootable-ehugonne1-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com</hostname>-->
+                      <port>443</port>
+                      <username>admin</username>
+                      <password>passW0rd!</password>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>remote-dev</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>dev-watch</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+    </profile>
+  </profiles>
+
+</project>

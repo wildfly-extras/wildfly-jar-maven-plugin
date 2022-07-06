@@ -384,6 +384,54 @@ Limitations:
 * No support for resources filtering (include/exclude). The resources directory is watched fully, this means that some re-deploy could be started for resources
 excluded from the project.
 
+### Remote development mode with source watching
+
+Sometimes it might be required to develop the application remotely, for example in a cloud environment. The workflow is the same as the one of link:#wildfly_jar_dev_mode[Development mode with source watching] and it is using the same `dev-watch` goal.
+The only required changes is about configuring how to connect to the remote application using the management API.
+
+So you have to configure your bootable jar to allow remote connection to the management interface.
+For example such a script would create an account *admin/passW0rd!*
+
+[source,bash]
+----
+/subsystem=elytron/security-domain=ManagementDomain:undefine-attribute(name=default-realm)
+/subsystem=elytron/security-domain=ManagementDomain:list-remove(name=realms, index=0)
+/subsystem=elytron/properties-realm=ManagementRealm:remove
+/subsystem=elytron/filesystem-realm=ManagementRealm:add(path=management-realm, relative-to=jboss.server.config.dir)
+reload
+/subsystem=elytron/filesystem-realm=ManagementRealm:add-identity(identity=admin)
+/subsystem=elytron/filesystem-realm=ManagementRealm:add-identity-attribute(identity=admin, name=groups, value=[admin])
+/subsystem=elytron/filesystem-realm=ManagementRealm:set-password(identity=admin, clear={password=passW0rd!})
+/subsystem=elytron/security-domain=ManagementDomain:list-add(name=realms, index=0, value={realm=ManagementRealm})
+/subsystem=elytron/security-domain=ManagementDomain:write-attribute(name=default-realm, value=ManagementRealm
+----
+
+So once you have your application running you can execute the goal locally like this:
+[source,bash]
+----
+mvn  org.wildfly.plugins:wildfly-jar-maven-plugin:dev-watch\
+        -Dwildfly.bootable.remote=true\
+        -Dwildfly.hostname=microprofile-config-bootable-management-ehugonne1-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com\
+        -Dwildfly.port=443\
+        -Dwildfly.bootable.remote.protocol=remote+https\
+        -Dwildfly.bootable.remote.username=admin\
+        -Dwildfly.bootable.remote.password=passW0rd!
+----
+
+Error handling:
+
+The `dev-watch` goal will not exit on error. Errors are advertised in the console.
+
+* Compilation errors are printed in the console. Fix the files, recompilation will occur.
+* Server related errors are printed on the server itself.
+
+Limitations:
+
+* No support for multi modules.
+* No support for resources filtering (include/exclude). The resources directory is watched fully, this means that some re-deploy could be started for resources
+excluded from the project.
+* No support for complete rebuild of the server: you can't expect cli scripts or layer changes to be taken into account. You would need to rebuild the full bootable jar and relaunch it.
+
 ### Development mode with repackaging
 
 In order to speed-up the development of your application, the Maven plugin offers a link:#_dev[dev] goal that builds and starts the bootable JAR only once.
@@ -552,7 +600,7 @@ replace the version referenced in the WildFly Galleon feature-pack used to build
       <overridden-server-artifacts>
         <artifact>
           <groupId>io.undertow</groupId>
-          <artifactId>undertow-core</artifactId>                  
+          <artifactId>undertow-core</artifactId>
         </artifact>
       </overridden-server-artifacts>
     ...

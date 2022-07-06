@@ -106,6 +106,7 @@
         <module>logging-log4j-appender</module>
         <module>mdb-rar</module>
         <module>microprofile-config</module>
+        <module>remote-microprofile-config</module>
         <module>postgresql</module>
         <module>secmanager</module>
         <module>slim</module>

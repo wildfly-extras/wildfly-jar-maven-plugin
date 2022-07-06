@@ -1,0 +1,10 @@
+/subsystem=elytron/security-domain=ManagementDomain:undefine-attribute(name=default-realm)
+/subsystem=elytron/security-domain=ManagementDomain:list-remove(name=realms, index=0)
+/subsystem=elytron/properties-realm=ManagementRealm:remove
+/subsystem=elytron/filesystem-realm=ManagementRealm:add(path=management-realm, relative-to=jboss.server.config.dir)
+reload
+/subsystem=elytron/filesystem-realm=ManagementRealm:add-identity(identity=admin)
+/subsystem=elytron/filesystem-realm=ManagementRealm:add-identity-attribute(identity=admin, name=groups, value=[admin])
+/subsystem=elytron/filesystem-realm=ManagementRealm:set-password(identity=admin, clear={password=passW0rd!})
+/subsystem=elytron/security-domain=ManagementDomain:list-add(name=realms, index=0, value={realm=ManagementRealm})
+/subsystem=elytron/security-domain=ManagementDomain:write-attribute(name=default-realm, value=ManagementRealm 
