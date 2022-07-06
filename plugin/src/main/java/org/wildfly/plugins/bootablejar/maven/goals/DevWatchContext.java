@@ -78,7 +78,7 @@ class DevWatchContext {
 
         String getPackaging();
 
-        void cleanup() throws MojoExecutionException;
+        void cleanup(boolean autoCompile) throws MojoExecutionException;
 
         void compile(boolean autoCompile) throws MojoExecutionException;
 
@@ -498,7 +498,7 @@ class DevWatchContext {
 
     private void rebuild(boolean autoCompile, boolean compile, boolean repackage, boolean redeploy, boolean cleanup, boolean resources) throws IOException, MojoExecutionException {
         if (cleanup) {
-            ctx.cleanup();
+            ctx.cleanup(autoCompile);
         }
         if (compile || cleanup) {
             ctx.compile(autoCompile);

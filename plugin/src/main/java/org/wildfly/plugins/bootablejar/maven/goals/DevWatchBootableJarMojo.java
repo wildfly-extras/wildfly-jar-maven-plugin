@@ -406,10 +406,21 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         }
 
         @Override
-        public final void cleanup() throws MojoExecutionException {
+        public final void cleanup(boolean autoCompile) throws MojoExecutionException {
             getLog().debug("[WATCH] clean-up");
             IoUtils.recursiveDelete(getDeploymentsDir());
-            cleanClasses(currentProject);
+            boolean cleanClasses = true;
+            if (autoCompile) {
+                // Clean the classes only if we will re-compile them, otherwise re-use classes from previous phase.
+                cleanClasses = needCompile();
+            }
+
+            if (cleanClasses) {
+                getLog().debug("[WATCH] clean-up, classes are cleaned");
+                cleanClasses(currentProject);
+            } else {
+                getLog().debug("[WATCH] clean-up, classes are not cleaned, re-using classes from previous phase");
+            }
             triggerResources(currentProject);
         }
 
@@ -589,7 +600,14 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     }
 
     void handleAutoCompile(MavenProject project) throws MojoExecutionException {
-        //we check to see if there was a compile (or later) goal before this plugin
+        //if the user did not compile we run it for them
+        if (needCompile()) {
+            triggerCompile(project);
+        }
+    }
+
+    private boolean needCompile() {
+         //we check to see if there was a compile (or later) goal before this plugin
         boolean compileNeeded = true;
         for (String goal : session.getGoals()) {
             if (POST_COMPILE_PHASES.contains(goal)) {
@@ -600,11 +618,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 break;
             }
         }
-
-        //if the user did not compile we run it for them
-        if (compileNeeded) {
-            triggerCompile(project);
-        }
+        return compileNeeded;
     }
 
     void triggerCompile(MavenProject project) throws MojoExecutionException {
