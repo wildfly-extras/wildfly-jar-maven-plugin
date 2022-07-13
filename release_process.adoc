@@ -2,11 +2,11 @@
 
 == STEP 1: Prepare and perform the release
 
-First, make sure you don't have pending changes in your master branch.
+First, make sure you don't have pending changes in your main branch.
 
 * `cd wildfly-jar-maven-plugin`
-* `git checkout master`
-* `pull --rebase upstream master`
+* `git checkout main`
+* `git pull --rebase upstream main`
 * Validate that all examples build: `cd examples, mvn clean package`. NB: exclude temporarily mdb-rar and 
 gradle-demo that doesn't build but we want them in the parent pom file to update their pom version.
 * Build grade-demo using gradle. Build mdb-rar in the mdb-rar directory.
@@ -30,7 +30,7 @@ gradle-demo that doesn't build but we want them in the parent pom file to update
 ** mvn versions:commit
 ** cd ..
 * Commit the changes with message: `Update docs and examples to X.X.X.Final-SNAPSHOT`
-* `git push upstream master`
+* `git push upstream main`
 
 == STEP 2: Release in Nexus
 
