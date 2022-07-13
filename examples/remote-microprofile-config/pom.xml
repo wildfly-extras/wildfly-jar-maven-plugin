@@ -44,7 +44,7 @@
                 <cli-sessions>
                   <cli-session>
                       <script-files>
-                          <script>../scripts/management-account.cli</script>
+                          <script>../scripts/anonymous-management.cli</script>
                       </script-files>
                   </cli-session>
               </cli-sessions>
@@ -84,8 +84,6 @@
                       <protocol>remote+https</protocol>
                       <!--<hostname>management-remote-microprofile-config-bootable-ehugonne1-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com</hostname>-->
                       <port>443</port>
-                      <username>admin</username>
-                      <password>passW0rd!</password>
                     </configuration>
                     <executions>
                         <execution>

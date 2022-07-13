@@ -33,7 +33,11 @@ You may also use a command like this one:
 
 [source,bash]
 ----
-$ mvn org.wildfly.plugins:wildfly-jar-maven-plugin:dev-watch -Dwildfly.bootable.remote=true -Dwildfly.port=443 -Dwildfly.bootable.remote.protocol=remote+https -Dwildfly.bootable.remote.username=admin -Dwildfly.bootable.remote.password=passW0rd!-Dwildfly.hostname=$(oc get route management-remote-microprofile-config-bootable --template='{{ .spec.host }}')
+$ mvn org.wildfly.plugins:wildfly-jar-maven-plugin:dev-watch \
+-Dwildfly.bootable.remote=true \
+-Dwildfly.port=443 \
+-Dwildfly.bootable.remote.protocol=remote+https \
+-Dwildfly.hostname=$(oc get route management-remote-microprofile-config-bootable --template='{{ .spec.host }}')
 ----
 
 Check that the application is running properly :
@@ -55,6 +59,69 @@ For example:
 [source,bash]
 ----
 $ curl https://$(oc get route remote-microprofile-config-bootable --template='{{ .spec.host }}')
+config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config2 = Hello from dev-watch remote
+config3 = Default value for config3 comes from my code
+----
+
+== Develop the application on docker/podman
+
+=== Build the application locally
+
+* To build: `mvn clean install`
+* Build the docker image using the following Dockerfile
+
+[source,docker]
+----
+FROM registry.access.redhat.com/ubi8/openjdk-11:latest
+COPY --chown=jboss:root target/*.jar /deployments/.
+RUN chmod -R ug+rwX /deployments/.
+----
+
+Then build the image like this: 
+
+[source,bash]
+----
+$ podman build -f Dockerfile -t remote-microprofile-config:latest
+----
+
+* Run the container and expose the ports *8080* and *9990*:
+[source,bash]
+
+----
+$ podman run -p 8080:8080 -p 9990:9990 -it remote-microprofile-config:latest
+----
+
+=== Develop the application
+
+* Run the dev watch mode with the following command line:
+
+[source,bash]
+----
+$ mvn org.wildfly.plugins:wildfly-jar-maven-plugin:dev-watch \
+-Dwildfly.bootable.remote=true \
+-Dwildfly.hostname=${container.ip.address}
+----
+
+Check that the application is running properly :
+
+[source,bash]
+----
+$ curl http://${container.ip.address}:8080
+config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config2 = Value for config2 comes from a properties file inside the application
+config3 = Default value for config3 comes from my code
+----
+
+Once this is done you can edit the code and your changes will be automatically pushed to the OpenShift instance.
+For example:
+ * Change the config2 property value to be "Hello from dev-watch remote" in the file: src/main/resources/META-INF/microprofile-config.properties.
+ * Save your changes
+ * The application is redeployed and the new configuration will be taken into account:
+
+[source,bash]
+----
+$ curl http://${container.ip.address}:8080
 config1 = Value from Config1 comes from an env var in the DeploymentConfig
 config2 = Hello from dev-watch remote
 config3 = Default value for config3 comes from my code

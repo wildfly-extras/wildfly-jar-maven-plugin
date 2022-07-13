@@ -1178,7 +1178,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                 }
             });
         }
-        return ModelControllerClient.Factory.create(hostname, port);
+        return ModelControllerClient.Factory.create(protocol, hostname, port);
     }
 
     private void shutdownContainer() {
