@@ -22,7 +22,7 @@ gradle-demo that doesn't build but we want them in the parent pom file to update
 * Run tests: `mvn clean install -Dskip.perf.tests=false`
 * `mvn release:prepare -Darguments="-DskipTests"`
 * `mvn release:perform -Darguments="-DskipTests"`
-* Update in pom.xml docs.project.branch to reference master
+* Update in pom.xml docs.project.branch to reference main
 * Update the examples/pom.xml file to reference the snapshot plugin
 * Update the examples version:
 ** cd examples
