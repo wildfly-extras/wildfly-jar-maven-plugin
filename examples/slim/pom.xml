@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-examples-parent</artifactId>
-        <version>8.0.0.Alpha3-SNAPSHOT</version>
+        <version>8.0.0.Alpha3</version>
     </parent>
 
     <artifactId>slim</artifactId>
