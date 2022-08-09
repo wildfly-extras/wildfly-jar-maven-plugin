@@ -47,10 +47,10 @@ public class PatchUnexistingFailModuleTestCase extends AbstractBootableJarMojoTe
         String baseLayerPatchID = randomString();
         Path patchContentDir = createTestDirectory("patch-test-content", patchid);
 
-        final String moduleName = "javax.management.j2ee.api";
+        final String moduleName = "org.jboss.as.jdr";
         Path moduleDir = Paths.get(AS_DISTRIBUTION);
         moduleDir = moduleDir.resolve("modules").resolve("system").resolve("layers").
-                resolve("base").resolve("javax").resolve("management").resolve("j2ee").resolve("api").resolve("main");
+                resolve("base").resolve("org").resolve("jboss").resolve("as").resolve("jdr").resolve("main");
         assertTrue(Files.exists(moduleDir));
         Path moduleFile = moduleDir.resolve("module.xml");
         Module updatedModule = new Module.Builder(moduleName)
