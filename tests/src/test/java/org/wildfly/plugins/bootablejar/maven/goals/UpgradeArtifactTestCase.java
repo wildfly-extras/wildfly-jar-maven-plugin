@@ -43,12 +43,10 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
         BuildBootableJarMojo mojo = lookupMojo("package");
         MavenProjectArtifactVersions artifacts = MavenProjectArtifactVersions.getInstance(mojo.project);
         // We have an older release of undertow-core and wildfly-ee-galleon-pack in the pom.xml
-        Assert.assertEquals(3, mojo.overriddenServerArtifacts.size());
+        Assert.assertEquals(2, mojo.overriddenServerArtifacts.size());
         String undertowVersion = null;
         String wildflyeeVersion = null;
-        String restEasySpringVersion = null;
         boolean seenUndertow = false;
-        boolean seenRestEasy = false;
         boolean seenFeaturePack = false;
         for (OverriddenArtifact oa : mojo.overriddenServerArtifacts) {
             Artifact a = null;
@@ -57,11 +55,6 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
                 Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
                 seenUndertow = true;
                 undertowVersion = a.getVersion();
-            } else if ("org.jboss.resteasy".equals(oa.getGroupId())) {
-                a = artifacts.getArtifact(oa);
-                Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
-                seenRestEasy = true;
-                restEasySpringVersion = a.getVersion();
             } else {
                 a = artifacts.getFeaturePackArtifact(oa.getGroupId(), oa.getArtifactId(), oa.getClassifier());
                 Assert.assertNotNull(oa.getGroupId() + ":" + oa.getArtifactId(), a);
@@ -73,7 +66,7 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
             Assert.assertEquals(oa.getGroupId(), a.getGroupId());
             Assert.assertEquals(oa.getArtifactId(), a.getArtifactId());
         }
-        Assert.assertTrue(seenUndertow && seenFeaturePack && seenRestEasy);
+        Assert.assertTrue(seenUndertow && seenFeaturePack);
         mojo.recordState = true;
         mojo.execute();
         final Path dir = getTestDir();
@@ -83,10 +76,8 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
             Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
             Assert.assertTrue(undertow.toString(), Files.exists(undertow));
-            Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-" + wildflyeeVersion + ".jar");
+            Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-jakarta-" + wildflyeeVersion + ".jar");
             Assert.assertTrue(ee.toString(), Files.exists(ee));
-            Path resteasy = modulesDir.resolve("org").resolve("jboss").resolve("resteasy").resolve("resteasy-spring").resolve("main").
-                    resolve("bundled").resolve("resteasy-spring-jar").resolve("resteasy-spring-" + restEasySpringVersion + ".jar");
             Assert.assertTrue(ee.toString(), Files.exists(ee));
         } finally {
             BuildBootableJarMojo.deleteDir(unzippedJar);
@@ -98,7 +89,7 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
     @Test
     public void testInvalidUpgrades() throws Exception {
         BuildBootableJarMojo mojo = lookupMojo("package");
-        Assert.assertEquals(3, mojo.overriddenServerArtifacts.size());
+        Assert.assertEquals(2, mojo.overriddenServerArtifacts.size());
         List<OverriddenArtifact> orig = new ArrayList<>();
         orig.addAll(mojo.overriddenServerArtifacts);
         mojo.overriddenServerArtifacts.addAll(mojo.overriddenServerArtifacts);

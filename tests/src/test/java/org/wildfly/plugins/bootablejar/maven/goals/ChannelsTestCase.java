@@ -77,8 +77,7 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         artifacts.add(ds);
         Path channel = new File(mojo.project.getBasedir().getAbsoluteFile().toPath().toString() + "/my-channel.yaml").toPath();
         generateChannel(artifacts, channel);
-        ChannelCoordinate coordinate = new ChannelCoordinate();
-        coordinate.setUrl(channel.toUri().toURL());
+        ChannelCoordinate coordinate = new ChannelCoordinate(channel.toUri().toURL());
         mojo.channels = new ArrayList<>();
         mojo.channels.add(coordinate);
     }

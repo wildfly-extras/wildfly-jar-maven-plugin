@@ -31,12 +31,6 @@
             <scope>provided</scope>
             <type>zip</type>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-spring</artifactId>
-            <scope>provided</scope>
-            <version>3.15.0.Final</version>
-        </dependency>
     </dependencies>
     <build>
         <finalName>test</finalName>
@@ -62,10 +56,6 @@
                         <artifact>
                             <groupId>WF_GROUPID</groupId>
                             <artifactId>wildfly-ee-galleon-pack</artifactId>
-                        </artifact>
-                        <artifact>
-                            <groupId>org.jboss.resteasy</groupId>
-                            <artifactId>resteasy-spring</artifactId>
                         </artifact>
                     </overridden-server-artifacts>
                 </configuration>
