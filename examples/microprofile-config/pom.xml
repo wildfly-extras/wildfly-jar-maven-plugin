@@ -17,6 +17,7 @@
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
             <artifactId>microprofile-config-api</artifactId>
+            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
 

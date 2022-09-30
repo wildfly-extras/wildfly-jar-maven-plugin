@@ -1,7 +1,7 @@
 package org.wildfly.plugins.demo.hollowjar;
 
 import java.net.URL;
-import javax.ejb.EJB;
+import jakarta.ejb.EJB;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 

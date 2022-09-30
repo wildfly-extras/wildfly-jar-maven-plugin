@@ -5,7 +5,6 @@ end-if
 if (outcome == success) of /subsystem=jgroups/stack=tcp:read-resource
 /subsystem=jgroups/stack=tcp/protocol=dns.DNS_PING:add(add-index=0)
 # This env variable is set by Helm Chart
-/subsystem=jgroups/stack=tcp/protocol=dns.DNS_PING/property=dns_query:add(value=${env.OPENSHIFT_DNS_PING_SERVICE_NAME})
-/subsystem=jgroups/stack=tcp/protocol=dns.DNS_PING/property=async_discovery_use_separate_thread_per_request:add(value=true)
+/subsystem=jgroups/stack=tcp/protocol=dns.DNS_PING:write-attribute(name=properties, value={dns_query=${env.OPENSHIFT_DNS_PING_SERVICE_NAME}, async_discovery_use_separate_thread_per_request=true})
 end-if
 

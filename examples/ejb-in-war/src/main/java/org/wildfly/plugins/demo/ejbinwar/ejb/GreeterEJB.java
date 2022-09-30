@@ -1,6 +1,6 @@
 package org.wildfly.plugins.demo.ejbinwar.ejb;
 
-import javax.ejb.Stateful;
+import jakarta.ejb.Stateful;
 
 /**
  * A simple Hello World EJB. The EJB does not use an interface.

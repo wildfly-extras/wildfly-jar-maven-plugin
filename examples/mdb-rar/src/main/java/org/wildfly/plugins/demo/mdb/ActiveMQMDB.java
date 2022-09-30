@@ -1,16 +1,16 @@
 package org.wildfly.plugins.demo.mdb;
 
-import javax.ejb.ActivationConfigProperty;
-import javax.ejb.MessageDriven;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import jakarta.ejb.ActivationConfigProperty;
+import jakarta.ejb.MessageDriven;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
+import jakarta.jms.TextMessage;
 import org.jboss.ejb3.annotation.ResourceAdapter;
 
 @MessageDriven(
         activationConfig = {
-            @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+            @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Queue"),
             @ActivationConfigProperty(propertyName = "destination", propertyValue = "java:jboss/activemq/queue/LocalRPCRequest")
         },
         name = "ActiveMQMDB")
