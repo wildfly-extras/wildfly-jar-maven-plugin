@@ -4,11 +4,19 @@ if (outcome == success) of /subsystem=jgroups/channel=ee:read-resource
 end-if
 
 if (outcome == success) of /subsystem=jgroups/stack=udp/protocol=FD_SOCK:read-resource
- /subsystem=jgroups/stack=udp/protocol=FD_SOCK:write-attribute(name=socket-binding
+ /subsystem=jgroups/stack=udp/protocol=FD_SOCK:write-attribute(name=socket-binding)
 end-if
 
 if (outcome == success) of /subsystem=jgroups/stack=tcp/protocol=FD_SOCK:read-resource
-  /subsystem=jgroups/stack=tcp/protocol=FD_SOCK:write-attribute(name=socket-binding
+  /subsystem=jgroups/stack=tcp/protocol=FD_SOCK:write-attribute(name=socket-binding)
+end-if
+
+if (outcome == success) of /subsystem=jgroups/stack=udp/protocol=FD_SOCK2:read-resource
+ /subsystem=jgroups/stack=udp/protocol=FD_SOCK2:write-attribute(name=socket-binding)
+end-if
+
+if (outcome == success) of /subsystem=jgroups/stack=tcp/protocol=FD_SOCK2:read-resource
+  /subsystem=jgroups/stack=tcp/protocol=FD_SOCK2:write-attribute(name=socket-binding)
 end-if
 
 if (outcome == success) of /subsystem=jgroups/stack=udp/protocol=PING:read-resource
