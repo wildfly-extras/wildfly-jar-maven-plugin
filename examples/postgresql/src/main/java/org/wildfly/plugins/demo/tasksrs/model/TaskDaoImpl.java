@@ -17,11 +17,11 @@
 package org.wildfly.plugins.demo.tasksrs.model;
 
 import java.util.List;
-import javax.enterprise.context.RequestScoped;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
-import javax.persistence.TypedQuery;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContextType;
+import jakarta.persistence.TypedQuery;
 
 /**
  * Provides functionality for manipulation with tasks using the persistence context from {@link Resources}.

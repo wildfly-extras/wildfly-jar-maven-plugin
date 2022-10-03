@@ -2,9 +2,9 @@ package org.wildfly.plugins.demo.ejbinwar.controller;
 
 import org.wildfly.plugins.demo.ejbinwar.ejb.GreeterEJB;
 
-import javax.ejb.EJB;
-import javax.enterprise.context.SessionScoped;
-import javax.inject.Named;
+import jakarta.ejb.EJB;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Named;
 
 import java.io.Serializable;
 

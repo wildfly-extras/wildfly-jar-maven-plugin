@@ -29,7 +29,7 @@
     <description>This project is a working example of a JAX-WS web service endpoint; this is the service POM file</description>
 
     <dependencies>
-     <dependency>
+     <!--<dependency>
             <groupId>org.jboss.spec.javax.xml.ws</groupId>
             <artifactId>jboss-jaxws-api_2.3_spec</artifactId>
             <scope>provided</scope>
@@ -37,6 +37,11 @@
         <dependency>
             <groupId>javax.jws</groupId>
             <artifactId>jsr181-api</artifactId>
+            <scope>provided</scope>
+        </dependency>-->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>
