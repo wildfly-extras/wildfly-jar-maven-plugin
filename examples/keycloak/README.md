@@ -1,5 +1,7 @@
 # [DEPRECATED] Keycloak WildFly bootable jar example
 
+WARNING: This example doesn't work with WF 27. Caused by missing JBoss module org.picketbox.
+
 The example `../elytron-oidc-client` highlight the supported way to secure a deployment using OpenID Connect (OIDC).
 
 Usage of the Keycloak Galleon feature-pack highlighted in this example is deprecated.
