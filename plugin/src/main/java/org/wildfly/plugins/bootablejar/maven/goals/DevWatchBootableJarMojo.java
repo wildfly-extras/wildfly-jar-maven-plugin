@@ -476,11 +476,6 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         }
 
         @Override
-        public final Path getJavaDir() {
-            return sourceDir;
-        }
-
-        @Override
         public final Path getProjectBuildDir() {
             return projectBuildDir;
         }
@@ -603,6 +598,18 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         @Override
         public List<String> getWebExtensions() {
             return webExtensions;
+        }
+
+        @Override
+        public Set<Path> getCompileRoots() {
+            Set<Path> set = new HashSet<>();
+            for (String path : project.getCompileSourceRoots()) {
+                set.add(Paths.get(path));
+            }
+            if (!set.contains(sourceDir)) {
+                set.add(sourceDir);
+            }
+            return set;
         }
 
     }

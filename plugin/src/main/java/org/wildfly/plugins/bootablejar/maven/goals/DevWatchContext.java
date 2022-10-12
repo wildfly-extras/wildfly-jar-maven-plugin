@@ -63,8 +63,6 @@ class DevWatchContext {
 
         Path getSourceDir();
 
-        Path getJavaDir();
-
         Path getProjectBuildDir();
 
         Path getDeploymentsDir();
@@ -100,6 +98,8 @@ class DevWatchContext {
         Path getPomFile();
 
         void deploy(Path targetDir) throws Exception;
+
+        Set<Path> getCompileRoots();
     }
 
     abstract class BootableAppEventHandler {
@@ -185,7 +185,7 @@ class DevWatchContext {
             if (event == ENTRY_MODIFY) {
                 if (!isDirectory && fileExists) {
                     if (isJavaFile(absolutePath)) {
-                        ctx.debug("[WATCH] java dir updated, need to re-compile");
+                        ctx.debug("[WATCH] java compilation roots dir updated, need to re-compile");
                         compile = true;
                         repackage = true;
                         redeploy = true;
@@ -311,9 +311,9 @@ class DevWatchContext {
 
     }
     private final Map<WatchKey, Path> watchedDirectories = new HashMap<>();
-    private final Path javaDir;
     private final Path webAppDir;
     private final Set<Path> resourceDirectories = new HashSet<>();
+    private final Set<Path> compileRootDirectories;
     private final Set<Path> extraDirectories = new HashSet<>();
     private final Set<Path> cliFiles = new HashSet<>();
     private final Path pom;
@@ -332,7 +332,7 @@ class DevWatchContext {
         this.ctx = ctx;
         this.projectBuildDir = ctx.getProjectBuildDir();
         Path mainDir = ctx.getSourceDir().resolve("main");
-        this.javaDir = ctx.getJavaDir();
+        this.compileRootDirectories = ctx.getCompileRoots();
         webAppDir = mainDir.resolve("webapp");
 
         String finalName = ctx.getFinalName();
@@ -429,7 +429,14 @@ class DevWatchContext {
     }
 
     private boolean isJavaFile(Path absolutePath) {
-        return absolutePath.startsWith(javaDir) && absolutePath.getFileName().toString().endsWith(".java");
+        if (absolutePath.getFileName().toString().endsWith(".java")) {
+            for (Path javaDir : compileRootDirectories) {
+                if (absolutePath.startsWith(javaDir)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     Path getPath(WatchKey key, Path fileName) {
@@ -454,8 +461,12 @@ class DevWatchContext {
                 return path;
             }
         }
-        if (p.startsWith(javaDir) && !isJavaFile(p)) {
-            return javaDir;
+        if (!isJavaFile(p)) {
+            for (Path javaDir : compileRootDirectories) {
+                if (p.startsWith(javaDir)) {
+                    return javaDir;
+                }
+            }
         }
         return null;
     }
