@@ -228,6 +228,15 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     @Parameter(defaultValue = "remote+http", property = "wildfly.bootable.remote.protocol")
     private String protocol;
 
+     /**
+     * Additional extensions of files located in {@code src/webapp} directory and its sub-directories
+     * that don't require a redeployment on update.
+     * The builtin list is {@code html, xhtml, jsp, css}.
+     * You can set the system property {@code wildfly.bootable.web.extensions} to a white space separated list of file extensions.
+     */
+    @Parameter(property = "wildfly.bootable.web.extensions", alias="web-extensions")
+    public List<String> webExtensions = new ArrayList<>();
+
     private Process process;
     private Path currentServerDir;
     private DeploymentController deploymentController;
@@ -577,6 +586,11 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         @Override
         public void resources() throws MojoExecutionException {
             triggerResources(project);
+        }
+
+        @Override
+        public List<String> getWebExtensions() {
+            return webExtensions;
         }
 
     }
@@ -998,6 +1012,23 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     this.debugSuspend = Boolean.parseBoolean(value);
                 }
             }
+
+            // Resync the webExtensions that we are going to re-use when launching the server
+            Xpp3Dom webExtensions = config.getChild("webExtensions");
+            this.webExtensions.clear();
+            if (webExtensions != null) {
+                //rebuild them.
+                if (webExtensions.getChildren() != null && webExtensions.getChildren().length != 0) {
+                    for (Xpp3Dom child : webExtensions.getChildren()) {
+                        this.webExtensions.add(child.getValue());
+                    }
+                } else {
+                    String value = resolve(webExtensions.getValue());
+                    if (value != null) {
+                        this.webExtensions.addAll(Utils.splitArguments(value));
+                    }
+                }
+            }
         }
         ctx.cleanup();
         ProjectContext projectContext = new ProjectContextImpl(mavenProject,
@@ -1262,4 +1293,13 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         return buf.toString();
     }
 
+    /**
+     * Allows the {@linkplain #webExtensions} to be set as a string.
+     *
+     * @param webExtensions a whitespace delimited string for the web file extensions
+     */
+    @SuppressWarnings("unused")
+    public void setWebExtensions(final String webExtensions) {
+        this.webExtensions = Utils.splitArguments(webExtensions);
+    }
 }

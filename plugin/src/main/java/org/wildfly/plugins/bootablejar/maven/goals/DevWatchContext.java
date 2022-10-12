@@ -48,7 +48,16 @@ import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJ
  */
 class DevWatchContext {
 
+    private static final Set<String> NO_DEPLOYMENT_WEB_FILE_EXTENSIONS = new HashSet<>();
+    static {
+        NO_DEPLOYMENT_WEB_FILE_EXTENSIONS.add("xhtml");
+        NO_DEPLOYMENT_WEB_FILE_EXTENSIONS.add("html");
+        NO_DEPLOYMENT_WEB_FILE_EXTENSIONS.add("jsp");
+        NO_DEPLOYMENT_WEB_FILE_EXTENSIONS.add("css");
+    }
     interface ProjectContext {
+
+        List<String> getWebExtensions();
 
         Path getBaseDir();
 
@@ -248,12 +257,9 @@ class DevWatchContext {
             if (event == ENTRY_MODIFY || event == ENTRY_CREATE) {
                 if (fileExists && !isDirectory) {
                     Path relativePath = isWebFile(absolutePath);
-                    // XXX TO REVISIT
-                    // We could have fine grain filtering of the files that imply a re-deploy
-                    // vs the one we know don't need it.
                     if (relativePath != null) {
                         copyInDeployment(absolutePath, relativePath);
-                        redeploy = true;
+                        redeploy = requiresRedeploy(absolutePath);
                         handledLocally = true;
                     }
                 }
@@ -261,6 +267,25 @@ class DevWatchContext {
             if (!handledLocally) {
                 super.handle(event, absolutePath);
             }
+        }
+
+        private boolean requiresRedeploy(Path path) {
+            if (Files.isDirectory(path)) {
+                return true;
+            }
+            String fileName = path.getFileName().toString();
+            int index = fileName.lastIndexOf(".");
+            if (index != -1 && index != fileName.length() -1) {
+                String extension = fileName.substring(index + 1);
+                Set<String> allExtensions = new HashSet<>();
+                allExtensions.addAll(NO_DEPLOYMENT_WEB_FILE_EXTENSIONS);
+                allExtensions.addAll(ctx.getWebExtensions());
+                if (allExtensions.contains(extension)) {
+                    ctx.debug("[WATCH] Simple copy for file " + fileName);
+                    return false;
+                }
+            }
+            return true;
         }
 
         private Path isWebFile(Path absolutePath) {
