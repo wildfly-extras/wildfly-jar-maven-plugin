@@ -82,6 +82,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributes;
 import java.util.regex.Pattern;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
@@ -772,7 +773,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     }
 
     private boolean isIgnoredChange(Path p) throws IOException {
-        if (Files.isHidden(p) || p.getFileName().toString().endsWith("~")) {
+        if (isHiddenFile(p) || p.getFileName().toString().endsWith("~")) {
             return true;
         }
         for (Pattern pattern : getPatterns()) {
@@ -781,6 +782,15 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
             }
         }
         return false;
+    }
+
+    private boolean isHiddenFile(Path p) throws IOException {
+        if (IS_WINDOWS) {
+            final  DosFileAttributes dosAttrs  = Files.readAttributes(p, DosFileAttributes.class);
+            return dosAttrs.isHidden();
+        } else {
+            return Files.isHidden(p);
+        }
     }
 
     private List<Pattern> getPatterns() {
