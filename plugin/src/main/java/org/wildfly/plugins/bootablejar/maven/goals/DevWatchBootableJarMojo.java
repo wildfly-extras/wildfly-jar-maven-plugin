@@ -239,7 +239,8 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     public List<String> webExtensions = new ArrayList<>();
 
     /**
-     * File patterns that we should ignore during watch. Can be used to exclude IDE generated tmp files created during file edition.
+     * File patterns that we should ignore during watch.
+     * Hidden files and files ending with '~' are ignored.
      * You can set the system property {@code wildfly.bootable.ignore.patterns} to a white space separated list of file patterns.
      */
     @Parameter(property = "wildfly.bootable.ignore.patterns", alias="ignore-patterns")
@@ -770,7 +771,10 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         }
     }
 
-    private boolean isIgnoredChange(Path p) {
+    private boolean isIgnoredChange(Path p) throws IOException {
+        if (Files.isHidden(p) || p.getFileName().toString().endsWith("~")) {
+            return true;
+        }
         for (Pattern pattern : getPatterns()) {
             if (pattern.matcher(p.getFileName().toString()).matches()) {
                 return true;
