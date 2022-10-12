@@ -703,9 +703,13 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     }
                     getLog().debug("[WATCH] file change [" + ev.kind().name() + "]: " + absolutePath);
                     Path name = absolutePath.getFileName();
-                    if (isIgnoredChange(name)) {
-                        getLog().debug("[WATCH] ignoring change for " + name);
-                        continue;
+                    try {
+                        if (isIgnoredChange(name)) {
+                            getLog().debug("[WATCH] ignoring change for " + name);
+                            continue;
+                        }
+                    } catch (IOException ex) {
+                        getLog().debug("[WATCH] exception checking for ignored state " + ex);
                     }
                     try {
                         handler.handle(ev.kind(), absolutePath);
