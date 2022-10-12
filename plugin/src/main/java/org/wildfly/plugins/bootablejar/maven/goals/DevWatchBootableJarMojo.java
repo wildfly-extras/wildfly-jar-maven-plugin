@@ -82,6 +82,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.regex.Pattern;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -236,6 +237,15 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
      */
     @Parameter(property = "wildfly.bootable.web.extensions", alias="web-extensions")
     public List<String> webExtensions = new ArrayList<>();
+
+    /**
+     * File patterns that we should ignore during watch. Can be used to exclude IDE generated tmp files created during file edition.
+     * You can set the system property {@code wildfly.bootable.ignore.patterns} to a white space separated list of file patterns.
+     */
+    @Parameter(property = "wildfly.bootable.ignore.patterns", alias="ignore-patterns")
+    public List<String> ignorePatterns = new ArrayList<>();
+
+    private final List<Pattern> ignoreUpdatePatterns = new ArrayList<>();
 
     private Process process;
     private Path currentServerDir;
@@ -690,6 +700,11 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                         continue;
                     }
                     getLog().debug("[WATCH] file change [" + ev.kind().name() + "]: " + absolutePath);
+                    Path name = absolutePath.getFileName();
+                    if (isIgnoredChange(name)) {
+                        getLog().debug("[WATCH] ignoring change for " + name);
+                        continue;
+                    }
                     try {
                         handler.handle(ev.kind(), absolutePath);
                     } catch (Exception ex) {
@@ -753,6 +768,27 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         } finally {
             watcher.close();
         }
+    }
+
+    private boolean isIgnoredChange(Path p) {
+        for (Pattern pattern : getPatterns()) {
+            if (pattern.matcher(p.getFileName().toString()).matches()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<Pattern> getPatterns() {
+        if (!ignorePatterns.isEmpty()) {
+            if (ignoreUpdatePatterns.isEmpty()) {
+               for(String p : ignorePatterns) {
+                   Pattern pattern = Pattern.compile(p);
+                   ignoreUpdatePatterns.add(pattern);
+               }
+            }
+        }
+        return ignoreUpdatePatterns;
     }
 
     void handleAutoCompile(MavenProject project) throws MojoExecutionException {
@@ -1029,6 +1065,24 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     }
                 }
             }
+
+            // Resync the ignorePatterns that we are going to re-use when launching the server
+            Xpp3Dom ignorePatterns = config.getChild("ignorePatterns");
+            this.ignorePatterns.clear();
+            this.ignoreUpdatePatterns.clear();
+            if (ignorePatterns != null) {
+                //rebuild them.
+                if (ignorePatterns.getChildren() != null && ignorePatterns.getChildren().length != 0) {
+                    for (Xpp3Dom child : ignorePatterns.getChildren()) {
+                        this.ignorePatterns.add(child.getValue());
+                    }
+                } else {
+                    String value = resolve(ignorePatterns.getValue());
+                    if (value != null) {
+                        this.ignorePatterns.addAll(Utils.splitArguments(value));
+                    }
+                }
+            }
         }
         ctx.cleanup();
         ProjectContext projectContext = new ProjectContextImpl(mavenProject,
@@ -1301,5 +1355,15 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
     @SuppressWarnings("unused")
     public void setWebExtensions(final String webExtensions) {
         this.webExtensions = Utils.splitArguments(webExtensions);
+    }
+
+     /**
+     * Allows the {@linkplain #ignorePatterns} to be set as a string.
+     *
+     * @param ignorePatterns a whitespace delimited string for the file patterns
+     */
+    @SuppressWarnings("unused")
+    public void setIgnorePatterns(final String ignorePatterns) {
+        this.ignorePatterns = Utils.splitArguments(ignorePatterns);
     }
 }
