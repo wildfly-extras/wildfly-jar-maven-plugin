@@ -186,4 +186,9 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     public void resources() throws MojoExecutionException {
         resourcesCalled = true;
     }
+
+    @Override
+    public List<String> getWebExtensions() {
+       return Collections.emptyList();
+    }
 }
