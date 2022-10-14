@@ -28,11 +28,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>logging-log4j-appender</artifactId>
+    <artifactId>logging-json</artifactId>
     <packaging>war</packaging>
 
-    <name>WildFly Bootable JAR - Custom log4j Appender Example</name>
-    <description>A JAX-RS example application which uses a log4j appender as a custom-handler.</description>
+    <name>WildFly Bootable JAR - JSON Logging Example</name>
+    <description>A JAX-RS example application which uses a JSON formatted log file.</description>
 
     <dependencies>
         <dependency>
@@ -58,7 +58,7 @@
                     <cli-sessions>
                         <cli-session>
                             <script-files>
-                                <script>../scripts/logging-log4j-appender.cli</script>
+                                <script>../scripts/logging-json-handler.cli</script>
                             </script-files>
                             <properties-file>../scripts/cli.properties</properties-file>
                             <resolve-expressions>false</resolve-expressions>

@@ -29,11 +29,12 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import jakarta.enterprise.concurrent.ManagedScheduledExecutorService;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 import org.wildfly.plugins.demo.logging.model.LogMessage;
@@ -43,7 +44,7 @@ import org.wildfly.plugins.demo.logging.model.LogMessage;
  *
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
  */
-@Singleton
+@ApplicationScoped
 public class ScheduledLogger {
 
     @Inject
