@@ -19,21 +19,21 @@ NB: In order for the deployment to be identified as "secured with OIDC", the `au
 Initial Steps
 =======
 
-* Download the keycloak server from: `https://www.keycloak.org/download`
-* Start the keycloak server to listen on port 8090: `keycloak/bin/standalone.sh -Djboss.socket.binding.port-offset=10`
-* Log into the keycloak server admin console (you will possibly be asked to create an initial admin user) : `http://127.0.0.1:8090/`
+* Download the keycloak server from: `https://www.keycloak.org/download` (Quarkus build, 19+)
+* Start the keycloak server to listen on port 8080: `bin/kc.sh start-dev`
+* Log into the keycloak server admin console (you will possibly be asked to create an initial admin user) : `http://127.0.0.1:8080/`
 * Create a Realm named `WildFly`
 * Create a Role named `Users`
 * Create a User named `demo`, password `demo`
 * Assign the role `Users` to the user `demo`
-* Create a Client named `simple-webapp` with Root URL: `http://127.0.0.1:8080/simple-webapp`
+* Create a Client named `simple-webapp` with Root URL: `http://127.0.0.1:8090/simple-webapp` and Redirect url: `http://127.0.0.1:8090/simple-webapp/*`
 
 Build and run
 ========
 
 * To build: `mvn package`
-* To run: `java -jar target/simple-webapp-bootable.jar -Dorg.wildfly.bootable.jar.example.oidc.provider-url="http://localhost:8090/auth/realms/WildFly"`
-* Access the application: `http://127.0.0.1:8080/simple-webapp`
+* To run: `java -jar target/simple-webapp-bootable.jar -Dorg.wildfly.bootable.jar.example.oidc.provider-url="http://localhost:8080/realms/WildFly" -Djboss.socket.binding.port-offset=10`
+* Access the application: `http://127.0.0.1:8090/simple-webapp`
 * Access the secured servlet.
 * Log-in using the `demo` user, `demo` password (that you created in the initial steps).
 * You should see a page containing the Principal ID.
