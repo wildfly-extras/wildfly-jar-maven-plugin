@@ -19,6 +19,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -80,11 +81,6 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     @Override
     public final Path getSourceDir() {
         return getBaseDir().resolve("src");
-    }
-
-    @Override
-    public final Path getJavaDir() {
-        return javaDir;
     }
 
     @Override
@@ -190,5 +186,12 @@ class TestProjectContext implements DevWatchContext.ProjectContext {
     @Override
     public List<String> getWebExtensions() {
        return Collections.emptyList();
+    }
+
+    @Override
+    public Set<Path> getCompileRoots() {
+        Set<Path> paths = new HashSet<>();
+        paths.add(javaDir);
+        return paths;
     }
 }
