@@ -11,7 +11,7 @@ import jakarta.jms.TextMessage;
     activationConfig =
     {
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "simpleMDBTestQueue"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Queue")
 
     })
 public class SimpleMDB

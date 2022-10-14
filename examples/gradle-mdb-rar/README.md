@@ -1,5 +1,7 @@
 # Simple Gradle/MAVEN Bootable Wildfly with a Basic MDB via RAR to an external AMQ 5.x Broker
 
+WARNING: no org.apache.activemq/activemq-rar for EE-10 (Yet). This example can't work .
+
 Example contributed by Fred Welland.
 
 ## WHY??
