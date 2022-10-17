@@ -1,4 +1,0 @@
-/subsystem=logging/json-formatter=json:add(exception-output-type=formatted)
-/subsystem=logging/custom-handler=log4j-file:add(module=org.apache.log4j, class=org.apache.log4j.FileAppender, properties={file=${jboss.server.log.dir}/log4j.log, append=true, immediateFlush=true}, named-formatter=json)
-/subsystem=logging/root-logger=ROOT:add-handler(name=log4j-file)
-

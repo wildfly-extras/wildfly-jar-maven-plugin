@@ -104,7 +104,7 @@
         <module>jsf-ejb-jpa</module>
         <module>keycloak</module>
         <module>logging</module>
-        <module>logging-log4j-appender</module>
+        <module>logging-json</module>
         <module>mdb-rar</module>
         <module>microprofile-config</module>
         <module>remote-microprofile-config</module>

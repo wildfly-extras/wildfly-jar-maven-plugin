@@ -1,0 +1,4 @@
+/subsystem=logging/json-formatter=json:add(exception-output-type=formatted)
+/subsystem=logging/file-handler=json-file:add(file={relative-to=jboss.server.log.dir, path=json.log}, append=true, autoflush=true, named-formatter=json)
+/subsystem=logging/root-logger=ROOT:add-handler(name=json-file)
+

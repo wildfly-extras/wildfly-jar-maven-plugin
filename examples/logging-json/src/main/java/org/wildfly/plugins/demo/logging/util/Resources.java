@@ -18,6 +18,7 @@
  */
 package org.wildfly.plugins.demo.logging.util;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 
@@ -26,6 +27,7 @@ import org.jboss.logging.Logger;
 /**
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
  */
+@ApplicationScoped
 public class Resources {
 
     @Produces

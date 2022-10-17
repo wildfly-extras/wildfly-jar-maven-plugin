@@ -27,6 +27,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
@@ -49,6 +51,7 @@ import org.wildfly.plugins.demo.logging.service.ScheduledLogger;
  * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
  */
 @Path("/log")
+@RequestScoped
 public class DeploymentLogResource {
 
     @Inject
@@ -153,6 +156,6 @@ public class DeploymentLogResource {
 
     private static java.nio.file.Path getLogFile() {
         final String logDir = System.getProperty("jboss.server.log.dir");
-        return Paths.get(logDir, "log4j.log");
+        return Paths.get(logDir, "json.log");
     }
 }
