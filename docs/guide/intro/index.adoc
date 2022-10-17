@@ -190,12 +190,11 @@ The example https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{pro
 
 NB: The configuration changes applied during packaging are persisted in the server configuration.
 
-IMPORTANT: Using a log4j appender as a `custom-handler` in the logging subsystem is not supported with the bootable JAR.
-           This only applies to custom handlers defined on the root of the logging subsystem. Logging profiles and
-           log4j configuration files located in your deployment will still work as expected.
+IMPORTANT: Using a custom appender as a `custom-handler` in the logging subsystem is not supported with the bootable JAR.
+           This only applies to custom handlers defined on the root of the logging subsystem.
 
 You can workaround this by supplying your own `logging.properties` and defining the path in the `boot-logging-config` configuration property.
-An example can be seen in the https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/logging-log4j-appender[logging-log4j-appender]
+An example can be seen in the https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/{project-branch}/examples/logging-json[logging-json]
 example project.
 
 [[wildfly_jar_configuring_build_cli]]

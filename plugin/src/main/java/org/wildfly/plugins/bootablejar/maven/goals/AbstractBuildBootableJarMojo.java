@@ -330,7 +330,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * In most cases this should not be required. The use-case is when the generated {@code logging.properties} causes
      * boot errors or you do not use the logging subsystem and would like to use a custom logging configuration.
      * <br/>
-     * An example of a boot error would be using a log4j appender as a {@code custom-handler}.
+     * An example of a boot error would be using a json  formatted file as a {@code custom-handler}.
      * If the file is not absolute, it has to be relative to the project base directory.
      */
     @Parameter(alias = "boot-logging-config", property = "wildfly.bootable.logging.config")
