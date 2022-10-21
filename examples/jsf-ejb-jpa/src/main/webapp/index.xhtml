@@ -13,31 +13,31 @@
         <h:form id="form">
             <div>
                 <h:outputLabel value="Title: "/>
-                <h:inputText id="inputTitle" value="#{title}"/>
+                <h:inputText id="inputTitle" value="#{taskBean.title}"/>
                 <h:commandButton id="add" value="Add">
-                    <f:ajax execute="inputTitle" render="outputGroup" listener="#{taskBean.add(title)}"/>
+                    <f:ajax execute="inputTitle" render="outputGroup" listener="#{taskBean.add}"/>
                 </h:commandButton>
             </div>
             <div>
                 <h:outputLabel value="Task Id: "/>
-                <h:inputText id="delTitle" value="#{delTitle}">
+                <h:inputText id="delTitle" value="#{taskBean.id}">
                     <f:validateLongRange minimum="1" maximum="99"/>
                 </h:inputText>
                 <h:commandButton id="del" value="Delete">
-                    <f:ajax execute="delTitle" render="outputGroup" listener="#{taskBean.delete(delTitle)}"/>
+                    <f:ajax execute="delTitle" render="outputGroup" listener="#{taskBean.delete}"/>
                 </h:commandButton>
             </div>
             <div>
                 <h:outputLabel value="Task Id: "/>
-                <h:inputText id="updateId" value="#{updateId}">
+                <h:inputText id="updateId" value="#{taskBean.id}">
                     <f:validateLongRange minimum="1" maximum="99"/>
                 </h:inputText>
                 <br/>
                 <h:outputLabel value="Title: "/>
-                <h:inputText id="updateTitle" value="#{updateTitle}"/>
+                <h:inputText id="updateTitle" value="#{taskBean.title}"/>
                 <h:commandButton id="update" value="Update">
                     <f:ajax execute="updateId updateTitle" render="outputGroup"
-                            listener="#{taskBean.update(updateId, updateTitle)}"/>
+                            listener="#{taskBean.update}"/>
                 </h:commandButton>
             </div>
         </h:form>

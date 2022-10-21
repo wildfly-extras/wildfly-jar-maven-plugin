@@ -19,12 +19,32 @@ public class TaskBean implements Serializable {
     @Inject
     private TaskController controller;
 
+    private String title;
+    
+    private String id;
+
     @PostConstruct
     private void postConstruct() {
         refresh();
     }
 
-    public void delete(String id) {
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void delete() {
         try {
             controller.delete(Long.valueOf(id));
             refresh();
@@ -34,7 +54,7 @@ public class TaskBean implements Serializable {
         }
     }
 
-    public void add(String title) {
+    public void add() {
         try {
             controller.add(title);
             refresh();
@@ -44,7 +64,7 @@ public class TaskBean implements Serializable {
         }
     }
 
-    public void update(String id, String title) {
+    public void update() {
         try {
             controller.update(Long.valueOf(id), title);
             refresh();
