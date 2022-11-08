@@ -25,7 +25,7 @@ jar{
 }
 
 dependencies {
-    compileOnly 'jakarta.platform:jakarta.jakartaee-api:9.1.0'
+    compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
     amqRAR 'org.apache.activemq:activemq-rar:5.16.0'
 }
 
