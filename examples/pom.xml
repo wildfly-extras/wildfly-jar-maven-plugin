@@ -12,8 +12,8 @@
     <properties>
         <version.bootable.jar>8.0.2.Final-SNAPSHOT</version.bootable.jar>
         <version.keycloak>18.0.2</version.keycloak>
-        <version.wildfly>27.0.0.Beta1</version.wildfly>
-        <version.wildfly.datasources.galleon-pack>3.0.0.Beta1</version.wildfly.datasources.galleon-pack>
+        <version.wildfly>27.0.0.Final</version.wildfly>
+        <version.wildfly.datasources.galleon-pack>3.0.0.Final</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.0.1</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
         <maven.compiler.source>11</maven.compiler.source>
