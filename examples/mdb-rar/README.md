@@ -3,6 +3,8 @@
 This example shows how to package an activemq resource adapter in order for an 
 MDB to consume messages emitted by the activemq server. 
 
+We are using wildfly-preview in order to automatically convert the Jakarta EE 8 rar to Jakarta EE 10.
+
 Start the activemq server
 =========================
 
