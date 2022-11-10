@@ -1,8 +1,8 @@
 # Simple Gradle/MAVEN Bootable Wildfly with a Basic MDB via RAR to an external AMQ 5.x Broker
 
-WARNING: no org.apache.activemq/activemq-rar for EE-10 (Yet). This example can't work .
-
 Example contributed by Fred Welland.
+
+We are using wildfly-preview in order to automatically convert the Jakarta EE 8 rar to Jakarta EE 10.
 
 ## WHY??
 Couple of reasons:
