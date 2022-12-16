@@ -397,7 +397,7 @@ For example such a script would create an account *admin/passW0rd!*
 /subsystem=elytron/security-domain=ManagementDomain:list-remove(name=realms, index=0)
 /subsystem=elytron/properties-realm=ManagementRealm:remove
 /subsystem=elytron/filesystem-realm=ManagementRealm:add(path=management-realm, relative-to=jboss.server.config.dir)
-reload
+reload --start-mode=admin-only
 /subsystem=elytron/filesystem-realm=ManagementRealm:add-identity(identity=admin)
 /subsystem=elytron/filesystem-realm=ManagementRealm:add-identity-attribute(identity=admin, name=groups, value=[admin])
 /subsystem=elytron/filesystem-realm=ManagementRealm:set-password(identity=admin, clear={password=passW0rd!})
