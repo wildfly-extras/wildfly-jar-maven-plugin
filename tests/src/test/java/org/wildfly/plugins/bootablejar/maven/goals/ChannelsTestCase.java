@@ -18,6 +18,7 @@ package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.wildfly.channel.maven.ChannelCoordinate;
+import org.wildfly.channel.ChannelManifestCoordinate;
 
 /**
  * @author jdenise
@@ -54,11 +55,11 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         }
     }
 
-    private void generateChannel(List<MavenArtifact> artifacts, Path file) throws IOException {
+    private void generateChannelManifest(List<MavenArtifact> artifacts, Path file) throws IOException {
         StringBuilder channel = new StringBuilder();
         channel.append("schemaVersion: \"1.0.0\"").append(System.lineSeparator());
-        channel.append("name: Test Channel").append(System.lineSeparator());
-        channel.append("description: Test Channel").append(System.lineSeparator());
+        channel.append("name: Test Manifest").append(System.lineSeparator());
+        channel.append("description: Test Manifest").append(System.lineSeparator());
         channel.append("streams:").append(System.lineSeparator());
         for (MavenArtifact artifact : artifacts) {
             channel.append("  - groupId: ").append(artifact.getGroupId()).append(System.lineSeparator());
@@ -68,7 +69,7 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         Files.write(file, channel.toString().getBytes());
     }
 
-    private void setupTestChannel(BuildBootableJarMojo mojo) throws IOException {
+    private void setupTestChannel(BuildBootableJarMojo mojo) throws Exception {
         List<MavenArtifact> artifacts = new ArrayList<>();
         MavenArtifact ds = new MavenArtifact();
         ds.setGroupId("org.wildfly");
@@ -76,10 +77,14 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         ds.setVersionRange("'2\\.\\d+\\.\\d+\\.Final'");
         artifacts.add(ds);
         Path channel = new File(mojo.project.getBasedir().getAbsoluteFile().toPath().toString() + "/my-channel.yaml").toPath();
-        generateChannel(artifacts, channel);
-        ChannelCoordinate coordinate = new ChannelCoordinate(channel.toUri().toURL());
+        generateChannelManifest(artifacts, channel);
+        ChannelManifestCoordinate coordinate = new ChannelManifestCoordinate(channel.toUri().toURL());
         mojo.channels = new ArrayList<>();
-        mojo.channels.add(coordinate);
+        ChannelConfiguration config = new ChannelConfiguration();
+        Field f = ChannelConfiguration.class.getDeclaredField("manifestCoordinate");
+        f.setAccessible(true);
+        f.set(config, coordinate);
+        mojo.channels.add(config);
     }
 
     @Test

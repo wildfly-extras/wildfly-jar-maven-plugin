@@ -20,8 +20,14 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -32,35 +38,46 @@ import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.wildfly.channel.Channel;
-import org.wildfly.channel.ChannelMapper;
+import org.wildfly.channel.ChannelManifest;
+import org.wildfly.channel.ChannelManifestMapper;
 import org.wildfly.channel.ChannelSession;
+import org.wildfly.channel.Repository;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
-import org.wildfly.channel.maven.ChannelCoordinate;
 import org.wildfly.channel.maven.VersionResolverFactory;
+import static org.wildfly.channel.maven.VersionResolverFactory.DEFAULT_REPOSITORY_MAPPER;
 import org.wildfly.channel.spi.ChannelResolvable;
 
-/**
- * Maven resolver that retrieves versions from configured channels.
- * This class implements ChannelResolvable to advertise to the galleon plugins that channels
- * have been enabled.
- */
 public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, ChannelResolvable {
+
     private final ChannelSession channelSession;
+    private final List<Channel> channels = new ArrayList<>();
 
-    public ChannelMavenArtifactRepositoryManager(List<ChannelCoordinate> channelCoords,
-                                                 RepositorySystem system, RepositorySystemSession contextSession) throws MalformedURLException, UnresolvedMavenArtifactException {
-        this(channelCoords, system, contextSession, null);
-    }
-
-    public ChannelMavenArtifactRepositoryManager(List<ChannelCoordinate> channelCoords,
-                                                 RepositorySystem system,
-                                                 RepositorySystemSession contextSession,
-                                                 List<RemoteRepository> repositories) throws MalformedURLException, UnresolvedMavenArtifactException {
+    public ChannelMavenArtifactRepositoryManager(List<ChannelConfiguration> channels,
+            RepositorySystem system,
+            RepositorySystemSession contextSession,
+            List<RemoteRepository> repositories, Log log, boolean offline) throws MalformedURLException, UnresolvedMavenArtifactException, MojoExecutionException {
+        if (channels.isEmpty()) {
+            throw new MojoExecutionException("No channel specified.");
+        }
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
         session.setLocalRepositoryManager(contextSession.getLocalRepositoryManager());
-        VersionResolverFactory factory = new VersionResolverFactory(system, session, repositories);
-        List<Channel> channels = factory.resolveChannels(channelCoords);
-        channelSession = new ChannelSession(channels, factory);
+        session.setOffline(offline);
+        Map<String, RemoteRepository> mapping = new HashMap<>();
+        for (RemoteRepository r : repositories) {
+            mapping.put(r.getId(), r);
+        }
+        for (ChannelConfiguration channelConfiguration : channels) {
+            this.channels.add(channelConfiguration.toChannel(mapping.keySet(), repositories, log));
+        }
+        Function<Repository, RemoteRepository> mapper = r -> {
+            RemoteRepository rep = mapping.get(r.getId());
+            if (rep == null) {
+                rep = DEFAULT_REPOSITORY_MAPPER.apply(r);
+            }
+            return rep;
+        };
+        VersionResolverFactory factory = new VersionResolverFactory(system, session, mapper);
+        channelSession = new ChannelSession(this.channels, factory);
     }
 
     @Override
@@ -77,21 +94,21 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
                 org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.resolveDirectMavenArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(), artifact.getVersion());
                 artifact.setPath(mavenArtifact.getFile().toPath());
             } catch (UnresolvedMavenArtifactException e) {
-                throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
+                // if the artifact can not be resolved directly either, we abort
+                throw new MavenUniverseException(e.getLocalizedMessage(), e);
             }
         }
     }
 
     private void resolveFromChannels(MavenArtifact artifact) throws UnresolvedMavenArtifactException {
-        org.wildfly.channel.MavenArtifact result = channelSession.resolveMavenArtifact(artifact.getGroupId(),
-                artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(), artifact.getVersion());
+        org.wildfly.channel.MavenArtifact result = channelSession.resolveMavenArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(), artifact.getVersion());
         artifact.setVersion(result.getVersion());
         artifact.setPath(result.getFile().toPath());
     }
 
     public void done(Path home) throws MavenUniverseException, IOException {
-        Channel channel = channelSession.getRecordedChannel();
-        Files.write(home.resolve(".channel.yaml"), ChannelMapper.toYaml(channel).getBytes());
+        ChannelManifest channelManifest = channelSession.getRecordedChannel();
+        Files.write(home.resolve(".channel-manifest.yaml"), ChannelManifestMapper.toYaml(channelManifest).getBytes());
     }
 
     @Override

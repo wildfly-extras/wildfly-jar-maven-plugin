@@ -96,7 +96,6 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
-import org.wildfly.channel.maven.ChannelCoordinate;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
@@ -395,10 +394,11 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     String installArtifactClassifier;
 
     /**
-     * List of channel URL and/or Maven coordinates (version being optional).
+     * List of channels. A channel can contains the URL of a channel yaml file or the Maven coordinates
+     * (version being optional) or URL of a channel maninest yaml file.
      */
     @Parameter(alias = "channels", required = false)
-    List<ChannelCoordinate> channels;
+    List<ChannelConfiguration> channels;
 
     MavenProjectArtifactVersions artifactVersions;
 
@@ -432,8 +432,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         MavenRepositoriesEnricher.enrich(session, project, repositories);
         if (isChannelsProvisioning()) {
             try {
-                artifactResolver = offline ? new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession)
-                        : new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession, repositories);
+                artifactResolver = new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession, repositories, getLog(), offline);
             } catch (MalformedURLException | UnresolvedMavenArtifactException ex) {
                 throw new MojoExecutionException(ex.getLocalizedMessage(), ex);
             }
