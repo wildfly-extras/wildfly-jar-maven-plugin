@@ -187,6 +187,11 @@
                             <name>test.groupid.wildfly</name>
                             <value>${wildfly.groupId}</value>
                         </property>
+                        <!-- DevWatch* tests run maven and need to use the same repository -->
+                        <property>
+                            <name>maven.repo.local</name>
+                            <value>${settings.localRepository}</value>
+                        </property>
                     </systemProperties>
                     <argLine>${client.jvm.jpms.args}</argLine>
                 </configuration>
