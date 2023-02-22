@@ -41,5 +41,6 @@
 
   <modules>
     <module>cloud</module>
+      <module>preconfigure</module>
   </modules>
 </project>

@@ -28,6 +28,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.jboss.galleon.config.ConfigId;
 import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
+import org.wildfly.plugins.bootablejar.maven.preconfigure.PreconfigureConfig;
 
 /**
  * Build a bootable JAR containing application and provisioned server
@@ -46,6 +47,9 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
      */
     @Parameter(alias = "cloud")
     CloudConfig cloud;
+
+    @Parameter(alias = "preconfigure")
+    PreconfigureConfig preconfigure;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -102,6 +106,9 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
     protected void copyExtraContentInternal(Path wildflyDir, Path contentDir) throws Exception {
         if (cloud != null) {
            cloud.copyExtraContent(this, wildflyDir, contentDir);
+        }
+        if (preconfigure != null && preconfigure.isEnabled()) {
+            preconfigure.copyExtraContent(this, wildflyDir, contentDir);
         }
     }
 }
