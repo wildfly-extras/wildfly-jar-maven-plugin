@@ -162,37 +162,16 @@
                 <configuration>
                     <reuseForks>false</reuseForks>
                     <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
-                    <systemProperties>
-                        <property>
-                            <name>test.version.wildfly-ee.upgrade</name>
-                            <value>${test.version.wildfly-ee.upgrade}</value>
-                        </property>
-                        <property>
-                            <name>test.version.wildfly</name>
-                            <value>${test.version.wildfly}</value>
-                        </property>
-                        <property>
-                            <name>test.plugin.version</name>
-                            <value>${project.version}</value>
-                        </property>
-                        <property>
-                            <name>test.patch.version</name>
-                            <value>${test.patch.version}</value>
-                        </property>
-                        <property>
-                            <name>jbossas.dist</name>
-                            <value>${jbossas.dist}</value>
-                        </property>
-                        <property>
-                            <name>test.groupid.wildfly</name>
-                            <value>${wildfly.groupId}</value>
-                        </property>
+                    <systemPropertyVariables>
+                        <test.version.wildfly-ee.upgrade>${test.version.wildfly-ee.upgrade}</test.version.wildfly-ee.upgrade>
+                        <test.version.wildfly>${test.version.wildfly}</test.version.wildfly>
+                        <test.plugin.version>${project.version}</test.plugin.version>
+                        <test.patch.version>${test.patch.version}</test.patch.version>
+                        <jbossas.dist>${jbossas.dist}</jbossas.dist>
+                        <test.groupid.wildfly>${wildfly.groupId}</test.groupid.wildfly>
                         <!-- DevWatch* tests run maven and need to use the same repository -->
-                        <property>
-                            <name>maven.repo.local</name>
-                            <value>${settings.localRepository}</value>
-                        </property>
-                    </systemProperties>
+                        <maven.repo.local>${settings.localRepository}</maven.repo.local>
+                    </systemPropertyVariables>
                     <argLine>${client.jvm.jpms.args}</argLine>
                 </configuration>
                 <executions>
@@ -211,16 +190,10 @@
                         </goals>
                         <phase>test</phase>
                         <configuration>
-                            <systemProperties combine.children="append">
-                                <property>
-                                    <name>test.fpl</name>
-                                    <value>${test.ee.fpl}</value>
-                                </property>
-                                <property>
-                                    <name>test.health</name>
-                                    <value>health</value>
-                                </property>
-                            </systemProperties>
+                            <systemPropertyVariables>
+                                <test.fpl>${test.ee.fpl}</test.fpl>
+                                <test.health>health</test.health>
+                            </systemPropertyVariables>
                             <includes>
                                 <include>org/wildfly/plugins/bootablejar/maven/goals/OpenShiftConfigurationTestCase.java</include>
                             </includes>
@@ -233,20 +206,11 @@
                         </goals>
                         <phase>test</phase>
                         <configuration>
-                            <systemProperties combine.children="append">
-                                <property>
-                                    <name>test.fpl</name>
-                                    <value>${test.fpl}</value>
-                                </property>
-                                <property>
-                                    <name>test.patch.product</name>
-                                    <value>${test.patch.product}</value>
-                                </property>
-                                <property>
-                                    <name>test.health</name>
-                                    <value>microprofile-health</value>
-                                </property>
-                            </systemProperties>
+                            <systemPropertyVariables>
+                                <test.fpl>${test.fpl}</test.fpl>
+                                <test.patch.product>${test.patch.product}</test.patch.product>
+                                <test.health>microprofile-health</test.health>
+                            </systemPropertyVariables>
                         </configuration>
                     </execution>
                 </executions>
@@ -302,20 +266,11 @@
                                 </goals>
                                 <phase>test</phase>
                                 <configuration>
-                                    <systemProperties combine.children="append">
-                                        <property>
-                                            <name>test.fpl</name>
-                                            <value>${test.ee.fpl}</value>
-                                        </property>
-                                        <property>
-                                            <name>test.health</name>
-                                            <value>health</value>
-                                        </property>
-                                        <property>
-                                            <name>test.patch.product</name>
-                                            <value>${test.patch.ee.product}</value>
-                                        </property>
-                                    </systemProperties>
+                                    <systemPropertyVariables>
+                                        <test.fpl>${test.ee.fpl}</test.fpl>
+                                        <test.health>health</test.health>
+                                        <test.patch.product>${test.patch.ee.product}</test.patch.product>
+                                    </systemPropertyVariables>
                                     <excludes>
                                         <!-- Excluded due to no support for default configuration when provisioning wildfly-ee galleon feature-pack. -->
                                         <!-- Exclusion will be removed when standalone.xml and standalone-ha.xml are expressed with Galleon layers 
