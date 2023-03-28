@@ -546,20 +546,26 @@ It is possible to configure the plugin to use https://github.com/wildfly-extras/
 ----
 <channels>
     <channel>
-      <url>file://${project.basedir}/my-channel.yaml</url>
+      <manifest>
+        <url>file://${project.basedir}/my-channel.yaml</url>
+      </manifest>
     </channel>
     <channel>
-      <!-- Use latest channel version -->
-      <groupId>org.foo.bar</groupId>
-      <artifactId>my-channel</artifactId>
-      <!-- Uncomment to use a specific channel version -->
-      <!--<version>2.0.0.Final</version>-->
+      <manifest>
+        <!-- Use latest channel version -->
+        <groupId>org.foo.bar</groupId>
+        <artifactId>my-channel</artifactId>
+        <!-- Uncomment to use a specific channel version -->
+        <!--<version>2.0.0.Final</version>-->
+      </manifest>
     </channel>
 </channels>
 ----
 
 [[wildfly_jar_advanced_upgrade]]
 ### Upgrading a bootable JAR
+
+This Feature is deprecated. It is going to be replaced by the usage of WildFly Channels.
 
 NB: This feature can't be used when WildFly Channels are configured.
 

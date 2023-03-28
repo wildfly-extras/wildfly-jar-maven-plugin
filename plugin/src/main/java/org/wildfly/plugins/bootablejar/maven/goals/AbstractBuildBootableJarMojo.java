@@ -345,7 +345,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private String bootableJarBuildArtifacts;
 
     /**
-     * A list of artifacts that override the one referenced in the WildFly
+     * Deprecated. A list of artifacts that override the one referenced in the WildFly
      * Galleon feature-pack used to build the Bootable JAR. The artifacts
      * present in this list must exist in the project dependencies (with a
      * {@code provided} scope). GroupId and ArtifactId are mandatory.
@@ -362,25 +362,28 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * &lt;/artifact&gt;<br/>
      * &lt;/overridden-server-artifacts&gt;<br/>
      */
+    @Deprecated
     @Parameter(alias = "overridden-server-artifacts")
     List<OverriddenArtifact> overriddenServerArtifacts = Collections.emptyList();
 
     /**
-     * Set this parameter to true in order to retrieve the set of artifacts that can be upgraded.
+     * Deprecated. Set this parameter to true in order to retrieve the set of artifacts that can be upgraded.
      * The file `target/bootable-jar-build-artifacts/bootable-jar-server-original-artifacts.xml` is generated.
      * It contains XML elements for the Galleon feature-packs dependencies, JBoss Modules runtime and artifacts.
      * JBoss Modules modules artifacts are grouped by JBoss Modules name.
      * The generated file contains only the artifacts that are provisioned by Galleon.
      * Each artifact version is the one that would get installed when building the Bootable JAR without upgrade.
      */
+    @Deprecated
     @Parameter(alias = "dump-original-artifacts", property = "bootable.jar.dump.original.artifacts" , defaultValue = "false")
     boolean dumpOriginalArtifacts;
 
     /**
-     * The plugin prints a warning when an overridden artifact is downgraded (updated to an older version).
+     * Deprecated. The plugin prints a warning when an overridden artifact is downgraded (updated to an older version).
      * The version comparison is done based on Maven versioning. This warning can be disabled by setting this parameter to
      * true.
      */
+    @Deprecated
     @Parameter(alias = "disable-warn-for-artifact-downgrade", property = "bootable.jar.disable.warn.for.artifact.downgrade", defaultValue = "false")
     boolean disableWarnForArtifactDowngrade;
 
