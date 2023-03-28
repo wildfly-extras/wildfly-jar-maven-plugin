@@ -28,7 +28,7 @@ import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.wildfly.channel.maven.ChannelCoordinate;
+import org.wildfly.channel.ChannelManifestCoordinate;
 
 /**
  * @author jdenise
@@ -77,9 +77,12 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         artifacts.add(ds);
         Path channel = new File(mojo.project.getBasedir().getAbsoluteFile().toPath().toString() + "/my-channel.yaml").toPath();
         generateChannel(artifacts, channel);
-        ChannelCoordinate coordinate = new ChannelCoordinate(channel.toUri().toURL());
+        ChannelManifestCoordinate coordinate = new ChannelManifestCoordinate(channel.toUri().toURL());
         mojo.channels = new ArrayList<>();
-        mojo.channels.add(coordinate);
+        ChannelConfiguration config = new ChannelConfiguration();
+        config.setManifest(coordinate);
+        mojo.channels.add(config);
+        mojo.originalVersionResolution=true;
     }
 
     @Test

@@ -100,20 +100,8 @@
             <artifactId>wildfly-maven-plugin</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>org.apache.maven</groupId>
-                    <artifactId>maven-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.modules</groupId>
-                    <artifactId>jboss-modules</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.wildfly.core</groupId>
-                    <artifactId>wildfly-cli</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.logmanager</groupId>
-                    <artifactId>jboss-logmanager</artifactId>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -124,6 +112,10 @@
         <dependency>
             <groupId>org.wildfly.channel</groupId>
             <artifactId>maven-resolver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.prospero</groupId>
+            <artifactId>prospero-metadata</artifactId>
         </dependency>
         <!-- Required by Galleon during provisioning --> 
         <dependency>

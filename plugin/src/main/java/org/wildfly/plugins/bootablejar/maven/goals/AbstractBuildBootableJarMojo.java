@@ -96,7 +96,6 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
-import org.wildfly.channel.maven.ChannelCoordinate;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
@@ -398,7 +397,18 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * List of channel URL and/or Maven coordinates (version being optional).
      */
     @Parameter(alias = "channels", required = false)
-    List<ChannelCoordinate> channels;
+    List<ChannelConfiguration> channels;
+
+    /**
+     * When channels are configured, the maven artifact versions are retrieved
+     * from the configured channels. If the artifact version can't be resolved
+     * from the channel, the provisioning fails. By setting this parameter to
+     * true, the original version of the artifact (e.g.: feature-pack versions
+     * configured in the plugin or artifact versions known by the feature-pack)
+     * is used.
+     */
+    @Parameter(alias = "original-artifact-version-resolution", required = false, property = "wildfly.bootable.jar.original-artifact-version-resolution", defaultValue = "false")
+    boolean originalVersionResolution;
 
     MavenProjectArtifactVersions artifactVersions;
 
@@ -432,8 +442,9 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         MavenRepositoriesEnricher.enrich(session, project, repositories);
         if (isChannelsProvisioning()) {
             try {
-                artifactResolver = offline ? new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession)
-                        : new ChannelMavenArtifactRepositoryManager(channels, repoSystem, repoSession, repositories);
+                artifactResolver = new ChannelMavenArtifactRepositoryManager(channels,
+                        repoSystem, repoSession, repositories,
+                        getLog(), offline, originalVersionResolution);
             } catch (MalformedURLException | UnresolvedMavenArtifactException ex) {
                 throw new MojoExecutionException(ex.getLocalizedMessage(), ex);
             }
