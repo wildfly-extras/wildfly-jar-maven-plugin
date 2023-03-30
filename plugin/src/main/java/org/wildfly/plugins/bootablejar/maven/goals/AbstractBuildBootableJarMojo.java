@@ -94,6 +94,7 @@ import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
+import org.wildfly.plugin.core.PluginProgressTracker;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
@@ -1297,6 +1298,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (jbossModules == null) {
                 throw new ProvisioningException("JBoss Modules not found in dependency, can't create a Bootable JAR");
             }
+            PluginProgressTracker.initTrackers(pm, getLog());
             pm.provision(rt.getLayout());
 
             if (!recordState) {
