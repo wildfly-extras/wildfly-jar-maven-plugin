@@ -27,7 +27,14 @@ if (outcome == success) of /socket-binding-group=standard-sockets/socket-binding
   /socket-binding-group=standard-sockets/socket-binding=https:write-attribute(name=interface,value=bindall)
 end-if
 
-#remove ajp
+#remove ajp and modcluster
+if (outcome == success) of /subsystem=modcluster:read-resource
+  /subsystem=modcluster:remove
+end-if
+if (outcome == success) of /subsystem=undertow/server=default-server/ajp-listener=ajp:read-resource
+  /subsystem=undertow/server=default-server/ajp-listener=ajp:remove
+end-if
+
 if (outcome == success) of /socket-binding-group=standard-sockets/socket-binding=ajp:read-resource
   /socket-binding-group=standard-sockets/socket-binding=ajp:remove
 end-if

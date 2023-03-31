@@ -70,12 +70,16 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     static final String WILDFLY_GROUP_ID = "test.groupid.wildfly";
     static final String PLUGIN_VERSION = "test.plugin.version";
     private static final String TEST_REPLACE = "TEST_REPLACE";
+    private static final String TEST_DEFAULT_CONFIG_REPLACE = "TEST_DEFAULT_CONFIG_REPLACE";
+    private static final String TEST_DEFAULT_CLOUD_CONFIG_REPLACE = "TEST_DEFAULT_CLOUD_CONFIG_REPLACE";
     private static final String TEST_REPLACE_WF_EE_VERSION = "WF_EE_VERSION";
     private static final String TEST_REPLACE_WF_GROUPID = "WF_GROUPID";
     private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
     static final String HEALTH = System.getProperty("test.health");
+    static final String DEFAULT_CONFIG = "test.default.config";
+    static final String DEFAULT_CLOUD_CONFIG = "test.default.cloud.config";
     private final String projectFile;
     private final boolean copyWar;
     private final String provisioning;
@@ -165,6 +169,12 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
             if (s.contains(TEST_REPLACE_WF_GROUPID)) {
                 s = s.replace(TEST_REPLACE_WF_GROUPID, System.getProperty(WILDFLY_GROUP_ID));
+            }
+            if (s.contains(TEST_DEFAULT_CONFIG_REPLACE)) {
+                s = s.replace(TEST_DEFAULT_CONFIG_REPLACE, System.getProperty(DEFAULT_CONFIG));
+            }
+            if (s.contains(TEST_DEFAULT_CLOUD_CONFIG_REPLACE)) {
+                s = s.replace(TEST_DEFAULT_CLOUD_CONFIG_REPLACE, System.getProperty(DEFAULT_CLOUD_CONFIG));
             }
             content.append(s).append(System.lineSeparator());
         }

@@ -182,7 +182,6 @@
                         </goals>
                         <phase>none</phase>
                     </execution>
-                    <!-- run subset of tests with wildfly-ee -->
                     <execution>
                         <id>default-test-wildfly-ee</id>
                         <goals>
@@ -193,9 +192,27 @@
                             <systemPropertyVariables>
                                 <test.fpl>${test.ee.fpl}</test.fpl>
                                 <test.health>health</test.health>
+                                <test.default.config>${test.default.ee.config}</test.default.config>
+                                <test.default.cloud.config>${test.default.ee.cloud.config}</test.default.cloud.config>
+                                <test.patch.product>${test.patch.ee.product}</test.patch.product>
                             </systemPropertyVariables>
+                            <excludes>
+                                <!-- This test upgrades the wildfly-ee dependency that is not a dependency when provisioning wildfly-ee -->
+                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactFPLTestCase.java</exclude>
+                                <!-- We can't mix an FP dep that packages configgen in the FP zip. It is not compatible -->
+                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactTestCase.java</exclude>
+                            </excludes>
                             <includes>
-                                <include>org/wildfly/plugins/bootablejar/maven/goals/OpenShiftConfigurationTestCase.java</include>
+                                <!-- Other tests would be redundant with wildfly-ee-galleon-pack -->
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultCloudConfigurationExcludeLayerTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultCloudConfigurationTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultCloudConfigurationWithFPTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultConfigurationSecurityManagerTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultConfigurationTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultConfigurationWithFPTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.IncludedDefaultConfigurationCloudTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.IncludedDefaultConfigurationNoLayersTestCase</include>
+                                <include>org.wildfly.plugins.bootablejar.maven.goals.IncludedDefaultConfigurationTestCase</include>
                             </includes>
                         </configuration>
                     </execution>
@@ -210,7 +227,15 @@
                                 <test.fpl>${test.fpl}</test.fpl>
                                 <test.patch.product>${test.patch.product}</test.patch.product>
                                 <test.health>microprofile-health</test.health>
+                                <test.default.config>${test.default.config}</test.default.config>
+                                <test.default.cloud.config>${test.default.cloud.config}</test.default.cloud.config>
+                                <test.patch.product>${test.patch.product}</test.patch.product>
                             </systemPropertyVariables>
+                            <excludes>
+                                <!-- We can't mix an FP dep that packages config-gen in the FP zip. It is not compatible -->
+                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactTestCase.java</exclude>
+                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactFPLTestCase.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -224,75 +249,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <!-- Run all tests with wildfly-ee galleon feature-pack -->
-            <id>wildfly-ee</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <argLine>${client.jvm.jpms.args}</argLine>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>default-test</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>default-test-wildfly-ee</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>default-test-wildfly-full</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>none</phase>
-                            </execution>
-                            <execution>
-                                <id>all-test-wildfly-ee</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>test</phase>
-                                <configuration>
-                                    <systemPropertyVariables>
-                                        <test.fpl>${test.ee.fpl}</test.fpl>
-                                        <test.health>health</test.health>
-                                        <test.patch.product>${test.patch.ee.product}</test.patch.product>
-                                    </systemPropertyVariables>
-                                    <excludes>
-                                        <!-- Excluded due to no support for default configuration when provisioning wildfly-ee galleon feature-pack. -->
-                                        <!-- Exclusion will be removed when standalone.xml and standalone-ha.xml are expressed with Galleon layers 
-                                        and the plugin discovers default configurations. -->
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/UpgradeArtifactFPLTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/PatchExistingMiscTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationSecurityManagerTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationWithFPTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationCloudTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationNoLayersTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/IncludedDefaultConfigurationTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultConfigurationWithFPTestCase.java</exclude>
-                                        <exclude>org/wildfly/plugins/bootablejar/maven/goals/DefaultCloudConfigurationExcludeLayerTestCase.java</exclude>
-                                    </excludes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

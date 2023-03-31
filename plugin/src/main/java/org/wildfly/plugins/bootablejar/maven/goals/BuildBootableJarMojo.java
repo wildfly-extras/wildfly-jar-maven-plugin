@@ -64,8 +64,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
         return false;
     }
 
-    @Override
-    protected void willProvision(ProvisioningSpecifics specifics) throws
+    protected ConfigId willProvision(ProvisioningSpecifics specifics) throws
             MojoExecutionException {
         if (!isPackageDev()) {
             if (cloud != null) {
@@ -76,6 +75,7 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
                 }
             }
         }
+        return specifics.getDefaultConfig(cloud != null);
     }
 
     @Override
@@ -86,15 +86,6 @@ public class BuildBootableJarMojo extends AbstractBuildBootableJarMojo {
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
-        }
-    }
-
-    @Override
-    protected ConfigId getDefaultConfig() {
-        if(cloud == null) {
-            return super.getDefaultConfig();
-        } else {
-            return new ConfigId("standalone", "standalone-microprofile-ha.xml");
         }
     }
 
