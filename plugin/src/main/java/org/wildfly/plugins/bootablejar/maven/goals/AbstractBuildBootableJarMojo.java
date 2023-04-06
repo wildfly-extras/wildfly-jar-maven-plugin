@@ -399,17 +399,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     @Parameter(alias = "channels", required = false)
     List<ChannelConfiguration> channels;
 
-    /**
-     * When channels are configured, the maven artifact versions are retrieved
-     * from the configured channels. If the artifact version can't be resolved
-     * from the channel, the provisioning fails. By setting this parameter to
-     * true, the original version of the artifact (e.g.: feature-pack versions
-     * configured in the plugin or artifact versions known by the feature-pack)
-     * is used.
-     */
-    @Parameter(alias = "original-artifact-version-resolution", required = false, property = "wildfly.bootable.jar.original-artifact-version-resolution", defaultValue = "false")
-    boolean originalVersionResolution;
-
     MavenProjectArtifactVersions artifactVersions;
 
     @Inject
@@ -438,7 +427,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             try {
                 artifactResolver = new ChannelMavenArtifactRepositoryManager(channels,
                         repoSystem, repoSession, repositories,
-                        getLog(), offline, originalVersionResolution);
+                        getLog(), offline);
             } catch (MalformedURLException | UnresolvedMavenArtifactException ex) {
                 throw new MojoExecutionException(ex.getLocalizedMessage(), ex);
             }

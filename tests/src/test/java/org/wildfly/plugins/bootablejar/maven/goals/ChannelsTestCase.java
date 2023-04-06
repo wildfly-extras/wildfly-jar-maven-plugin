@@ -82,7 +82,6 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         ChannelConfiguration config = new ChannelConfiguration();
         config.setManifest(coordinate);
         mojo.channels.add(config);
-        mojo.originalVersionResolution=true;
     }
 
     @Test
