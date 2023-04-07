@@ -84,7 +84,15 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
                     List<String> cmd = new ArrayList<>();
                     if (isWindows()) {
                         if (isCI) {
-                            cmd.add("pwsh.EXE");
+                            // let's use the Windows native powershell.exe, i.e. WindowsPowerShell, which is
+                            // _always_ shipped with the OS, rather than the cross-platform version (i.e. pwsh.exe),
+                            // which could be not, hence causing errors on different agents (e.g.: GitHub runners
+                            // vs. Jenkins nodes). This is safe because we previously check that we're on Windows.
+                            // See
+                            // - https://learn.microsoft.com/en-us/powershell/scripting/whats-new/differences-from-windows-powershell?view=powershell-7.3#renamed-powershellexe-to-pwshexe
+                            // - https://learn.microsoft.com/en-us/powershell/module/Microsoft.PowerShell.Core/About/about_PowerShell_exe?view=powershell-5.1
+                            // - https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_pwsh?view=powershell-7.3
+                            cmd.add("powershell");
                             cmd.add("-command ");
                             cmd.add("mvn");
                             prop = "'" + prop + "'";
