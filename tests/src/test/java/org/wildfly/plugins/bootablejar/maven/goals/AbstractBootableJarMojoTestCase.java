@@ -55,6 +55,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.wildfly.core.launcher.ProcessHelper;
 import org.wildfly.plugin.core.ServerHelper;
+import org.wildfly.plugins.bootablejar.BootableJarSupport;
 
 /**
  * @author jdenise
@@ -76,7 +77,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     private static final String TEST_REPLACE_WF_GROUPID = "WF_GROUPID";
     private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
-    static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
+    static final String TEST_FILE = "test-" + BootableJarSupport.BOOTABLE_SUFFIX + ".jar";
     static final String HEALTH = System.getProperty("test.health");
     static final String DEFAULT_CONFIG = "test.default.config";
     static final String DEFAULT_CLOUD_CONFIG = "test.default.cloud.config";
@@ -230,7 +231,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     protected Path checkAndGetWildFlyHome(Path dir, boolean expectDeployment, boolean isRoot,
                             String[] layers, String[] excludedLayers, boolean stateRecorded, String... configTokens) throws Exception {
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-unzipped");
-        Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX);
+        Path wildflyHome = Files.createTempDirectory("bootable-jar-test-unzipped-" + BootableJarSupport.BOOTABLE_SUFFIX);
         try {
             Path jar = dir.resolve("target").resolve(TEST_FILE);
             assertTrue(Files.exists(jar));

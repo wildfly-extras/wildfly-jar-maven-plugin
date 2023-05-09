@@ -48,6 +48,10 @@
             <artifactId>mojo-executor</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>wildfly-jar-maven-plugin-core</artifactId>
+        </dependency>
+        <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>wildfly-jar-cloud-extension</artifactId>
         </dependency>

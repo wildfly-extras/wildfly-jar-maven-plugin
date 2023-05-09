@@ -42,6 +42,7 @@
   </licenses>
 
   <modules>
+    <module>core</module>
     <module>docs</module>
     <module>plugin</module>
     <module>tests</module>
@@ -176,6 +177,11 @@
         <artifactId>wildfly-jar-cloud-extension</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>wildfly-jar-maven-plugin-core</artifactId>
+          <version>${project.version}</version>
+      </dependency>
         
       <dependency>
         <groupId>org.wildfly.core</groupId>
@@ -218,6 +224,18 @@
         <groupId>org.jboss.galleon</groupId>
         <artifactId>galleon-maven-plugin</artifactId>
         <version>${version.org.jboss.galleon}</version>
+      </dependency>
+      
+      <dependency>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-core</artifactId>
+          <version>${version.org.jboss.galleon}</version>
+      </dependency>
+      
+      <dependency>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-maven-universe</artifactId>
+          <version>${version.org.jboss.galleon}</version>
       </dependency>
 
       <dependency>
