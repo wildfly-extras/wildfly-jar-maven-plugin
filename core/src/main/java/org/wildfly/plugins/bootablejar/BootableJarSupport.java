@@ -18,25 +18,15 @@
 package org.wildfly.plugins.bootablejar;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.ProvisioningManager;
@@ -127,49 +117,7 @@ public class BootableJarSupport {
     }
 
     public static void zip(Path contentDir, Path jarFile) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(jarFile.toFile()); ZipOutputStream zos = new ZipOutputStream(fos)) {
-            Files.walkFileTree(contentDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS), 1,
-                    new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                        throws IOException {
-                    if (!contentDir.equals(dir)) {
-                        zip(dir.toFile(), dir.toFile().getName(), zos);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                        throws IOException {
-                    zip(file.toFile(), file.toFile().getName(), zos);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        }
-    }
-
-    private static void zip(File fileToZip, String fileName, ZipOutputStream zos) throws IOException {
-        if (fileToZip.isDirectory()) {
-            fileName = fileName.endsWith(File.separator) ? fileName.substring(0, fileName.length() - 1) : fileName;
-            fileName = fileName + "/";
-            zos.putNextEntry(new ZipEntry(fileName));
-            zos.closeEntry();
-            File[] children = fileToZip.listFiles();
-            for (File childFile : children) {
-                zip(childFile, fileName + childFile.getName(), zos);
-            }
-        } else {
-            try (FileInputStream fis = new FileInputStream(fileToZip)) {
-                ZipEntry zipEntry = new ZipEntry(fileName);
-                zos.putNextEntry(zipEntry);
-                byte[] bytes = new byte[1024];
-                int length;
-                while ((length = fis.read(bytes)) >= 0) {
-                    zos.write(bytes, 0, length);
-                }
-            }
-        }
+        ZipUtils.zip(contentDir, jarFile);
     }
 
     public static ScannedArtifacts scanArtifacts(ProvisioningManager pm, ProvisioningConfig config, ArtifactLog log) throws Exception {
