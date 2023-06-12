@@ -9,14 +9,45 @@
     </parent>
 
     <artifactId>gradle-demo</artifactId>
-    <packaging>pom</packaging>
+    <packaging>war</packaging>
 
     <name>WildFly Bootable JAR - Gradle Example</name>
     <description>WildFly Bootable JAR - Gradle Example with MDB</description>
+    <properties>
+        <!-- The versions for BOMs, Dependencies and Plugins -->
+        <version.server.bom>28.0.1.Final</version.server.bom>
+        <version.cloud.connectors>1.0.0</version.cloud.connectors>
+    </properties>
+    
     
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>rar</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>                        
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>fish.payara.cloud.connectors.kafka</groupId>
+                                    <artifactId>kafka-rar</artifactId>
+                                    <version>${version.cloud.connectors}</version>
+                                    <type>rar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>target/build</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
@@ -25,11 +56,12 @@
                     <layers>
                         <layer>resource-adapters</layer>
                         <layer>ejb</layer>
+                        <layer>cloud-server</layer>
                     </layers>
                     <cli-sessions>
                         <cli-session>
                             <script-files>
-                                <script>src/main/resources/deploy-amq-rar.cli</script>
+                                <script>src/main/resources/deploy-kafka-rar.cli</script>
                             </script-files>
                         </cli-session>
                     </cli-sessions>
@@ -47,4 +79,51 @@
             </plugin>
         </plugins>
     </build>
+    <dependencyManagement>
+        <dependencies>
+            <!-- importing the jakartaee8-with-tools BOM adds specs and other useful artifacts as managed dependencies -->
+            <dependency>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-ee-with-tools</artifactId>
+                <version>${version.server.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <dependencies>
+        <dependency>
+            <groupId>fish.payara.cloud.connectors.kafka</groupId>
+            <artifactId>kafka-jca-api</artifactId>
+            <version>${version.cloud.connectors}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.ejb</groupId>
+            <artifactId>jakarta.ejb-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.resource</groupId>
+            <artifactId>jakarta.resource-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
