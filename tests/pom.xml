@@ -47,6 +47,10 @@
             <artifactId>wildfly-jar-cloud-extension</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>wildfly-jar-maven-plugin-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wildfly.channel</groupId>
             <artifactId>maven-resolver</artifactId>
         </dependency>

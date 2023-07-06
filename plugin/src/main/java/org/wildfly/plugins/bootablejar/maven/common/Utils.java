@@ -37,6 +37,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.layout.FeaturePackLayout;
 import org.jboss.galleon.layout.ProvisioningLayout;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE_XML;
@@ -94,7 +95,7 @@ public class Utils {
         String jarName = jarFileName;
         if (jarName == null) {
             String finalName = project.getBuild().getFinalName();
-            jarName = finalName + "-" + BuildBootableJarMojo.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
+            jarName = finalName + "-" + BootableJarSupport.BOOTABLE_SUFFIX + "." + BuildBootableJarMojo.JAR;
         }
         String path = project.getBuild().getDirectory() + File.separator + jarName;
         if (!Files.exists(Paths.get(path))) {

@@ -35,7 +35,8 @@ import java.util.stream.Collectors;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
-import org.jboss.galleon.util.ZipUtils;
+import org.jboss.galleon.universe.maven.MavenUniverseException;
+import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 
 /**
@@ -117,8 +118,11 @@ public class CloudConfig {
         try (FileOutputStream s = new FileOutputStream(marker.toFile())) {
             props.store(s, type + " properties");
         }
-        Path extensionJar = mojo.resolveArtifact("org.wildfly.plugins", "wildfly-jar-cloud-extension", null, mojo.retrievePluginVersion());
-        ZipUtils.unzip(extensionJar, contentDir);
+        try {
+            BootableJarSupport.unzipCloudExtension(contentDir, mojo.retrievePluginVersion(), mojo.getArtifactResolver());
+        } catch (MavenUniverseException ex) {
+            throw new MojoExecutionException(ex);
+        }
     }
 
     public Set<String> getExtraLayers(BuildBootableJarMojo mojo, String healthLayer, Log log) {

@@ -40,6 +40,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.xml.sax.SAXException;
 
 final class ScannedModules {
@@ -93,7 +94,7 @@ final class ScannedModules {
         Map<String, String> copiedArtifacts = new HashMap<>();
         try (ProvisioningRuntime rt = pm.getRuntime(config)) {
             for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
-                Path artifactProps = fprt.getResource(AbstractBuildBootableJarMojo.WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
+                Path artifactProps = fprt.getResource(BootableJarSupport.WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
                 try {
                     AbstractBuildBootableJarMojo.readProperties(artifactProps, propsMap);
                 } catch (Exception ex) {

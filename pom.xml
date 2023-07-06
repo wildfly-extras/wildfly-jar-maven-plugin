@@ -42,6 +42,7 @@
   </licenses>
 
   <modules>
+    <module>core</module>
     <module>docs</module>
     <module>plugin</module>
     <module>tests</module>
@@ -53,7 +54,7 @@
     <!-- Require Java 11 -->
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
-    <version.wildfly>28.0.0.Final</version.wildfly>
+    <version.wildfly>29.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>main</docs.project.branch>
     <docs.wildfly.major>28.0</docs.wildfly.major>
@@ -64,7 +65,7 @@
     <version.org.apache.maven.plugin-tools>3.6.4</version.org.apache.maven.plugin-tools>
     <version.org.apache.maven.plugin-plugin>3.6.4</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
-    <version.org.jboss.galleon>5.1.0.Final</version.org.jboss.galleon>
+    <version.org.jboss.galleon>5.2.0.Final</version.org.jboss.galleon>
     <version.org.wildfly.core.wildfly-core>20.0.1.Final</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.5.4.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>4.1.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
@@ -176,6 +177,11 @@
         <artifactId>wildfly-jar-cloud-extension</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>wildfly-jar-maven-plugin-core</artifactId>
+          <version>${project.version}</version>
+      </dependency>
         
       <dependency>
         <groupId>org.wildfly.core</groupId>
@@ -218,6 +224,18 @@
         <groupId>org.jboss.galleon</groupId>
         <artifactId>galleon-maven-plugin</artifactId>
         <version>${version.org.jboss.galleon}</version>
+      </dependency>
+      
+      <dependency>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-core</artifactId>
+          <version>${version.org.jboss.galleon}</version>
+      </dependency>
+      
+      <dependency>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-maven-universe</artifactId>
+          <version>${version.org.jboss.galleon}</version>
       </dependency>
 
       <dependency>
