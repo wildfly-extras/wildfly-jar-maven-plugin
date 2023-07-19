@@ -96,7 +96,7 @@ public class BootLoggingConfiguration { //extends AbstractLogEnabled {
             "user.dir",
             "user.home"
     );
-
+    private static final String KEY_OVERRIDES = "keyOverrides";
     private final Map<String, String> properties;
     private final Map<String, String> usedProperties;
     private final Map<String, String> additionalPatternFormatters;
@@ -335,18 +335,19 @@ public class BootLoggingConfiguration { //extends AbstractLogEnabled {
             final ModelNode model = property.getValue().clone();
             final String prefix = "formatter." + name;
             writeProperty(writer, prefix, null, type);
-
+            boolean needKeyOverrides = !model.hasDefined("key-overrides");
             // The key-overrides are used as constructor parameters
-            if (model.hasDefined("key-overrides")) {
-                writeProperty(writer, prefix, "constructorProperties", "keyOverrides");
-            }
-
+            // This property is alwasy added.
+            writeProperty(writer, prefix, "constructorProperties", KEY_OVERRIDES);
             // Next we need to write the properties
             final Collection<String> definedPropertyNames = model.asPropertyList()
                     .stream()
                     .filter((p) -> p.getValue().isDefined())
                     .map(Property::getName)
                     .collect(Collectors.toList());
+            if (needKeyOverrides) {
+                definedPropertyNames.add(KEY_OVERRIDES);
+            }
             writeProperty(writer, prefix, "properties", toCsvString(definedPropertyNames
                     .stream()
                     .map(BootLoggingConfiguration::resolvePropertyName)
@@ -359,7 +360,12 @@ public class BootLoggingConfiguration { //extends AbstractLogEnabled {
                 if ("exception-output-type".equals(attributeName)) {
                     writeProperty(writer, prefix, resolvePropertyName(attributeName), toEnumString(model.get(attributeName)));
                 } else {
-                    writeProperty(writer, prefix, resolvePropertyName(attributeName), value);
+                    if (needKeyOverrides && KEY_OVERRIDES.equals(attributeName)) {
+                        // The value is empty if explicitely added.
+                        writeProperty(writer, prefix, resolvePropertyName(attributeName), "");
+                    } else {
+                        writeProperty(writer, prefix, resolvePropertyName(attributeName), value);
+                    }
                 }
             }
             writer.write(NEW_LINE);

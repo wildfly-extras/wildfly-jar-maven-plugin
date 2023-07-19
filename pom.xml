@@ -66,11 +66,11 @@
     <version.org.apache.maven.plugin-plugin>3.6.4</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
     <version.org.jboss.galleon>5.2.0.Final</version.org.jboss.galleon>
-    <version.org.wildfly.core.wildfly-core>20.0.1.Final</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>21.1.0.Final</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.5.4.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>4.1.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
-    <version.org.wildfly.channel>1.0.0.Final</version.org.wildfly.channel>
-    <version.org.wildfly.prospero>1.0.0.Final</version.org.wildfly.prospero>
+    <version.org.wildfly.channel>1.0.2.Final</version.org.wildfly.channel>
+    <version.org.wildfly.prospero>1.0.3.Final</version.org.wildfly.prospero>
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
