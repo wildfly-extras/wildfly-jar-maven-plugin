@@ -43,9 +43,11 @@ import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.ZipUtils;
+import org.wildfly.channel.ArtifactTransferException;
 import org.wildfly.channel.Channel;
 import org.wildfly.channel.ChannelManifest;
 import org.wildfly.channel.ChannelSession;
+import org.wildfly.channel.NoStreamFoundException;
 import org.wildfly.channel.Repository;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
 import org.wildfly.channel.maven.VersionResolverFactory;
@@ -99,7 +101,9 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
     public void resolve(MavenArtifact artifact) throws MavenUniverseException {
         try {
             resolveFromChannels(artifact);
-        } catch (UnresolvedMavenArtifactException ex) {
+        } catch (ArtifactTransferException ex) {
+            throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
+        } catch (NoStreamFoundException ex) {
             boolean requireChannel = Boolean.parseBoolean(artifact.getMetadata().get(REQUIRE_CHANNEL_FOR_ALL_ARTIFACT));
             if (!requireChannel) {
                 // Could be a feature-pack that could require to be resolved from a channel.
@@ -112,8 +116,8 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
                 }
             }
             if (!requireChannel) {
-                log.warn("Resolution of artifact " + artifact.getGroupId() + ":"
-                        + artifact.getArtifactId() + " failed using configured channels. Using original version.");
+                log.warn("Resolution of artifact " + artifact.getGroupId() + ":" +
+                        artifact.getArtifactId() + " failed using configured channels. Using original version.");
                 // unable to resolve the artifact through the channel.
                 // if the version is defined, let's resolve it directly
                 if (artifact.getVersion() == null) {
@@ -121,10 +125,12 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
                     throw new MavenUniverseException(ex.getLocalizedMessage(), ex);
                 }
                 try {
-                    log.warn("Using version " + artifact.getVersion()
-                            + " to resolve artifact " + artifact.getGroupId() + ":"
-                            + artifact.getArtifactId());
-                    org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.resolveDirectMavenArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(), artifact.getVersion());
+                    log.warn("Using version " + artifact.getVersion() +
+                            " to resolve artifact " + artifact.getGroupId() + ":" +
+                            artifact.getArtifactId());
+                    org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.resolveDirectMavenArtifact(
+                            artifact.getGroupId(), artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(),
+                            artifact.getVersion());
                     artifact.setPath(mavenArtifact.getFile().toPath());
                 } catch (UnresolvedMavenArtifactException e) {
                     // if the artifact can not be resolved directly either, we abort
@@ -138,16 +144,16 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
 
     private boolean fpRequireChannel(MavenArtifact artifact) throws Exception {
         boolean requireChannel = false;
-        if (artifact.getVersion() != null && artifact.getExtension() != null && artifact.getExtension().equalsIgnoreCase("zip")) {
-            org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.
-                    resolveDirectMavenArtifact(artifact.getGroupId(),
-                            artifact.getArtifactId(),
-                            artifact.getExtension(),
-                            artifact.getClassifier(),
-                            artifact.getVersion());
+        if (artifact.getVersion() != null && artifact.getExtension() != null
+                && artifact.getExtension().equalsIgnoreCase("zip")) {
+            org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.resolveDirectMavenArtifact(artifact.getGroupId(),
+                    artifact.getArtifactId(),
+                    artifact.getExtension(),
+                    artifact.getClassifier(),
+                    artifact.getVersion());
             try {
                 FeaturePackDescriber.readSpec(mavenArtifact.getFile().toPath());
-            } catch(ProvisioningException ex) {
+            } catch (ProvisioningException ex) {
                 // Not a feature-pack
                 return requireChannel;
             }
@@ -157,7 +163,7 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
                 final Path channelPropsPath = wfRes.resolve("wildfly-channel.properties");
                 if (Files.exists(channelPropsPath)) {
                     Properties props = new Properties();
-                     try(BufferedReader reader = Files.newBufferedReader(channelPropsPath)) {
+                    try (BufferedReader reader = Files.newBufferedReader(channelPropsPath)) {
                         props.load(reader);
                     }
                     String resolution = props.getProperty("resolution");
