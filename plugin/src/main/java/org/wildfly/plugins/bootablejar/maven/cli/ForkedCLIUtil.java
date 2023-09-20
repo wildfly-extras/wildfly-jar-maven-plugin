@@ -31,9 +31,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.maven.plugin.logging.Log;
-import org.jboss.galleon.Errors;
 
 import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.BaseErrors;
 
 
 /**
@@ -125,7 +125,7 @@ public class ForkedCLIUtil {
         try (BufferedWriter writer = Files.newBufferedWriter(props)) {
             System.getProperties().store(writer, "");
         } catch (IOException e) {
-            throw new ProvisioningException(Errors.writeFile(props), e);
+            throw new ProvisioningException(BaseErrors.writeFile(props), e);
         }
         return props;
     }

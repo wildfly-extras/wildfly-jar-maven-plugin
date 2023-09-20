@@ -42,13 +42,13 @@ import org.apache.maven.plugin.Mojo;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
-import org.jboss.galleon.config.ConfigId;
-import org.jboss.galleon.config.ConfigModel;
-import org.jboss.galleon.config.ProvisioningConfig;
+import org.jboss.galleon.api.GalleonBuilder;
+import org.jboss.galleon.api.Provisioning;
+import org.jboss.galleon.api.config.GalleonConfigurationWithLayers;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.util.PathsUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.util.IoUtils;
-import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -259,18 +259,25 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             Path configFile = wildflyHome.resolve("standalone/configuration/standalone.xml");
             assertTrue(Files.exists(configFile));
             if (layers != null) {
-                Path provisioning = PathsUtils.getProvisioningXml(wildflyHome);
-                assertTrue(Files.exists(provisioning));
-                ProvisioningConfig config = ProvisioningXmlParser.parse(provisioning);
-                ConfigModel cm = config.getDefinedConfig(new ConfigId("standalone", "standalone.xml"));
-                assertNotNull(config.getDefinedConfigs().toString(), cm);
-                assertEquals(layers.length, cm.getIncludedLayers().size());
-                for (String layer : layers) {
-                    assertTrue(cm.getIncludedLayers().contains(layer));
-                }
-                if (excludedLayers != null) {
-                    for (String layer : excludedLayers) {
-                        assertTrue(cm.getExcludedLayers().contains(layer));
+                Path pFile = PathsUtils.getProvisioningXml(wildflyHome);
+                assertTrue(Files.exists(pFile));
+                try (Provisioning provisioning = new GalleonBuilder().newProvisioningBuilder(pFile).build()) {
+                    GalleonProvisioningConfig configDescription = provisioning.loadProvisioningConfig(pFile);
+                    GalleonConfigurationWithLayers config = null;
+                    for (GalleonConfigurationWithLayers c : configDescription.getDefinedConfigs()) {
+                        if (c.getModel().equals("standalone") && c.getName().equals("standalone.xml")) {
+                            config = c;
+                        }
+                    }
+                    assertNotNull(config);
+                    assertEquals(layers.length, config.getIncludedLayers().size());
+                    for (String layer : layers) {
+                        assertTrue(config.getIncludedLayers().contains(layer));
+                    }
+                    if (excludedLayers != null) {
+                        for (String layer : excludedLayers) {
+                            assertTrue(config.getExcludedLayers().contains(layer));
+                        }
                     }
                 }
             }

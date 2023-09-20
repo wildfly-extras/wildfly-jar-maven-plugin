@@ -31,11 +31,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.FeaturePackRuntime;
-import org.jboss.galleon.runtime.PackageRuntime;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.api.GalleonFeaturePackRuntime;
+import org.jboss.galleon.api.GalleonPackageRuntime;
+import org.jboss.galleon.api.GalleonProvisioningRuntime;
+import org.jboss.galleon.api.Provisioning;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -87,13 +87,13 @@ final class ScannedModules {
         return all;
     }
 
-    static ScannedModules scanProvisionedArtifacts(ProvisioningManager pm, ProvisioningConfig config)
+    static ScannedModules scanProvisionedArtifacts(Provisioning pm, GalleonProvisioningConfig config)
             throws ProvisioningException, MojoExecutionException {
         Map<String, String> propsMap = new HashMap<>();
         Map<String, Map<String, String>> perModule = new TreeMap<>();
         Map<String, String> copiedArtifacts = new HashMap<>();
-        try (ProvisioningRuntime rt = pm.getRuntime(config)) {
-            for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
+        try (GalleonProvisioningRuntime rt = pm.getProvisioningRuntime(config)) {
+            for (GalleonFeaturePackRuntime fprt : rt.getGalleonFeaturePacks()) {
                 Path artifactProps = fprt.getResource(BootableJarSupport.WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
                 try {
                     AbstractBuildBootableJarMojo.readProperties(artifactProps, propsMap);
@@ -101,7 +101,7 @@ final class ScannedModules {
                     throw new MojoExecutionException("Error reading artifact versions", ex);
                 }
             }
-            for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
+            for (GalleonFeaturePackRuntime fprt : rt.getGalleonFeaturePacks()) {
                 processPackages(fprt, perModule, propsMap, copiedArtifacts);
             }
         }
@@ -113,12 +113,12 @@ final class ScannedModules {
         return new ScannedModules(perModule, MODULE_RUNTIME_KEY, moduleRuntimeValue, copiedArtifacts);
     }
 
-    private static void processPackages(final FeaturePackRuntime fp,
+    private static void processPackages(final GalleonFeaturePackRuntime fp,
             Map<String, Map<String, String>> perModule,
             Map<String, String> propsMap,
             Map<String, String> copiedArtifacts) throws ProvisioningException {
-        Map<Path, PackageRuntime> jbossModules = new HashMap<>();
-        for (PackageRuntime pkg : fp.getPackages()) {
+        Map<Path, GalleonPackageRuntime> jbossModules = new HashMap<>();
+        for (GalleonPackageRuntime pkg : fp.getGalleonPackages()) {
             final Path pmWfDir = pkg.getResource(PM, WILDFLY);
             if (!Files.exists(pmWfDir)) {
                 continue;
@@ -132,18 +132,18 @@ final class ScannedModules {
                processTasks(pkg, tasks, propsMap, copiedArtifacts);
             }
         }
-        for (Map.Entry<Path, PackageRuntime> entry : jbossModules.entrySet()) {
-            final PackageRuntime pkg = entry.getValue();
+        for (Map.Entry<Path, GalleonPackageRuntime> entry : jbossModules.entrySet()) {
+            final GalleonPackageRuntime pkg = entry.getValue();
             try {
                 processModuleTemplate(pkg, entry.getKey(), perModule, propsMap);
             } catch (IOException | ParserConfigurationException | ProvisioningException | SAXException e) {
                 throw new ProvisioningException("Failed to process JBoss module XML template for feature-pack "
-                        + pkg.getFeaturePackRuntime().getFPID() + " package " + pkg.getName(), e);
+                        + pkg.getFeaturePackFPID() + " package " + pkg.getName(), e);
             }
         }
     }
 
-    private static void processTasks(PackageRuntime pkg, Path tasks, Map<String, String> propsMap,
+    private static void processTasks(GalleonPackageRuntime pkg, Path tasks, Map<String, String> propsMap,
             Map<String, String> artifacts) throws ProvisioningException {
         try {
             try (InputStream reader = Files.newInputStream(tasks)) {
@@ -175,12 +175,12 @@ final class ScannedModules {
             }
         } catch (SAXException | ParserConfigurationException | IOException e) {
             throw new ProvisioningException("Failed to process tasks from package " + pkg.getName()
-                    + " from feature-pack " + pkg.getFeaturePackRuntime().getFPID(), e);
+                    + " from feature-pack " + pkg.getFeaturePackFPID(), e);
         }
     }
 
-    private static void processModules(PackageRuntime pkg, Path fpModuleDir,
-            Map<Path, PackageRuntime> jbossModules) throws ProvisioningException {
+    private static void processModules(GalleonPackageRuntime pkg, Path fpModuleDir,
+            Map<Path, GalleonPackageRuntime> jbossModules) throws ProvisioningException {
         try {
             Files.walkFileTree(fpModuleDir, new SimpleFileVisitor<Path>() {
                 @Override
@@ -194,11 +194,11 @@ final class ScannedModules {
             });
         } catch (IOException e) {
             throw new ProvisioningException("Failed to process modules from package " + pkg.getName()
-                    + " from feature-pack " + pkg.getFeaturePackRuntime().getFPID(), e);
+                    + " from feature-pack " + pkg.getFeaturePackFPID(), e);
         }
     }
 
-    private static void processModuleTemplate(PackageRuntime pkg, Path moduleXmlRelativePath,
+    private static void processModuleTemplate(GalleonPackageRuntime pkg, Path moduleXmlRelativePath,
             Map<String, Map<String, String>> perModule, Map<String, String> propsMap) throws ProvisioningException, IOException, ParserConfigurationException, SAXException {
         final Path moduleTemplate = pkg.getResource(PM, WILDFLY, MODULE).resolve(moduleXmlRelativePath);
 

@@ -29,10 +29,11 @@ import java.util.Properties;
 import java.util.Set;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.runtime.FeaturePackRuntime;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.api.GalleonBuilder;
+import org.jboss.galleon.api.GalleonFeaturePackRuntime;
+import org.jboss.galleon.api.GalleonProvisioningRuntime;
+import org.jboss.galleon.api.Provisioning;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
@@ -59,7 +60,7 @@ public class BootableJarSupport {
      * Package a wildfly server as a bootable JAR.
      */
     public static void packageBootableJar(Path targetJarFile, Path target,
-            ProvisioningConfig config, Path serverHome, MavenRepoManager resolver,
+           GalleonProvisioningConfig config, Path serverHome, MavenRepoManager resolver,
             MessageWriter writer, ArtifactLog log, String bootableJARVersion) throws Exception {
         Path contentRootDir = target.resolve("bootable-jar-build-artifacts");
         if (Files.exists(contentRootDir)) {
@@ -71,7 +72,7 @@ public class BootableJarSupport {
             ScannedArtifacts bootable;
             Path emptyHome = contentRootDir.resolve("tmp-home");
             Files.createDirectories(emptyHome);
-            try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(resolver)
+            try (Provisioning pm = new GalleonBuilder().addArtifactResolver(resolver).newProvisioningBuilder(config)
                     .setInstallationHome(emptyHome)
                     .setMessageWriter(writer)
                     .build()) {
@@ -120,13 +121,13 @@ public class BootableJarSupport {
         ZipUtils.zip(contentDir, jarFile);
     }
 
-    public static ScannedArtifacts scanArtifacts(ProvisioningManager pm, ProvisioningConfig config, ArtifactLog log) throws Exception {
+    public static ScannedArtifacts scanArtifacts(Provisioning pm, GalleonProvisioningConfig config, ArtifactLog log) throws Exception {
         Set<MavenArtifact> cliArtifacts = new HashSet<>();
         MavenArtifact jbossModules = null;
         MavenArtifact bootArtifact = null;
-        try (ProvisioningRuntime rt = pm.getRuntime(config)) {
-            for (FeaturePackRuntime fprt : rt.getFeaturePacks()) {
-                if (fprt.getPackage(MODULE_ID_JAR_RUNTIME) != null) {
+        try (GalleonProvisioningRuntime rt = pm.getProvisioningRuntime(config)) {
+            for (GalleonFeaturePackRuntime fprt : rt.getGalleonFeaturePacks()) {
+                if (fprt.getGalleonPackage(MODULE_ID_JAR_RUNTIME) != null) {
                     // We need to discover GAV of the associated boot.
                     Path artifactProps = fprt.getResource(WILDFLY_ARTIFACT_VERSIONS_RESOURCE_PATH);
                     final Map<String, String> propsMap = new HashMap<>();

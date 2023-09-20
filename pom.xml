@@ -65,10 +65,10 @@
     <version.org.apache.maven.plugin-tools>3.7.0</version.org.apache.maven.plugin-tools>
     <version.org.apache.maven.plugin-plugin>3.7.0</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
-    <version.org.jboss.galleon>5.2.2.Final</version.org.jboss.galleon>
+    <version.org.jboss.galleon>6.0.0.Alpha1-SNAPSHOT</version.org.jboss.galleon>
     <version.org.wildfly.core.wildfly-core>22.0.1.Final</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
-    <version.org.wildfly.plugins.wildfly-maven-plugin>4.2.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
+    <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Alpha3-SNAPSHOT</version.org.wildfly.plugins.wildfly-maven-plugin>
     <version.org.wildfly.channel>1.0.5.Final</version.org.wildfly.channel>
     <version.org.wildfly.prospero>1.2.0.Final</version.org.wildfly.prospero>
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
@@ -228,13 +228,7 @@
       
       <dependency>
           <groupId>org.jboss.galleon</groupId>
-          <artifactId>galleon-core</artifactId>
-          <version>${version.org.jboss.galleon}</version>
-      </dependency>
-      
-      <dependency>
-          <groupId>org.jboss.galleon</groupId>
-          <artifactId>galleon-maven-universe</artifactId>
+          <artifactId>galleon-api</artifactId>
           <version>${version.org.jboss.galleon}</version>
       </dependency>
 

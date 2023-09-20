@@ -30,12 +30,13 @@ import java.util.regex.Pattern;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
+import org.jboss.galleon.api.GalleonBuilder;
+import org.jboss.galleon.api.GalleonFeaturePackLayout;
+import org.jboss.galleon.api.GalleonProvisioningLayout;
+import org.jboss.galleon.api.Provisioning;
 import org.jboss.galleon.config.ConfigId;
-import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.layout.FeaturePackLayout;
-import org.jboss.galleon.layout.ProvisioningLayout;
+import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
@@ -124,37 +125,38 @@ public class Utils {
         return args;
     }
 
-    public static ProvisioningSpecifics getSpecifics(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
-        return new ProvisioningSpecifics(getAllLayers(fps, pm));
+    public static ProvisioningSpecifics getSpecifics(List<FeaturePack> fps, GalleonBuilder provider) throws ProvisioningException, IOException {
+        return new ProvisioningSpecifics(getAllLayers(fps, provider));
     }
 
-    private static Set<String> getAllLayers(List<FeaturePack> fps, ProvisioningManager pm) throws ProvisioningException, IOException {
-        ProvisioningConfig.Builder builder = ProvisioningConfig.builder();
+    private static Set<String> getAllLayers(List<FeaturePack> fps, GalleonBuilder provider) throws ProvisioningException, IOException {
+        GalleonProvisioningConfig.Builder builder = GalleonProvisioningConfig.builder();
         for (FeaturePack fp : fps) {
             final FeaturePackLocation fpl;
             if (fp.getNormalizedPath() != null) {
-                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+                fpl = provider.addLocal(fp.getNormalizedPath(), false);
             } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
                 String coords = fp.getMavenCoords();
                 fpl = FeaturePackLocation.fromString(coords);
             } else {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
-            builder.addFeaturePackDep(FeaturePackConfig.builder(fpl).build());
+            builder.addFeaturePackDep(GalleonFeaturePackConfig.builder(fpl).build());
         }
-        ProvisioningConfig pConfig = builder.build();
-        try (ProvisioningLayout<FeaturePackLayout> layout = pm.
-                getLayoutFactory().newConfigLayout(pConfig)) {
-            return getAllLayers(layout);
+        GalleonProvisioningConfig pConfig = builder.build();
+        try (Provisioning pm = provider.newProvisioningBuilder(pConfig).build()) {
+            return getAllLayers(pm, pConfig);
         }
     }
 
-    private static Set<String> getAllLayers(ProvisioningLayout<FeaturePackLayout> pLayout)
+    private static Set<String> getAllLayers(Provisioning pm, GalleonProvisioningConfig pConfig)
             throws ProvisioningException, IOException {
         Set<String> layers = new HashSet<>();
-        for (FeaturePackLayout fp : pLayout.getOrderedFeaturePacks()) {
-            for (ConfigId layer : fp.loadLayers()) {
-                layers.add(layer.getName());
+        try (GalleonProvisioningLayout layout = pm.newProvisioningLayout(pConfig)) {
+            for (GalleonFeaturePackLayout fp : layout.getOrderedFeaturePacks()) {
+                for (ConfigId layer : fp.loadLayers()) {
+                    layers.add(layer.getName());
+                }
             }
         }
         return layers;
