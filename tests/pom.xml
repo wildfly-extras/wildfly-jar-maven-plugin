@@ -200,12 +200,6 @@
                                 <test.default.cloud.config>${test.default.ee.cloud.config}</test.default.cloud.config>
                                 <test.patch.product>${test.patch.ee.product}</test.patch.product>
                             </systemPropertyVariables>
-                            <excludes>
-                                <!-- This test upgrades the wildfly-ee dependency that is not a dependency when provisioning wildfly-ee -->
-                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactFPLTestCase.java</exclude>
-                                <!-- We can't mix an FP dep that packages configgen in the FP zip. It is not compatible -->
-                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactTestCase.java</exclude>
-                            </excludes>
                             <includes>
                                 <!-- Other tests would be redundant with wildfly-ee-galleon-pack -->
                                 <include>org.wildfly.plugins.bootablejar.maven.goals.DefaultCloudConfigurationExcludeLayerTestCase</include>
@@ -235,11 +229,6 @@
                                 <test.default.cloud.config>${test.default.cloud.config}</test.default.cloud.config>
                                 <test.patch.product>${test.patch.product}</test.patch.product>
                             </systemPropertyVariables>
-                            <excludes>
-                                <!-- We can't mix an FP dep that packages config-gen in the FP zip. It is not compatible -->
-                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactTestCase.java</exclude>
-                                <exclude>org.wildfly.plugins.bootablejar.maven.goals.UpgradeArtifactFPLTestCase.java</exclude>
-                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
