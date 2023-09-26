@@ -54,7 +54,7 @@
     <!-- Require Java 11 -->
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
-    <version.wildfly>29.0.0.Final</version.wildfly>
+    <version.wildfly>29.0.1.Final</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>main</docs.project.branch>
     <docs.wildfly.major>29.0</docs.wildfly.major>
@@ -96,7 +96,7 @@
     <test.fpl>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.fpl>
     <test.ee.fpl>wildfly-ee@maven(org.jboss.universe:community-universe)#${version.wildfly}</test.ee.fpl>
     <test.version.wildfly>${version.wildfly}</test.version.wildfly>
-    <test.version.wildfly-ee.upgrade>27.0.1.Final</test.version.wildfly-ee.upgrade>
+    <test.version.wildfly-ee.upgrade>29.0.0.Final</test.version.wildfly-ee.upgrade>
     <test.patch.ee.product>WildFly EE</test.patch.ee.product>
     <test.patch.product>WildFly Full</test.patch.product>
     <test.patch.version>${version.wildfly}</test.patch.version>

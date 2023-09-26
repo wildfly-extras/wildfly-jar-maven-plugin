@@ -21,6 +21,7 @@
                 <configuration>
                     <feature-pack-location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
                     <layers>
+                        <layer>bean-validation</layer>
                         <layer>jaxrs</layer>
                         <layer>management</layer>
                     </layers>

@@ -76,7 +76,7 @@ public class UpgradeArtifactTestCase extends AbstractBootableJarMojoTestCase {
             Path modulesDir = unzippedJar.resolve("modules").resolve("system").resolve("layers").resolve("base");
             Path undertow = modulesDir.resolve("io").resolve("undertow").resolve("core").resolve("main").resolve("undertow-core-" + undertowVersion + ".jar");
             Assert.assertTrue(undertow.toString(), Files.exists(undertow));
-            Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-jakarta-" + wildflyeeVersion + ".jar");
+            Path ee = modulesDir.resolve("org").resolve("jboss").resolve("as").resolve("ee").resolve("main").resolve("wildfly-ee-" + wildflyeeVersion + ".jar");
             Assert.assertTrue(ee.toString(), Files.exists(ee));
             Assert.assertTrue(ee.toString(), Files.exists(ee));
         } finally {
