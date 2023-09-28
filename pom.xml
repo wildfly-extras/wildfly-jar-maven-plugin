@@ -54,7 +54,7 @@
     <!-- Require Java 11 -->
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
-    <version.wildfly>29.0.1.Final</version.wildfly>
+    <version.wildfly>30.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>main</docs.project.branch>
     <docs.wildfly.major>29.0</docs.wildfly.major>
