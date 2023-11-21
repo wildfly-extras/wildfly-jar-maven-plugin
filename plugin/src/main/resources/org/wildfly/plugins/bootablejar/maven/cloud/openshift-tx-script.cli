@@ -1,5 +1,4 @@
-#We must disable jboss.node.name until the boot can set it to a proper value (WF 21).
 if (outcome == success) of /subsystem=transactions:read-resource
- /subsystem=transactions:write-attribute(name=node-identifier,value=${jboss.node.name:1})
+ /subsystem=transactions:write-attribute(name=node-identifier,value=${jboss.tx.node.id:1})
  /subsystem=transactions:write-attribute(name=recovery-listener,value=true)
 end-if
