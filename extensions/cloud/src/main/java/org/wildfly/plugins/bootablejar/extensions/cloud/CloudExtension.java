@@ -39,6 +39,7 @@ public class CloudExtension implements RuntimeExtension {
     private static final String KUBERNETES_RESOURCE = "/kubernetes.properties";
     private static final String OPENSHIFT_HOST_NAME_ENV = "HOSTNAME";
     private static final String JBOSS_NODE_NAME_PROPERTY = "jboss.node.name";
+    private static final String JBOSS_TX_NODE_ID_PROPERTY = "jboss.tx.node.id";
     private static final Path JBOSS_CONTAINER_DIR = Paths.get("/opt/jboss/container");
     private static final Path JBOSS_CONTAINER_BOOTABLE_DIR = JBOSS_CONTAINER_DIR.resolve("wildfly-bootable-jar");
     private static final Path INSTALL_DIR_FILE = JBOSS_CONTAINER_BOOTABLE_DIR.resolve("install-dir");
@@ -80,14 +81,15 @@ public class CloudExtension implements RuntimeExtension {
             }
         }
 
-        boolean hasJbossNodeName = false;
+        String nodeName = null;
         Set<String> overridingProps = new HashSet<>();
         for (String arg : args) {
             if (arg.startsWith("-D" + JBOSS_NODE_NAME_PROPERTY + "=")) {
-                hasJbossNodeName = true;
+                int eq = arg.indexOf("=");
+                nodeName = arg.substring(eq + 1, arg.length());
             } else {
                 if (arg.startsWith("-D")) {
-                    String prop = null;
+                    String prop;
                     int eq = arg.indexOf("=");
                     if (eq == -1) {
                         prop = arg.substring(2);
@@ -105,29 +107,42 @@ public class CloudExtension implements RuntimeExtension {
             }
         }
 
-        if (!hasJbossNodeName) {
-            String value = System.getProperty(JBOSS_NODE_NAME_PROPERTY);
-            if (value == null) {
-
-                if (hostname != null) {
-                    // This is a constraint that breaks the server at startup.
-                    if (hostname.length() > 23) {
-                        String originalHostName = hostname;
-                        StringBuilder builder = new StringBuilder();
-                        char[] chars = hostname.toCharArray();
-                        for (int i = 1; i <= 23; i++) {
-                            char c = chars[hostname.length() - i];
-                            builder.insert(0, c);
-                        }
-                        hostname = builder.toString();
-                        System.out.println("The HOSTNAME env variable used to set "
-                                + "jboss.node.name is longer than 23 bytes. "
-                                + "jboss.node.name value was adjusted to 23 bytes long string "
-                                + hostname + " from the original value " + originalHostName);
-                    }
-                    args.add("-Djboss.node.name=" + hostname);
-                }
+        if (nodeName == null) {
+            boolean setNodeName = true;
+            nodeName = System.getProperty(JBOSS_NODE_NAME_PROPERTY);
+            if (nodeName == null) {
+                nodeName = hostname;
+            } else {
+                setNodeName = false;
             }
+            if (nodeName != null) {
+                String txId = trunkTxIdValue(nodeName);
+                if (setNodeName) {
+                    args.add("-D" + JBOSS_NODE_NAME_PROPERTY + "=" + nodeName);
+                }
+                args.add("-D" + JBOSS_TX_NODE_ID_PROPERTY + "=" + txId);
+            }
+        } else {
+            String txId = trunkTxIdValue(nodeName);
+            args.add("-D" + JBOSS_TX_NODE_ID_PROPERTY + "=" + txId);
         }
+    }
+
+    private static String trunkTxIdValue(String value) {
+        if (value.length() > 23) {
+            String originalValue = value;
+            StringBuilder builder = new StringBuilder();
+            char[] chars = value.toCharArray();
+            for (int i = 1; i <= 23; i++) {
+                char c = chars[value.length() - i];
+                builder.insert(0, c);
+            }
+            value = builder.toString();
+            System.out.println("The HOSTNAME env variable used to set "
+                    + JBOSS_TX_NODE_ID_PROPERTY + " is longer than 23 bytes. "
+                    + JBOSS_TX_NODE_ID_PROPERTY + " value was adjusted to 23 bytes long string "
+                    + value + " from the original value " + originalValue);
+        }
+        return value;
     }
 }

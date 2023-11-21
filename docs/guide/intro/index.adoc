@@ -258,9 +258,10 @@ The sever configuration is updated in order to properly operate in a cloud envir
 * The public and private inet addresses are bound to the value of the ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS).
 * The management inet address is bound to the 0.0.0.0 inet address allowing for local (required by WildFly CLI) and remote access (required by OpenShift readiness and liveness probes).
 * The http and https socket-bindings are bound to 0.0.0.0 inet address.
-* The transaction subsystem id is set to the value of ```jboss.node.name```.
-* The ```jboss.node.name``` system propery, if not set, is set to the value of ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS). The node name value
+* The transaction subsystem id is set to the value of ```jboss.tx.node.id```.
+* The ```jboss.tx.node.id``` system property, if not set, is set to the value of ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS). The node name value
 is truncated to a max of 23 characters in order for the transaction subsystem to properly operate. The last 23 characters are taken into account.
+* The ```jboss.node.name``` system property, if not set, is set to the value of ```HOSTNAME``` environment variable if defined (defined in OpenShift PODS).  
 * The server logs are printed to the console.
 * jgroups subsystem is configured to use kubernetes.KUBE_PING jgroups protocol for both tcp (default stack) and udp. PING and MPING protocols are removed.
 * It is possible to configure jgroups to use un-encrypted password authentication. Set the ```<cloud>``` child element ```<enable-jgroups-password>true|false</enable-jgroups-password>``` to enable authentication. 

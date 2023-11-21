@@ -36,9 +36,10 @@ public class CloudExtensionTestCase {
         p.toFile().deleteOnExit();
         List<String> args = new ArrayList<>();
         extension.doBoot(args, p, "abcdefghijklmnopqrstvuwxyz");
-        assertTrue(args.size() == 2);
+        assertTrue(args.size() == 3);
         assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(0)));
-        assertTrue(args.toString(), "-Djboss.node.name=defghijklmnopqrstvuwxyz".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.node.name=abcdefghijklmnopqrstvuwxyz".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.tx.node.id=defghijklmnopqrstvuwxyz".equals(args.get(2)));
     }
 
     @Test
@@ -48,9 +49,10 @@ public class CloudExtensionTestCase {
         p.toFile().deleteOnExit();
         List<String> args = new ArrayList<>();
         extension.doBoot(args, p, "abcdefghijklmnopqrstvuw");
-        assertTrue(args.size() == 2);
+        assertTrue(args.size() == 3);
         assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(0)));
         assertTrue(args.toString(), "-Djboss.node.name=abcdefghijklmnopqrstvuw".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.tx.node.id=abcdefghijklmnopqrstvuw".equals(args.get(2)));
     }
 
     @Test
@@ -60,9 +62,10 @@ public class CloudExtensionTestCase {
         p.toFile().deleteOnExit();
         List<String> args = new ArrayList<>();
         extension.doBoot(args, p, "a");
-        assertTrue(args.size() == 2);
+        assertTrue(args.size() == 3);
         assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(0)));
         assertTrue(args.toString(), "-Djboss.node.name=a".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.tx.node.id=a".equals(args.get(2)));
     }
 
     @Test
@@ -73,9 +76,10 @@ public class CloudExtensionTestCase {
         List<String> args = new ArrayList<>();
         args.add("-Djboss.node.name=foo");
         extension.doBoot(args, p, "abcdef");
-        assertTrue(args.size() == 2);
+        assertTrue(args.size() == 3);
         assertTrue(args.toString(), "-Djboss.node.name=foo".equals(args.get(0)));
         assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.tx.node.id=foo".equals(args.get(2)));
     }
 
     @Test
@@ -87,8 +91,9 @@ public class CloudExtensionTestCase {
         System.setProperty("jboss.node.name", "foo");
         try {
             extension.doBoot(args, p, "abcdef");
-            assertTrue(args.size() == 1);
+            assertTrue(args.size() == 2);
             assertTrue(args.toString(), "-Dfoo.bar=toto".equals(args.get(0)));
+            assertTrue(args.toString(), "-Djboss.tx.node.id=foo".equals(args.get(1)));
         } finally {
             System.clearProperty("jboss.node.name");
         }
@@ -102,8 +107,9 @@ public class CloudExtensionTestCase {
         List<String> args = new ArrayList<>();
         args.add("-Dfoo.bar=fromtest");
         extension.doBoot(args, p, "abcdef");
-        assertTrue(args.size() == 2);
+        assertTrue(args.size() == 3);
         assertTrue(args.toString(), "-Dfoo.bar=fromtest".equals(args.get(0)));
         assertTrue(args.toString(), "-Djboss.node.name=abcdef".equals(args.get(1)));
+        assertTrue(args.toString(), "-Djboss.tx.node.id=abcdef".equals(args.get(2)));
     }
 }
