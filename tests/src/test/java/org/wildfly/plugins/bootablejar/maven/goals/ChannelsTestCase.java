@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.jboss.galleon.universe.maven.MavenArtifact;
-import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -103,24 +101,5 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         ChannelConfiguration config = new ChannelConfiguration();
         config.setManifest(coordinate);
         mojo.channels.add(config);
-    }
-
-    @Test
-    public void testInvalidUpgrade() throws Exception {
-        BuildBootableJarMojo mojo = lookupMojo("package");
-        setupTestChannel(mojo);
-        List<OverriddenArtifact> artifacts = new ArrayList<>();
-        OverriddenArtifact artifact = new OverriddenArtifact();
-        artifact.setGroupId("com.foo");
-        artifact.setArtifactId("bar");
-        artifacts.add(artifact);
-        mojo.overriddenServerArtifacts = artifacts;
-        try {
-            mojo.execute();
-            throw new Exception("Should have failed");
-        } catch (MojoExecutionException ex) {
-            // XXX Expected
-            Assert.assertTrue(ex.getLocalizedMessage(), ex.getLocalizedMessage().contains("overridden-server-artifacts can't be configured when channels are configured"));
-        }
     }
 }

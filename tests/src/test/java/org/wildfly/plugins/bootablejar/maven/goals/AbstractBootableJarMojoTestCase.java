@@ -66,14 +66,11 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     static final String WILDFLY_FPL = "test.fpl";
     static final String WILDFLY_VERSION = "test.version.wildfly";
-    static final String WILDFLY_EE_VERSION = "test.version.wildfly-ee.upgrade";
     static final String WILDFLY_GROUP_ID = "test.groupid.wildfly";
     static final String PLUGIN_VERSION = "test.plugin.version";
     private static final String TEST_REPLACE = "TEST_REPLACE";
     private static final String TEST_DEFAULT_CONFIG_REPLACE = "TEST_DEFAULT_CONFIG_REPLACE";
     private static final String TEST_DEFAULT_CLOUD_CONFIG_REPLACE = "TEST_DEFAULT_CLOUD_CONFIG_REPLACE";
-    private static final String TEST_REPLACE_WF_EE_VERSION = "WF_EE_VERSION";
-    private static final String TEST_REPLACE_WF_GROUPID = "WF_GROUPID";
     private static final String TEST_REPLACE_WF_VERSION = "WF_VERSION";
     static final String PLUGIN_VERSION_TEST_REPLACE = "PLUGIN_VERSION";
     static final String TEST_FILE = "test-" + AbstractBuildBootableJarMojo.BOOTABLE_SUFFIX + ".jar";
@@ -163,12 +160,6 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             }
             if (s.contains(TEST_REPLACE_WF_VERSION)) {
                 s = s.replace(TEST_REPLACE_WF_VERSION, System.getProperty(WILDFLY_VERSION));
-            }
-            if (s.contains(TEST_REPLACE_WF_EE_VERSION)) {
-                s = s.replace(TEST_REPLACE_WF_EE_VERSION, System.getProperty(WILDFLY_EE_VERSION));
-            }
-            if (s.contains(TEST_REPLACE_WF_GROUPID)) {
-                s = s.replace(TEST_REPLACE_WF_GROUPID, System.getProperty(WILDFLY_GROUP_ID));
             }
             if (s.contains(TEST_DEFAULT_CONFIG_REPLACE)) {
                 s = s.replace(TEST_DEFAULT_CONFIG_REPLACE, System.getProperty(DEFAULT_CONFIG));
