@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.logging.Log;
@@ -46,8 +45,6 @@ import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
  */
 public class CloudConfig {
 
-    private static final String ADD_EXPORTS_ATTRIBUTE = "Add-Exports";
-    private static final String NAMING_JNDI_DNS_EXPORT = "jdk.naming.dns/com.sun.jndi.dns";
     private static final String OPENSHIFT = "openshift";
     private static final String KUBERNETES = "kubernetes";
 
@@ -90,20 +87,8 @@ public class CloudConfig {
     }
 
     public boolean updateManifest(Manifest manifest) {
-        Attributes attributes = manifest.getMainAttributes();
-        String val = attributes.getValue(ADD_EXPORTS_ATTRIBUTE);
-        boolean updated = true;
-        // needed for jgroups dns ping protocol on JDK15+
-        if (val == null) {
-            attributes.putValue(ADD_EXPORTS_ATTRIBUTE, NAMING_JNDI_DNS_EXPORT);
-        } else {
-            if (val.contains(NAMING_JNDI_DNS_EXPORT)) {
-                updated = false;
-            } else {
-                attributes.putValue(ADD_EXPORTS_ATTRIBUTE, val + " " + NAMING_JNDI_DNS_EXPORT);
-            }
-        }
-        return updated;
+        // No-op currently
+        return false;
     }
 
     public void copyExtraContent(BuildBootableJarMojo mojo, Path wildflyDir, Path contentDir)
