@@ -45,7 +45,6 @@ import java.util.Properties;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -77,18 +76,14 @@ import org.jboss.galleon.api.config.GalleonConfigurationWithLayersBuilder;
 import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
 import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
-import org.wildfly.plugin.core.PluginProgressTracker;
-import org.wildfly.plugins.bootablejar.ArtifactLog;
-import org.wildfly.plugins.bootablejar.ScannedArtifacts;
-import org.wildfly.plugins.bootablejar.BootableJarSupport;
-import static org.wildfly.plugins.bootablejar.BootableJarSupport.BOOTABLE_SUFFIX;
+import org.wildfly.plugin.core.MavenJBossLogger;
+import org.wildfly.plugin.tools.PluginProgressTracker;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
@@ -98,6 +93,10 @@ import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
+import org.wildfly.plugin.tools.bootablejar.BootLoggingConfiguration;
+import org.wildfly.plugin.tools.bootablejar.BootableJarSupport;
+import static org.wildfly.plugin.tools.bootablejar.BootableJarSupport.BOOTABLE_SUFFIX;
+import org.wildfly.plugin.tools.bootablejar.ScannedArtifacts;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -360,8 +359,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     MavenProjectArtifactVersions artifactVersions;
 
-    @Inject
-    private BootLoggingConfiguration bootLoggingConfiguration;
+    private final BootLoggingConfiguration bootLoggingConfiguration = new BootLoggingConfiguration();
 
     private final List<String> extraLayers = new ArrayList<>();
 
@@ -1130,22 +1128,11 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             pm.storeProvisioningConfig(newConfig, outputProvisioningFile);
 
             try {
-                MavenUpgrade fmavenUpgrade = mavenUpgrade;
-                scannedArtifacts = BootableJarSupport.scanArtifacts(pm, newConfig, new ArtifactLog() {
-                    @Override
-                    public void info(FPID fpid, MavenArtifact a) {
-                        getLog().info("Found artifact " + a + " in " + (fmavenUpgrade == null ? fpid : fmavenUpgrade.getMavenFeaturePack(fpid)));
-                    }
-
-                    @Override
-                    public void debug(FPID fpid, MavenArtifact a) {
-                        AbstractBuildBootableJarMojo.this.debug("Found patching artifact %s in %s", a, (fmavenUpgrade == null ? fpid : fmavenUpgrade.getMavenFeaturePack(fpid)));
-                    }
-                });
+                scannedArtifacts = BootableJarSupport.scanArtifacts(pm, newConfig, new MvnMessageWriter(getLog()));
             } catch (Exception ex) {
                 throw new MojoExecutionException(ex);
             }
-            PluginProgressTracker.initTrackers(pm, getLog());
+            PluginProgressTracker.initTrackers(pm, new MavenJBossLogger(getLog()));
             pm.provision(newConfig);
 
             if (!recordState) {
@@ -1236,7 +1223,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         ZipUtils.unzip(rtJarFile, contentDir);
         updateManifest(contentDir);
-        BootableJarSupport.zip(contentDir, jarFile);
+        ZipUtils.zip(contentDir, jarFile);
     }
 
     private void updateManifest(Path target) throws IOException {

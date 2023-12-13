@@ -38,10 +38,10 @@ import org.jboss.galleon.config.ConfigId;
 import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
 import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE;
 import static org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo.STANDALONE_XML;
+import org.wildfly.plugin.tools.bootablejar.BootableJarSupport;
 /**
  * @author jdenise
  */

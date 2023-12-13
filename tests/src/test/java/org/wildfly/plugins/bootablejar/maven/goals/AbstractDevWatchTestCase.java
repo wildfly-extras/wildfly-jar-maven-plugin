@@ -26,7 +26,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jboss.as.controller.client.ModelControllerClient;
 
-import org.wildfly.plugin.core.ServerHelper;
+import org.wildfly.plugin.tools.ServerHelper;
 import static org.wildfly.plugins.bootablejar.maven.goals.DevWatchBootableJarMojo.TEST_PROPERTY_EXIT;
 
 /**

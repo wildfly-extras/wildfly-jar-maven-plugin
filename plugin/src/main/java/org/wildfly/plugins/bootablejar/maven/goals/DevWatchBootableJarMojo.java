@@ -98,7 +98,7 @@ import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.plugin.common.PropertyNames;
-import org.wildfly.plugin.core.ServerHelper;
+import org.wildfly.plugin.tools.ServerHelper;
 
 /**
  * Build and start a bootable JAR for dev-watch mode. This goal monitors the
