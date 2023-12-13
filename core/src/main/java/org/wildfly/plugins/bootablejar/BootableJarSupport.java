@@ -165,36 +165,6 @@ public class BootableJarSupport {
                         cliArtifacts.add(a);
                         continue;
                     }
-                    if ("wildfly-patching".equals(a.getArtifactId())
-                            && "org.wildfly.core".equals(a.getGroupId())) {
-                        // We got it.
-                        log.debug(fprt.getFPID(), a);
-                        cliArtifacts.add(a);
-                        continue;
-                    }
-                    // All the following ones are patching required dependencies:
-                    if ("wildfly-controller".equals(a.getArtifactId())
-                            && "org.wildfly.core".equals(a.getGroupId())) {
-                        // We got it.
-                        log.debug(fprt.getFPID(), a);
-                        cliArtifacts.add(a);
-                        continue;
-                    }
-                    if ("wildfly-version".equals(a.getArtifactId())
-                            && "org.wildfly.core".equals(a.getGroupId())) {
-                        // We got it.
-                        log.debug(fprt.getFPID(), a);
-                        cliArtifacts.add(a);
-                        continue;
-                    }
-                    if ("vdx-core".equals(a.getArtifactId())
-                            && "org.projectodd.vdx".equals(a.getGroupId())) {
-                        // We got it.
-                        log.debug(fprt.getFPID(), a);
-                        cliArtifacts.add(a);
-                        continue;
-                    }
-                    // End patching dependencies.
                     if (JBOSS_MODULES_ARTIFACT_ID.equals(a.getArtifactId())
                             && JBOSS_MODULES_GROUP_ID.equals(a.getGroupId())) {
                         jbossModules = a;

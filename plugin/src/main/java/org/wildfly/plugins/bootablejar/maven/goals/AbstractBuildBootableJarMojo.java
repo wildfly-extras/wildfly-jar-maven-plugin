@@ -98,7 +98,6 @@ import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.RemoteCLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.common.FeaturePack;
-import org.wildfly.plugins.bootablejar.maven.common.LegacyPatchCleaner;
 import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
@@ -278,32 +277,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private File provisioningFile;
 
     /**
-     * Deprecated. Path to a CLI script that applies legacy patches. Content of such script
-     * should be composed of 'patch apply [path to zip file] [patch apply
-     * options]' commands. Due to the nature of a bootable JAR trimmed with
-     * Galleon, part of the content of the patch can be missing. In order to
-     * force the patch to apply use the '--override-all' option. The
-     * '--distribution' option is not needed, System property 'jboss.home.dir'
-     * is automatically set to the server that will be packaged in the bootable
-     * JAR. If the script file is not absolute, it has to be relative to the
-     * project base directory.
-     * NB: The server is patched with a legacy patch right after the server
-     * has been provisioned with Galleon.
-     */
-    @Deprecated
-    @Parameter(alias = "legacy-patch-cli-script")
-    String legacyPatchCliScript;
-
-    /**
-     * Deprecated. Set to true to enable patch cleanup. When cleanup is enabled, unused
-     * added modules, patched modules original directories, unused overlay
-     * directories and .installation/patches directory are deleted.
-     */
-    @Deprecated
-    @Parameter(alias = "legacy-patch-clean-up", defaultValue = "false")
-    boolean legacyPatchCleanUp;
-
-    /**
      * By default executed CLI scripts output is not shown if execution is
      * successful. In order to display the CLI output, set this option to true.
      */
@@ -473,8 +446,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 getLog().info("CLI executions are done in forked process");
             }
 
-            // Legacy Patching point
-            legacyPatching();
             copyExtraContentInternal(wildflyDir, contentDir);
             copyExtraContent(wildflyDir);
             List<String> commands = new ArrayList<>();
@@ -561,37 +532,6 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             Files.copy(loggingFile, bootableLoggingFile, StandardCopyOption.REPLACE_EXISTING);
             Files.copy(originalLoggingFile, loggingFile, StandardCopyOption.REPLACE_EXISTING);
             Files.delete(originalLoggingFile);
-        }
-    }
-
-    private void legacyPatching() throws Exception {
-        if (legacyPatchCliScript != null) {
-            LegacyPatchCleaner patchCleaner = null;
-            if (legacyPatchCleanUp) {
-                patchCleaner = new LegacyPatchCleaner(wildflyDir, getLog());
-            }
-            String prop = "jboss.home.dir";
-            System.setProperty(prop, wildflyDir.toAbsolutePath().toString());
-            try {
-                Path patchScript = resolvePath(Paths.get(legacyPatchCliScript));
-                if (Files.notExists(patchScript)) {
-                    throw new Exception("Patch CLI script " + patchScript + " doesn't exist");
-                }
-                List<CliSession> cliPatchingSessions = new ArrayList<>();
-                List<String> files = new ArrayList<>();
-                files.add(patchScript.toString());
-                CliSession patchingSession = new CliSession();
-                patchingSession.setResolveExpressions(true);
-                patchingSession.setScriptFiles(files);
-                cliPatchingSessions.add(patchingSession);
-                getLog().info("Patching server with " + patchScript + " CLI script.");
-                userScripts(wildflyDir, cliPatchingSessions, false);
-                if (patchCleaner != null) {
-                    patchCleaner.clean();
-                }
-            } finally {
-                System.clearProperty(prop);
-            }
         }
     }
 

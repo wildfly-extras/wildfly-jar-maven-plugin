@@ -124,35 +124,6 @@
 
     <build>
         <plugins>
-            <!-- provision a full server to be used as patching distribution source -->
-
-            <plugin>
-                <groupId>org.jboss.galleon</groupId>
-                <artifactId>galleon-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>server-provisioning-for-patching</id>
-                        <goals>
-                            <goal>provision</goal>
-                        </goals>
-                        <phase>process-test-resources</phase>
-                        <configuration>
-                            <install-dir>${jbossas.dist}</install-dir>
-                            <record-state>false</record-state>
-                            <plugin-options>
-                                <jboss-fork-embedded>true</jboss-fork-embedded>
-                            </plugin-options>
-                            <feature-packs>
-                                <feature-pack>
-                                    <groupId>${wildfly.groupId}</groupId>
-                                    <artifactId>${wildfly.artifactId}</artifactId>
-                                    <version>${version.wildfly}</version>
-                                </feature-pack>
-                            </feature-packs>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -170,7 +141,6 @@
                         <test.version.wildfly-ee.upgrade>${test.version.wildfly-ee.upgrade}</test.version.wildfly-ee.upgrade>
                         <test.version.wildfly>${test.version.wildfly}</test.version.wildfly>
                         <test.plugin.version>${project.version}</test.plugin.version>
-                        <test.patch.version>${test.patch.version}</test.patch.version>
                         <jbossas.dist>${jbossas.dist}</jbossas.dist>
                         <test.groupid.wildfly>${wildfly.groupId}</test.groupid.wildfly>
                         <!-- DevWatch* tests run maven and need to use the same repository -->
