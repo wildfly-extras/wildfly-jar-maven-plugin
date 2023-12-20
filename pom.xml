@@ -53,7 +53,7 @@
     <!-- Require Java 11 -->
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
-    <version.wildfly>30.0.1.Final</version.wildfly>
+    <version.wildfly>31.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>main</docs.project.branch>
     <docs.wildfly.major>30.0</docs.wildfly.major>
@@ -65,7 +65,7 @@
     <version.org.apache.maven.plugin-plugin>3.7.0</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
     <version.org.jboss.galleon>6.0.0.Beta1</version.org.jboss.galleon>
-    <version.org.wildfly.core.wildfly-core>22.0.2.Final</version.org.wildfly.core.wildfly-core>
+    <version.org.wildfly.core.wildfly-core>23.0.0.Beta4</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Beta1</version.org.wildfly.plugins.wildfly-maven-plugin>
     <version.org.wildfly.plugins.wildfly-plugin-tools>1.0.0.Beta1</version.org.wildfly.plugins.wildfly-plugin-tools>
