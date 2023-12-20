@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-arquillian-tests-parent</artifactId>
-        <version>10.0.1.Final-SNAPSHOT</version>
+        <version>11.0.0.Beta1-SNAPSHOT</version>
     </parent>
 
     <artifactId>hollow-jar-arquillian</artifactId>

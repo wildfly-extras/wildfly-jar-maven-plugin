@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,16 +37,14 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -62,7 +59,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.shared.artifact.ArtifactCoordinate;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -70,29 +66,24 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.jboss.galleon.Constants;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.config.ConfigId;
-import org.jboss.galleon.config.ConfigModel;
-import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.maven.plugin.util.MvnMessageWriter;
-import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.api.GalleonArtifactCoordinate;
+import org.jboss.galleon.api.GalleonBuilder;
+import org.jboss.galleon.api.Provisioning;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.api.config.GalleonConfigurationWithLayersBuilder;
+import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.FeaturePackLocation;
-import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.maven.MavenArtifact;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
 import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
-import org.jboss.galleon.xml.ProvisioningXmlParser;
-import org.jboss.galleon.xml.ProvisioningXmlWriter;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
-import org.wildfly.plugin.core.PluginProgressTracker;
-import org.wildfly.plugins.bootablejar.ArtifactLog;
-import org.wildfly.plugins.bootablejar.ScannedArtifacts;
-import org.wildfly.plugins.bootablejar.BootableJarSupport;
-import static org.wildfly.plugins.bootablejar.BootableJarSupport.BOOTABLE_SUFFIX;
+import org.wildfly.plugin.core.MavenJBossLogger;
+import org.wildfly.plugin.tools.PluginProgressTracker;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
 import org.wildfly.plugins.bootablejar.maven.cli.LocalCLIExecutor;
@@ -102,6 +93,10 @@ import org.wildfly.plugins.bootablejar.maven.common.MavenRepositoriesEnricher;
 import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 import org.wildfly.plugins.bootablejar.maven.common.Utils.ProvisioningSpecifics;
+import org.wildfly.plugin.tools.bootablejar.BootLoggingConfiguration;
+import org.wildfly.plugin.tools.bootablejar.BootableJarSupport;
+import static org.wildfly.plugin.tools.bootablejar.BootableJarSupport.BOOTABLE_SUFFIX;
+import org.wildfly.plugin.tools.bootablejar.ScannedArtifacts;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 /**
@@ -364,10 +359,9 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     MavenProjectArtifactVersions artifactVersions;
 
-    @Inject
-    private BootLoggingConfiguration bootLoggingConfiguration;
+    private final BootLoggingConfiguration bootLoggingConfiguration = new BootLoggingConfiguration();
 
-    private final Set<String> extraLayers = new HashSet<>();
+    private final List<String> extraLayers = new ArrayList<>();
 
     private Path wildflyDir;
 
@@ -768,9 +762,9 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         return excludedLayers;
     }
 
-    private GalleonConfig buildFeaturePacksConfig(ProvisioningManager pm, boolean hasLayers,
+    private GalleonConfig buildFeaturePacksConfig(GalleonBuilder pm, boolean hasLayers,
             ConfigId defaultConfig) throws ProvisioningException, MojoExecutionException {
-        ProvisioningConfig.Builder state = ProvisioningConfig.builder();
+        GalleonProvisioningConfig.Builder state = GalleonProvisioningConfig.builder();
         ConfigId provisionedConfigId = null;
         for (FeaturePack fp : featurePacks) {
 
@@ -781,7 +775,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             final FeaturePackLocation fpl;
             if (fp.getNormalizedPath() != null) {
-                fpl = pm.getLayoutFactory().addLocal(fp.getNormalizedPath(), false);
+                fpl = pm.addLocal(fp.getNormalizedPath(), false);
             } else if (fp.getGroupId() != null && fp.getArtifactId() != null) {
                 String coords = fp.getMavenCoords();
                 fpl = FeaturePackLocation.fromString(coords);
@@ -789,7 +783,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 fpl = FeaturePackLocation.fromString(fp.getLocation());
             }
 
-            final FeaturePackConfig.Builder fpConfig = FeaturePackConfig.builder(fpl);
+            final GalleonFeaturePackConfig.Builder fpConfig = GalleonFeaturePackConfig.builder(fpl);
             fpConfig.setInheritConfigs(false);
             if (fp.isInheritPackages() != null) {
                 fpConfig.setInheritPackages(fp.isInheritPackages());
@@ -836,17 +830,23 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private interface GalleonConfig {
 
-        ProvisioningConfig buildConfig() throws ProvisioningException;
+        GalleonProvisioningConfig buildProvisioningConfig() throws ProvisioningException;
     }
 
     /**
      * Parse provisioning.xml to build the configuration.
      */
     private class ProvisioningFileConfig implements GalleonConfig {
-
+        private final GalleonBuilder pm;
+        ProvisioningFileConfig(GalleonBuilder pm) {
+            Objects.requireNonNull(pm);
+            this.pm = pm;
+        }
         @Override
-        public ProvisioningConfig buildConfig() throws ProvisioningException {
-            return ProvisioningXmlParser.parse(getProvisioningFile());
+        public GalleonProvisioningConfig buildProvisioningConfig() throws ProvisioningException {
+            try(Provisioning p = pm.newProvisioningBuilder(getProvisioningFile()).build()) {
+                return p.loadProvisioningConfig(getProvisioningFile());
+            }
         }
     }
 
@@ -856,12 +856,16 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      */
     private abstract class AbstractGalleonConfig implements GalleonConfig {
 
-        protected final ConfigModel.Builder configBuilder;
-
-        AbstractGalleonConfig(ConfigModel.Builder configBuilder) throws ProvisioningException {
-            Objects.requireNonNull(configBuilder);
-            this.configBuilder = configBuilder;
+        protected final GalleonConfigurationWithLayersBuilder configuration;
+        AbstractGalleonConfig(GalleonConfigurationWithLayersBuilder configuration) throws ProvisioningException {
+            Objects.requireNonNull(configuration);
+            this.configuration = configuration;
             setupPluginOptions();
+        }
+
+        @Override
+        public GalleonProvisioningConfig buildProvisioningConfig() throws ProvisioningException {
+            return buildConfig();
         }
 
         private void setupPluginOptions() throws ProvisioningException {
@@ -888,12 +892,11 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             }
         }
 
-        protected abstract ProvisioningConfig.Builder buildState() throws ProvisioningException;
+        protected abstract GalleonProvisioningConfig.Builder buildState() throws ProvisioningException;
 
-        @Override
-        public ProvisioningConfig buildConfig() throws ProvisioningException {
-            ProvisioningConfig.Builder state = buildState();
-            state.addConfig(configBuilder.build());
+        public GalleonProvisioningConfig buildConfig() throws ProvisioningException {
+            GalleonProvisioningConfig.Builder state = buildState();
+            state.addConfig(configuration.build());
             state.addOptions(pluginOptions);
             return state.build();
         }
@@ -907,21 +910,21 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private abstract class AbstractLayersConfig extends AbstractGalleonConfig {
 
         public AbstractLayersConfig() throws ProvisioningDescriptionException, ProvisioningException {
-            super(ConfigModel.builder(STANDALONE, STANDALONE_XML));
-            for (String layer : layers) {
-                configBuilder.includeLayer(layer);
+            super(buildConfiguration(STANDALONE, STANDALONE_XML));
+            List<String> allLayers = new ArrayList<>();
+            allLayers.addAll(layers);
+            allLayers.addAll(extraLayers);
+            for(String l : allLayers) {
+                configuration.includeLayer(l);
             }
-
-            for (String layer : extraLayers) {
-                if (!layers.contains(layer)) {
-                    configBuilder.includeLayer(layer);
-                }
-            }
-
-            for (String layer : excludedLayers) {
-                configBuilder.excludeLayer(layer);
+            for(String l : excludedLayers) {
+                configuration.excludeLayer(l);
             }
         }
+    }
+
+    private static GalleonConfigurationWithLayersBuilder buildConfiguration(String model, String name) {
+        return GalleonConfigurationWithLayersBuilder.builder(model, name);
     }
 
     /**
@@ -929,23 +932,24 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      */
     private class LayersFeaturePacksConfig extends AbstractLayersConfig {
 
-        private final ProvisioningConfig.Builder state;
+        private final GalleonProvisioningConfig.Builder state;
 
-        private LayersFeaturePacksConfig(ProvisioningConfig.Builder state) throws ProvisioningDescriptionException, ProvisioningException {
+        private LayersFeaturePacksConfig(GalleonProvisioningConfig.Builder state) throws ProvisioningDescriptionException, ProvisioningException {
             this.state = state;
         }
 
         @Override
-        public ProvisioningConfig.Builder buildState() throws ProvisioningException {
+        public GalleonProvisioningConfig.Builder buildState() throws ProvisioningException {
             return state;
         }
     }
 
-    private static ConfigModel.Builder buildDefaultConfigBuilder(ConfigId defaultConfigId) {
+    private static GalleonConfigurationWithLayersBuilder buildDefaultConfig(ConfigId defaultConfigId) {
         Objects.requireNonNull(defaultConfigId);
-        ConfigModel.Builder configBuilder = ConfigModel.builder(defaultConfigId.getModel(), defaultConfigId.getName());
-        configBuilder.setProperty(SERVER_CONFIG, STANDALONE_XML);
-        return configBuilder;
+        GalleonConfigurationWithLayersBuilder config = buildConfiguration(defaultConfigId.getModel(), defaultConfigId.getName());
+        Map<String, String> props = new HashMap<>();
+        config.setProperty(SERVER_CONFIG, STANDALONE_XML);
+        return config;
     }
 
     /**
@@ -958,14 +962,13 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     private abstract class AbstractDefaultConfig extends AbstractGalleonConfig {
 
         private AbstractDefaultConfig(ConfigId defaultConfigId) throws ProvisioningException {
-            super(buildDefaultConfigBuilder(defaultConfigId));
-            // We can exclude layers from a default config.
-            for (String layer : excludedLayers) {
-                configBuilder.excludeLayer(layer);
-            }
+            super(buildDefaultConfig(defaultConfigId));
             // We can have extra layers to add to default config.
-            for (String layer : extraLayers) {
-                configBuilder.includeLayer(layer);
+            for (String l : extraLayers) {
+                configuration.includeLayer(l);
+            }
+            for (String l : excludedLayers) {
+                configuration.excludeLayer(l);
             }
         }
 
@@ -977,16 +980,16 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      */
     private class DefaultFeaturePacksConfig extends AbstractDefaultConfig {
 
-        private final ProvisioningConfig.Builder state;
+        private final GalleonProvisioningConfig.Builder state;
 
-        private DefaultFeaturePacksConfig(ConfigId defaultConfigId, ProvisioningConfig.Builder state) throws ProvisioningException {
+        private DefaultFeaturePacksConfig(ConfigId defaultConfigId, GalleonProvisioningConfig.Builder state) throws ProvisioningException {
             super(defaultConfigId);
             Objects.requireNonNull(state);
             this.state = state;
         }
 
         @Override
-        protected ProvisioningConfig.Builder buildState() throws ProvisioningException {
+        protected GalleonProvisioningConfig.Builder buildState() throws ProvisioningException {
             return state;
         }
 
@@ -1045,7 +1048,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         return location;
     }
 
-    private GalleonConfig buildGalleonConfig(ProvisioningManager pm, ConfigId defaultConfig) throws ProvisioningException, MojoExecutionException {
+    private GalleonProvisioningConfig buildGalleonConfig(GalleonBuilder provider, ConfigId defaultConfig) throws ProvisioningException, MojoExecutionException {
         boolean isLayerBasedConfig = !layers.isEmpty();
         boolean hasFeaturePack = !featurePacks.isEmpty();
         boolean hasProvisioningFile = Files.exists(getProvisioningFile());
@@ -1062,25 +1065,25 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
             if (!hasFeaturePack) {
                 throw new ProvisioningException("No server feature-pack location to provision layers, you must set a feature-pack-location");
             }
-            return buildFeaturePacksConfig(pm, true, defaultConfig);
+            return buildFeaturePacksConfig(provider, true, defaultConfig).buildProvisioningConfig();
         }
 
         // Based on default config
         if (!featurePacks.isEmpty()) {
             getLog().info("Provisioning server using feature-packs");
-            return buildFeaturePacksConfig(pm, isLayerBasedConfig, defaultConfig);
+            return buildFeaturePacksConfig(provider, isLayerBasedConfig, defaultConfig).buildProvisioningConfig();
         }
 
         if (hasProvisioningFile) {
             getLog().info("Provisioning server using " + getProvisioningFile());
-            return new ProvisioningFileConfig();
+            return new ProvisioningFileConfig(provider).buildProvisioningConfig();
         }
         throw new ProvisioningException("Invalid Galleon configuration");
     }
 
-    private ConfigId willProvision(List<FeaturePack> featurePacks, ProvisioningManager pm)
+    private ConfigId willProvision(List<FeaturePack> featurePacks, GalleonBuilder provider)
             throws MojoExecutionException, ProvisioningException, IOException {
-        ProvisioningSpecifics specifics = Utils.getSpecifics(featurePacks, pm);
+        ProvisioningSpecifics specifics = Utils.getSpecifics(featurePacks, provider);
         return willProvision(specifics);
     }
 
@@ -1088,67 +1091,54 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
     private void provisionServer(Path home, Path outputProvisioningFile, Path workDir) throws ProvisioningException,
             MojoExecutionException, IOException, XMLStreamException {
-        try (ProvisioningManager pm = ProvisioningManager.builder().addArtifactResolver(artifactResolver)
+        GalleonBuilder provider = new GalleonBuilder();
+        provider.addArtifactResolver(artifactResolver);
+
+        // Prior to build the config, sub classes could have to inject content to the config according to the
+        // provisioned FP.
+        normalizeFeaturePackList();
+        ConfigId defaultConfig = willProvision(featurePacks, provider);
+        GalleonProvisioningConfig config = buildGalleonConfig(provider, defaultConfig);
+        try (Provisioning pm = provider.newProvisioningBuilder(config)
                 .setInstallationHome(home)
                 .setMessageWriter(new MvnMessageWriter(getLog()))
                 .setLogTime(logTime)
                 .setRecordState(recordState)
                 .build()) {
-
-            // Prior to build the config, sub classes could have to inject content to the config according to the
-            // provisioned FP.
-            normalizeFeaturePackList();
-            ConfigId defaultConfig = willProvision(featurePacks, pm);
-            ProvisioningConfig config = buildGalleonConfig(pm, defaultConfig).buildConfig();
             IoUtils.recursiveDelete(home);
             getLog().info("Building server based on " + config.getFeaturePackDeps() + " galleon feature-packs");
             MavenUpgrade mavenUpgrade = null;
+            GalleonProvisioningConfig newConfig;
             if (isChannelsProvisioning()) {
                 if (!overriddenServerArtifacts.isEmpty()) {
                     throw new MojoExecutionException("overridden-server-artifacts can't be configured when channels are configured.");
                 }
+                newConfig = config;
             } else {
-                mavenUpgrade = new MavenUpgrade(this, config, pm);
+                mavenUpgrade = new MavenUpgrade(this, pm, config);
                 // Dump artifacts
                 if (dumpOriginalArtifacts) {
                     Path file = workDir.resolve("bootable-jar-server-original-artifacts.xml");
                     getLog().info("Dumping original Maven artifacts in " + file);
                     mavenUpgrade.dumpArtifacts(file);
                 }
-                config = mavenUpgrade.upgrade();
+                newConfig = mavenUpgrade.upgrade();
             }
             // store provisioning.xml
-            try(FileWriter writer = new FileWriter(outputProvisioningFile.toFile())) {
-                ProvisioningXmlWriter.getInstance().write(config, writer);
-            }
+            pm.storeProvisioningConfig(newConfig, outputProvisioningFile);
 
             try {
-                MavenUpgrade fmavenUpgrade = mavenUpgrade;
-                scannedArtifacts = BootableJarSupport.scanArtifacts(pm, config, new ArtifactLog() {
-                    @Override
-                    public void info(FPID fpid, MavenArtifact a) {
-                        getLog().info("Found artifact " + a + " in " + (fmavenUpgrade == null ? fpid : fmavenUpgrade.getMavenFeaturePack(fpid)));
-                    }
-
-                    @Override
-                    public void debug(FPID fpid, MavenArtifact a) {
-                        AbstractBuildBootableJarMojo.this.debug("Found patching artifact %s in %s", a, (fmavenUpgrade == null ? fpid : fmavenUpgrade.getMavenFeaturePack(fpid)));
-                    }
-                });
+                scannedArtifacts = BootableJarSupport.scanArtifacts(pm, newConfig, new MvnMessageWriter(getLog()));
             } catch (Exception ex) {
                 throw new MojoExecutionException(ex);
             }
-            PluginProgressTracker.initTrackers(pm, getLog());
-            ProvisioningRuntime rt = pm.getRuntime(config);
-            pm.provision(rt.getLayout());
+            PluginProgressTracker.initTrackers(pm, new MavenJBossLogger(getLog()));
+            pm.provision(newConfig);
 
             if (!recordState) {
                 Path file = home.resolve(PLUGIN_PROVISIONING_FILE);
-                try (FileWriter writer = new FileWriter(file.toFile())) {
-                    ProvisioningXmlWriter.getInstance().write(config, writer);
-                }
+                pm.storeProvisioningConfig(newConfig, file);
             }
-
         }
     }
 
@@ -1233,7 +1223,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
         ZipUtils.unzip(rtJarFile, contentDir);
         updateManifest(contentDir);
-        BootableJarSupport.zip(contentDir, jarFile);
+        ZipUtils.zip(contentDir, jarFile);
     }
 
     private void updateManifest(Path target) throws IOException {
@@ -1338,7 +1328,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
         }
     }
 
-    Path resolveMaven(ArtifactCoordinate coordinate) throws MavenUniverseException {
+    Path resolveMaven(GalleonArtifactCoordinate coordinate) throws MavenUniverseException {
         final MavenArtifact artifact = new MavenArtifact()
                 .setGroupId(coordinate.getGroupId())
                 .setArtifactId(coordinate.getArtifactId())

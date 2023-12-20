@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-parent</artifactId>
-        <version>10.0.1.Final-SNAPSHOT</version>
+        <version>11.0.0.Beta1-SNAPSHOT</version>
     </parent>
 
     <artifactId>wildfly-jar-maven-plugin</artifactId>
@@ -46,10 +46,6 @@
         <dependency>
             <groupId>org.twdata.maven</groupId>
             <artifactId>mojo-executor</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>wildfly-jar-maven-plugin-core</artifactId>
         </dependency>
         <dependency>
           <groupId>${project.groupId}</groupId>
@@ -110,6 +106,16 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>wildfly-plugin-tools</artifactId>
+            <exclusions>
+              <exclusion>
+                    <groupId>org.jboss.modules</groupId>
+                    <artifactId>jboss-modules</artifactId>
+              </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.wildfly.channel</groupId>
             <artifactId>channel-core</artifactId>
         </dependency>
@@ -135,35 +141,7 @@
     </dependencies>
 
     <build>
-        <testResources>
-            <!-- Process default resources -->
-            <testResource>
-                <directory>src/test/resources</directory>
-                <targetPath>${project.build.testOutputDirectory}</targetPath>
-            </testResource>
-            <!-- Copy the custom modules to the WildFly module directory -->
-            <testResource>
-                <directory>src/test/modules</directory>
-                <filtering>true</filtering>
-                <targetPath>${jboss.home}/modules</targetPath>
-            </testResource>
-        </testResources>
         <plugins>
-            <!-- We need to bind a new execution of this to run after provisioning is done so the module.xml file
-                 required for testing is not deleted.
-            -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-module</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testResources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -229,51 +207,6 @@
                     <argLine>${client.jvm.jpms.args}</argLine>
                     <redirectTestOutputToFile>${surefire.redirect.to.file}</redirectTestOutputToFile>
                 </configuration>
-            </plugin>
-            <!-- Used to test the BootLoggingConfiguration -->
-            <plugin>
-                <groupId>org.jboss.galleon</groupId>
-                <artifactId>galleon-maven-plugin</artifactId>
-                <version>${version.org.jboss.galleon}</version>
-                <executions>
-                    <execution>
-                        <id>server-provisioning</id>
-                        <goals>
-                            <goal>provision</goal>
-                        </goals>
-                        <configuration>
-                            <install-dir>${jboss.home}</install-dir>
-                            <skip>${skipTests}</skip>
-                            <record-state>false</record-state>
-                            <log-time>${galleon.log.time}</log-time>
-                            <offline>${galleon.offline}</offline>
-                            <plugin-options>
-                                <jboss-maven-dist />
-                                <jboss-fork-embedded>${galleon.fork.embedded}</jboss-fork-embedded>
-                                <optional-packages>passive+</optional-packages>`
-                            </plugin-options>
-                            <feature-packs>
-                                <feature-pack>
-                                    <groupId>org.wildfly.core</groupId>
-                                    <artifactId>wildfly-core-galleon-pack</artifactId>
-                                    <version>${version.org.wildfly.core.wildfly-core}</version>
-                                    <inherit-configs>false</inherit-configs>
-                                    <inherit-packages>false</inherit-packages>
-                                </feature-pack>
-                            </feature-packs>
-                            <configurations>
-                                <config>
-                                    <model>standalone</model>
-                                    <name>standalone.xml</name>
-                                    <layers>
-                                        <layer>logging</layer>
-                                        <layer>management</layer>
-                                    </layers>
-                                </config>
-                            </configurations>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.wildfly.extras</groupId>

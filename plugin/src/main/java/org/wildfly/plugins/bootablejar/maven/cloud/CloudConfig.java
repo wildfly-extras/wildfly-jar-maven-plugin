@@ -35,8 +35,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.configuration.PlexusConfigurationException;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
-import org.wildfly.plugins.bootablejar.BootableJarSupport;
 import org.wildfly.plugins.bootablejar.maven.goals.BuildBootableJarMojo;
+import org.wildfly.plugin.tools.bootablejar.BootableJarSupport;
 
 /**
  * A Enable Openshift configuration

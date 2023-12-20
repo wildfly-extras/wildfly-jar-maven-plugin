@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import org.wildfly.plugin.tools.cli.CLIWrapper;
 
 /**
  * Execute CLI in forked process entry point.

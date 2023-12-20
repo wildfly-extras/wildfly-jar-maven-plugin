@@ -30,7 +30,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugin.common.AbstractServerConnection;
-import org.wildfly.plugin.core.ServerHelper;
+import org.wildfly.plugin.tools.ServerHelper;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**

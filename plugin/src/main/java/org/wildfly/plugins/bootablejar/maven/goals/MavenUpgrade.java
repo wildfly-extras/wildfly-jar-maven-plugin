@@ -30,13 +30,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
-import org.jboss.galleon.ProvisioningManager;
-import org.jboss.galleon.config.FeaturePackConfig;
-import org.jboss.galleon.config.ProvisioningConfig;
-import org.jboss.galleon.layout.FeaturePackDescriber;
-import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.api.GalleonFeaturePackDescription;
+import org.jboss.galleon.api.Provisioning;
+import org.jboss.galleon.api.config.GalleonFeaturePackConfig;
+import org.jboss.galleon.api.config.GalleonProvisioningConfig;
 import org.jboss.galleon.universe.Channel;
 import org.jboss.galleon.universe.FeaturePackLocation;
+import org.jboss.galleon.universe.FeaturePackLocation.FPID;
 import org.jboss.galleon.universe.FeaturePackLocation.ProducerSpec;
 import org.jboss.galleon.universe.maven.MavenChannel;
 import org.jboss.galleon.universe.maven.MavenUniverseException;
@@ -48,18 +48,17 @@ final class MavenUpgrade {
     private final Map<String, FeaturePack> dependencies = new LinkedHashMap<>();
     private final Map<String, FeaturePack> topLevels = new LinkedHashMap<>();
     private final AbstractBuildBootableJarMojo mojo;
-    private final ProvisioningConfig config;
     private final Map<ProducerSpec, String> producerToGAC = new HashMap<>();
-    private final ProvisioningManager pm;
     private ScannedModules modules;
-
-    MavenUpgrade(AbstractBuildBootableJarMojo mojo, ProvisioningConfig config, ProvisioningManager pm)
+    private final GalleonProvisioningConfig originalConfig;
+    private final Provisioning provisioning;
+    MavenUpgrade(AbstractBuildBootableJarMojo mojo, Provisioning provisioning, GalleonProvisioningConfig originalConfig)
             throws MavenUniverseException, ProvisioningException, MojoExecutionException {
         this.mojo = mojo;
-        this.config = config;
-        this.pm = pm;
-        for (FeaturePackConfig cfg : config.getFeaturePackDeps()) {
-            FeaturePack fp = toFeaturePack(cfg, pm);
+        this.provisioning = provisioning;
+        this.originalConfig = originalConfig;
+        for (GalleonFeaturePackConfig cfg : originalConfig.getFeaturePackDeps()) {
+            FeaturePack fp = toFeaturePack(cfg.getLocation());
             if (fp == null) {
                 throw new ProvisioningException("Invalid location " + cfg.getLocation());
             }
@@ -74,25 +73,25 @@ final class MavenUpgrade {
         mojo.debug("Top level feature-packs: %s", topLevels);
         mojo.debug("Resolved feature-packs: %s", resolvedFeaturePacks);
         for (Entry<String, Path> entry : resolvedFeaturePacks.entrySet()) {
-            FeaturePackSpec spec = FeaturePackDescriber.readSpec(entry.getValue());
-            producerToGAC.put(spec.getFPID().getProducer(), entry.getKey());
-            List<FeaturePackConfig> allDeps = new ArrayList<>();
-            for (FeaturePackConfig cfg : spec.getFeaturePackDeps()) {
+            GalleonFeaturePackDescription spec = Provisioning.getFeaturePackDescription(entry.getValue());
+            producerToGAC.put(spec.getProducer().getProducer(), entry.getKey());
+            List<FPID> allDeps = new ArrayList<>();
+            for (FPID cfg : spec.getDependencies()) {
                 allDeps.add(cfg);
             }
-            for (FeaturePackConfig cfg : spec.getTransitiveDeps()) {
+            for (FPID cfg : spec.getTransitives()) {
                 allDeps.add(cfg);
             }
-            for (FeaturePackConfig cfg : allDeps) {
-                FeaturePack fp = toFeaturePack(cfg, pm);
+            for (FPID cfg : allDeps) {
+                FeaturePack fp = toFeaturePack(cfg.getLocation());
                 if (fp != null) {
                     String gac = fp.getGAC();
                     // Only add the dep if not already seen. The first installed FP dep wins.
                     if (!topLevels.containsKey(gac) && !dependencies.containsKey(gac)) {
                         // Resolve to retrieve the actual producer and map to GAC
                         Path p = mojo.resolveMaven(fp);
-                        FeaturePackSpec depSpec = FeaturePackDescriber.readSpec(p);
-                        producerToGAC.put(depSpec.getFPID().getProducer(), gac);
+                        GalleonFeaturePackDescription depSpec = Provisioning.getFeaturePackDescription(p);
+                        producerToGAC.put(depSpec.getProducer().getProducer(), gac);
                         dependencies.put(gac, fp);
                     }
                 }
@@ -107,7 +106,7 @@ final class MavenUpgrade {
 
     private ScannedModules getScannedModules() throws ProvisioningException, MojoExecutionException {
         if (modules == null) {
-            modules = ScannedModules.scanProvisionedArtifacts(pm, config);
+            modules = ScannedModules.scanProvisionedArtifacts(provisioning, originalConfig);
         }
         return modules;
     }
@@ -194,9 +193,9 @@ final class MavenUpgrade {
         return artifact.getVersion();
     }
 
-    ProvisioningConfig upgrade() throws MojoExecutionException, ProvisioningDescriptionException, ProvisioningException {
+    GalleonProvisioningConfig upgrade() throws MojoExecutionException, ProvisioningDescriptionException, ProvisioningException {
         if (mojo.overriddenServerArtifacts.isEmpty()) {
-            return config;
+            return originalConfig;
         }
         Map<String, String> originalVersions = getOriginalVersions();
         List<FeaturePack> featurePackDependencies = new ArrayList<>();
@@ -286,15 +285,15 @@ final class MavenUpgrade {
             }
         }
         if (!artifactDependencies.isEmpty() || !featurePackDependencies.isEmpty()) {
-            ProvisioningConfig.Builder c = ProvisioningConfig.builder(config);
+            GalleonProvisioningConfig original = originalConfig;
+            GalleonProvisioningConfig.Builder c = GalleonProvisioningConfig.builder(original);
             if (!featurePackDependencies.isEmpty()) {
                 mojo.getLog().info("[UPDATE] Overriding Galleon feature-pack dependency with: ");
                 for (FeaturePack fp : featurePackDependencies) {
-                    FeaturePackLocation fpl = FeaturePackLocation.fromString(fp.getMavenCoords());
                     mojo.getLog().info("[UPDATE]  " + fp.getGroupId() + ":" + fp.getArtifactId() + ":"
                             + (fp.getClassifier() == null ? "" : fp.getClassifier() + ":")
                             + fp.getVersion() + (fp.getExtension() == null ? "" : ":" + fp.getExtension()));
-                    c.addTransitiveDep(fpl);
+                    c.addTransitiveDep(FeaturePackLocation.fromString(fp.getMavenCoords()));
                 }
             }
             if (!artifactDependencies.isEmpty()) {
@@ -306,12 +305,15 @@ final class MavenUpgrade {
                                 + (update.getClassifier() == null ? "" : update.getClassifier() + ":")
                                 + update.getVersion() + (update.getType() == null ? "" : ":" + update.getType()));
                     }
-                    c.addOption("jboss-overridden-artifacts", updates);
+                    Map<String, String> allOptions = new HashMap<>();
+                    allOptions.putAll(original.getOptions());
+                    allOptions.put("jboss-overridden-artifacts", updates);
+                    c.addOptions(allOptions);
                 }
             }
             return c.build();
         } else {
-            return config;
+            return originalConfig;
         }
     }
 
@@ -338,13 +340,13 @@ final class MavenUpgrade {
         return featurePackLocation;
     }
 
-    private FeaturePack toFeaturePack(FeaturePackConfig cfg, ProvisioningManager pm) throws MojoExecutionException {
+    private FeaturePack toFeaturePack(FeaturePackLocation fpl) throws MojoExecutionException {
         FeaturePack fp;
-        validateFPL(cfg.getLocation());
-        if (cfg.getLocation().isMavenCoordinates()) {
-            fp = getFeaturePack(cfg.getLocation().toString());
+        validateFPL(fpl);
+        if (fpl.isMavenCoordinates()) {
+            fp = getFeaturePack(fpl.toString());
         } else {
-            fp = getFeaturePack(cfg, pm);
+            fp = getFeaturePack(fpl);
         }
         return fp;
     }
@@ -364,24 +366,24 @@ final class MavenUpgrade {
         }
     }
 
-    private FeaturePack getFeaturePack(FeaturePackConfig cfg, ProvisioningManager pm) {
+    private FeaturePack getFeaturePack(FeaturePackLocation fpl) {
         try {
-            Channel channel = pm.getLayoutFactory().getUniverseResolver().getChannel(cfg.getLocation());
+            Channel channel = provisioning.getUniverseResolver().getChannel(fpl);
             if (channel instanceof MavenChannel) {
                 MavenChannel mavenChannel = (MavenChannel) channel;
                 FeaturePack fp = new FeaturePack();
                 fp.setGroupId(mavenChannel.getFeaturePackGroupId());
                 fp.setArtifactId(mavenChannel.getFeaturePackArtifactId());
-                String build = cfg.getLocation().getBuild();
+                String build = fpl.getBuild();
                 if (build == null) {
-                    build = mavenChannel.getLatestBuild(cfg.getLocation());
+                    build = mavenChannel.getLatestBuild(fpl);
                 }
                 fp.setVersion(build);
                 return fp;
             }
         } catch (ProvisioningException ex) {
             // OK, invalid channel, can occurs for non registered FP that are referenced from GAV.
-            mojo.debug("Invalid channel for %s, the feature-pack is not known in the universe, skipping it.", cfg.getLocation());
+            mojo.debug("Invalid channel for %s, the feature-pack is not known in the universe, skipping it.", fpl);
         }
         return null;
     }

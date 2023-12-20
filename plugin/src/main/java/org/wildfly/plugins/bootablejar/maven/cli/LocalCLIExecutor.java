@@ -24,7 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo;
-import org.wildfly.plugins.bootablejar.maven.goals.BootLoggingConfiguration;
+import org.wildfly.plugin.tools.bootablejar.BootLoggingConfiguration;
+import org.wildfly.plugin.tools.cli.CLIWrapper;
 
 /**
  * A CLI executor, resolving CLI classes from an URL Classloader. We can't have

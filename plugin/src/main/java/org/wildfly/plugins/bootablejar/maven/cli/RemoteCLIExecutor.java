@@ -22,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Level;
+import org.wildfly.plugin.tools.bootablejar.BootLoggingConfiguration;
+import org.wildfly.plugin.tools.cli.ForkedCLIUtil;
 import org.wildfly.plugins.bootablejar.maven.goals.AbstractBuildBootableJarMojo;
 
 /**
@@ -95,7 +97,7 @@ public class RemoteCLIExecutor implements CLIExecutor {
         args[0] = script.toString();
         args[1] = Boolean.toString(resolveExpression);
         try {
-            ForkedCLIUtil.fork(mojo.getLog(), cp, CLIForkedExecutor.class, jbossHome, output, args);
+            ForkedCLIUtil.fork(cp, CLIForkedExecutor.class, jbossHome, output, args);
         } finally {
             Files.deleteIfExists(script);
         }
@@ -103,6 +105,6 @@ public class RemoteCLIExecutor implements CLIExecutor {
 
     @Override
     public void generateBootLoggingConfig() throws Exception {
-        ForkedCLIUtil.fork(mojo.getLog(), cp, CLIForkedBootConfigGenerator.class, jbossHome, output);
+        BootLoggingConfiguration.generateBootLoggingConfig(cp,jbossHome, output);
     }
 }

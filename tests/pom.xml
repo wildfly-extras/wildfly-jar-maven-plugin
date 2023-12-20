@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.plugins</groupId>
         <artifactId>wildfly-jar-parent</artifactId>
-        <version>10.0.1.Final-SNAPSHOT</version>
+        <version>11.0.0.Beta1-SNAPSHOT</version>
     </parent>
 
     <artifactId>wildfly-jar-maven-plugin-tests</artifactId>
@@ -45,10 +45,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>wildfly-jar-cloud-extension</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>wildfly-jar-maven-plugin-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wildfly.channel</groupId>
