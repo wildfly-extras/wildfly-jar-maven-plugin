@@ -33,10 +33,12 @@ class TestEnvironment {
     private static final int MGMT_PORT = getProperty("ts.mgmt.port", 9990);
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir", "target");
     private static final boolean IS_WINDOWS;
+    private static final int JAVA_VERSION;
 
     static {
         final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         IS_WINDOWS = os.contains("win");
+        JAVA_VERSION = Integer.parseInt(System.getProperty("java.vm.specification.version"));
     }
 
     /**
@@ -105,6 +107,15 @@ class TestEnvironment {
      */
     static Path createTempPath(final String... paths) {
         return Paths.get(TMP_DIR, paths);
+    }
+
+    /**
+     * Returns the current Java version.
+     *
+     * @return the java version
+     */
+    static int javaVersion() {
+        return JAVA_VERSION;
     }
 
     private static int getProperty(final String name, final int dft) {
