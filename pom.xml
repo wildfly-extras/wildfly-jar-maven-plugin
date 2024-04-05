@@ -55,7 +55,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <version.wildfly>32.0.0.Beta1</version.wildfly>
     <!-- docs properties -->
-    <docs.project.branch>main</docs.project.branch>
+    <docs.project.branch>11.0.0.Beta2</docs.project.branch>
     <docs.wildfly.major>31.0</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>
