@@ -23,11 +23,14 @@ import org.wildfly.plugins.bootablejar.maven.common.OverriddenArtifact;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author jdenise
  */
+/* We can un-ignore when we have 32.0.1.FInal and update the versions in test */
+@Ignore
 public class UpgradeArtifactFPLTestCase extends AbstractBootableJarMojoTestCase {
 
     public UpgradeArtifactFPLTestCase() {

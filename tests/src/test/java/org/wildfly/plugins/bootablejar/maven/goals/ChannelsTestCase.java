@@ -84,7 +84,7 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         MavenArtifact cg = new MavenArtifact();
         cg.setGroupId("org.wildfly.galleon-plugins");
         cg.setArtifactId("wildfly-config-gen");
-        cg.setVersion("'6.4.1.Final'");
+        cg.setVersion("'7.0.0.Beta7'");
         artifacts.add(cg);
         MavenArtifact launcher = new MavenArtifact();
         launcher.setGroupId("org.wildfly.core");
