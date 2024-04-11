@@ -45,7 +45,7 @@ jobs:
           cd examples/mdb-rar
           mvn -B -ntp clean install
           cd ../gradle-mdb-rar
-          mvn -B -ntp clean install
+          ./gradlew clean build
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
