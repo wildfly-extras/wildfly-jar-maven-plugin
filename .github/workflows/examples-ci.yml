@@ -39,7 +39,10 @@ jobs:
           mvn -B -ntp clean install -DskipTests
           cd examples
           mvn -B -ntp clean install
-          cd mdb-rar
+      - name: Build and Test Examples that require JDK 17 on ${{ matrix.java }}
+        if: matrix.java != '11'
+        run: |
+          cd examples/mdb-rar
           mvn -B -ntp clean install
           cd ../gradle-mdb-rar
           mvn -B -ntp clean install
