@@ -20,8 +20,8 @@ OpenShift binary build and deployment
 * mvn package -Popenshift
 * mkdir os && cp target/web-clustering-bootable.jar os/
 * oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default
-* oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
-* oc new-build --strategy source --binary --image-stream openjdk-11 --name web-clustering
+* oc import-image ubi8/openjdk-17 --from=registry.redhat.io/ubi8/openjdk-17 --confirm
+* oc new-build --strategy source --binary --image-stream openjdk-17 --name web-clustering
 * oc start-build web-clustering --from-dir ./os/
 * oc new-app web-clustering -e KUBERNETES_NAMESPACE=$(oc project -q) -e JGROUPS_CLUSTER_PASSWORD=mypassword
     * KUBERNETES_NAMESPACE env variable is required to see other pods in the project, otherwise the server attempts to retrieve pods from the 'default' namespace that is not the one our project is using.

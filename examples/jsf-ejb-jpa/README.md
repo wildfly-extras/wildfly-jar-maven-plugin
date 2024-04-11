@@ -15,17 +15,15 @@ Build and run on OpenShift
 
 * mvn package -Popenshift
 * mkdir os && cp target/jsf-ejb-jpa-bootable.jar os/
-* Import the OpenJDK 11 image to run the Java application, create the image stream and deployment:
+* Import the OpenJDK 17 image to run the Java application, create the image stream and deployment:
 ```
-oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
+oc import-image ubi8/openjdk-17 --from=registry.redhat.io/ubi8/openjdk-17 --confirm
 
-oc new-build --strategy source --binary --image-stream openjdk-11 --name jsf-ejb-jpa-bootable-jar
+oc new-build --strategy source --binary --image-stream openjdk-17 --name jsf-ejb-jpa-bootable-jar
 
 oc start-build jsf-ejb-jpa-bootable-jar --from-dir ./os/
 
-oc new-app --name jsf-ejb-jpa-bootable-jar-app \
-    --env GC_METASPACE_SIZE=96 \
-    jsf-ejb-jpa-bootable-jar
+oc new-app --name jsf-ejb-jpa-bootable-jar-app jsf-ejb-jpa-bootable-jar
 
 oc expose svc/jsf-ejb-jpa-bootable-jar-app
 ```

@@ -18,6 +18,7 @@ java {
 }
 
 jar{
+    mustRunAfter("getRAR")
     archiveBaseName = "gradle-demo"
     exclude("*.cli")
     exclude("*properties")
@@ -52,7 +53,7 @@ task mavenClean(type: Exec){
     }
 }
 wrapper{
-    gradleVersion = '6.7'
+    gradleVersion = '8.7'
 }
 
 

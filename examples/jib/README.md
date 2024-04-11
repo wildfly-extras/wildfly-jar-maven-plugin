@@ -7,8 +7,8 @@ For a decoupling of server packaging and app packaging check ../jib-layers examp
 Build and run
 =============
 
-* To build: `mvn package`
-* To run: `docker run -p 8080:8080 wildfly/jaxrs-jib`
+* To build: `mvn package` (If using podman add: `-Djib.dockerClient.executable=$(which podman)`
+* To run: `docker|podman run -p 8080:8080 wildfly/jaxrs-jib`
 * Access the application: `http://localhost:8080/hello`
 
 Build and run in OpenShift

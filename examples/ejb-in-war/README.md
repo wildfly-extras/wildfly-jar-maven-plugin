@@ -15,11 +15,11 @@ Build and run on OpenShift
 
 * mvn package -Popenshift
 * mkdir os && cp target/ejb-in-war-bootable.jar os/
-* Import the OpenJDK 11 image to run the Java application, create the image stream and deployment:
+* Import the OpenJDK 17 image to run the Java application, create the image stream and deployment:
 ```
-oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
+oc import-image ubi8/openjdk-17 --from=registry.redhat.io/ubi8/openjdk-17 --confirm
 
-oc new-build --strategy source --binary --image-stream openjdk-11 --name ejb-bootable-jar
+oc new-build --strategy source --binary --image-stream openjdk-17 --name ejb-bootable-jar
 
 oc start-build ejb-bootable-jar --from-dir ./os/
 

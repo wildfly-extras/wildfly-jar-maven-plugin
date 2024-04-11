@@ -19,14 +19,14 @@ NB: In order for the deployment to be identified as "secured with OIDC", the `au
 Initial Steps
 =======
 
-* Download the keycloak server from: `https://www.keycloak.org/download` (Quarkus build, 19+)
+* Download the keycloak server from: `https://www.keycloak.org/downloads` (24.0.2)
 * Start the keycloak server to listen on port 8080: `bin/kc.sh start-dev`
 * Log into the keycloak server admin console (you will possibly be asked to create an initial admin user) : `http://127.0.0.1:8080/`
 * Create a Realm named `WildFly`
 * Create a Role named `Users`
 * Create a User named `demo`, password `demo`
 * Assign the role `Users` to the user `demo`
-* Create a Client named `simple-webapp` with Root URL: `http://127.0.0.1:8090/simple-webapp` and Redirect url: `http://127.0.0.1:8090/simple-webapp/*`
+* Create a Client named `simple-webapp` with Root URL: `http://127.0.0.1:8090/simple-webapp`
 
 Build and run
 ========

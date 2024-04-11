@@ -45,7 +45,7 @@ Check that the application is running properly :
 [source,bash]
 ----
 $ curl https://$(oc get route remote-microprofile-config-bootable --template='{{ .spec.host }}')
-config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config1 = Default value for config1 comes from my code
 config2 = Value for config2 comes from a properties file inside the application
 config3 = Default value for config3 comes from my code
 ----
@@ -59,7 +59,7 @@ For example:
 [source,bash]
 ----
 $ curl https://$(oc get route remote-microprofile-config-bootable --template='{{ .spec.host }}')
-config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config1 = Default value for config1 comes from my code
 config2 = Hello from dev-watch remote
 config3 = Default value for config3 comes from my code
 ----
@@ -73,7 +73,7 @@ config3 = Default value for config3 comes from my code
 
 [source,docker]
 ----
-FROM registry.access.redhat.com/ubi8/openjdk-11:latest
+FROM registry.access.redhat.com/ubi8/openjdk-17:latest
 COPY --chown=jboss:root target/*.jar /deployments/.
 RUN chmod -R ug+rwX /deployments/.
 ----
@@ -108,7 +108,7 @@ Check that the application is running properly :
 [source,bash]
 ----
 $ curl http://${container.ip.address}:8080
-config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config1 = Default value for config1 comes from my code
 config2 = Value for config2 comes from a properties file inside the application
 config3 = Default value for config3 comes from my code
 ----
@@ -122,7 +122,7 @@ For example:
 [source,bash]
 ----
 $ curl http://${container.ip.address}:8080
-config1 = Value from Config1 comes from an env var in the DeploymentConfig
+config1 = Default value for config1 comes from my code
 config2 = Hello from dev-watch remote
 config3 = Default value for config3 comes from my code
 ----

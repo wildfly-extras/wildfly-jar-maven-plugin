@@ -39,6 +39,10 @@ jobs:
           mvn -B -ntp clean install -DskipTests
           cd examples
           mvn -B -ntp clean install
+          cd mdb-rar
+          mvn -B -ntp clean install
+          cd ../gradle-mdb-rar
+          mvn -B -ntp clean install
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

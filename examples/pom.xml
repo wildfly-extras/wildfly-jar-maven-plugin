@@ -13,7 +13,7 @@
         <version.bootable.jar>11.0.0.Final-SNAPSHOT</version.bootable.jar>
         <version.wildfly>32.0.0.Beta1</version.wildfly>
         <version.wildfly.datasources.galleon-pack>8.0.0.Beta1</version.wildfly.datasources.galleon-pack>
-        <version.jkube>1.0.1</version.jkube>
+        <version.jkube>1.16.2</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -99,10 +99,8 @@
         <module>jaxrs</module>
         <!--<module>jib</module>
         <module>jib-layers</module>
-        <module>jib-operator</module>
         <module>jkube</module>-->
         <module>jsf-ejb-jpa</module>
-        <module>keycloak</module>
         <module>logging</module>
         <module>logging-json</module>
         <!-- This does not seem to work in a full build.

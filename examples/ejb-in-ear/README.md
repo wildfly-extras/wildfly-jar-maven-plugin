@@ -26,11 +26,11 @@ Build and run on OpenShift
 
 * `mvn package -Popenshift`
 * mkdir os && cp ear/target/ejb-in-ear-bootable.jar os/
-* Import the OpenJDK 11 image to run the Java application, create the image stream and deployment:
+* Import the OpenJDK 17 image to run the Java application, create the image stream and deployment:
 ```
-oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
+oc import-image ubi8/openjdk-17 --from=registry.redhat.io/ubi8/openjdk-17 --confirm
 
-oc new-build --strategy source --binary --image-stream openjdk-11 --name ejb-in-ear-bootable-jar
+oc new-build --strategy source --binary --image-stream openjdk-17 --name ejb-in-ear-bootable-jar
 
 oc start-build ejb-in-ear-bootable-jar --from-dir ./os/
 ```
@@ -38,9 +38,7 @@ oc start-build ejb-in-ear-bootable-jar --from-dir ./os/
 The build could take some time to end, so verify its status before creating the application, for example, checks the logs of the build pod.
 
 ```
-oc new-app --name ejb-in-ear-bootable-jar-app \
-    --env GC_METASPACE_SIZE=96 \
-    ejb-in-ear-bootable-jar
+oc new-app --name ejb-in-ear-bootable-jar-app ejb-in-ear-bootable-jar
 
 oc expose svc/ejb-in-ear-bootable-jar-app
 ```
