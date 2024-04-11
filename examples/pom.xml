@@ -11,7 +11,6 @@
 
     <properties>
         <version.bootable.jar>11.0.0.Final-SNAPSHOT</version.bootable.jar>
-        <version.keycloak>18.0.2</version.keycloak>
         <version.wildfly>32.0.0.Beta1</version.wildfly>
         <version.wildfly.datasources.galleon-pack>8.0.0.Beta1</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.0.1</version.jkube>
@@ -23,8 +22,8 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <!--<version.microprofile.bom>${version.wildfly}</version.microprofile.bom>
         <version.server.bom>${version.wildfly}</version.server.bom>-->
-        <version.org.wildfly.arquillian>5.0.0.Alpha5</version.org.wildfly.arquillian>
-        <version.org.jboss.arquillian.junit>1.6.0.Final</version.org.jboss.arquillian.junit>
+        <version.org.wildfly.arquillian>5.0.1.Final</version.org.wildfly.arquillian>
+        <version.org.jboss.arquillian.junit>1.7.0.Final</version.org.jboss.arquillian.junit>
         <version.junit>4.13.1</version.junit>
         <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
         
@@ -92,20 +91,22 @@
         <module>ejb-in-war</module>
         <module>ejb-persistent-clustered-timers</module>
         <module>elytron-oidc-client</module>
-        <module>gradle-mdb-rar</module>
+        <!-- This does not work with Maven in full build
+        <module>gradle-mdb-rar</module> -->
         <module>hollow-jar</module>
         <module>https</module>
         <module>jaxws</module>
         <module>jaxrs</module>
-        <module>jib</module>
+        <!--<module>jib</module>
         <module>jib-layers</module>
         <module>jib-operator</module>
-        <module>jkube</module>
+        <module>jkube</module>-->
         <module>jsf-ejb-jpa</module>
         <module>keycloak</module>
         <module>logging</module>
         <module>logging-json</module>
-        <module>mdb-rar</module>
+        <!-- This does not seem to work in a full build.
+        <module>mdb-rar</module> -->
         <module>microprofile-config</module>
         <module>remote-microprofile-config</module>
         <module>postgresql</module>
