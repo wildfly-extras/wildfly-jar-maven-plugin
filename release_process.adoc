@@ -7,9 +7,7 @@ First, make sure you don't have pending changes in your main branch.
 * `cd wildfly-jar-maven-plugin`
 * `git checkout main`
 * `git pull --rebase upstream main`
-* Validate that all examples build: `cd examples, mvn clean package`. NB: exclude temporarily mdb-rar and 
-gradle-demo that doesn't build but we want them in the parent pom file to update their pom version.
-* Build grade-demo using gradle. Build mdb-rar in the mdb-rar directory.
+* Update examples/**/helm.yaml with the released tag.
 * Update in pom.xml docs.project.branch to reference the new release
 * Update in pom.xml docs.wildfly.major to reference the WildFly major release (if a new WildFly final release on which the plugin depends has been released).
 * Update the examples/pom.xml file to reference the released plugin
@@ -17,6 +15,7 @@ gradle-demo that doesn't build but we want them in the parent pom file to update
 ** cd examples
 ** mvn versions:set -DnewVersion=<new released version>
 ** mvn versions:commit
+** Do the same in the directory: gradle-mdb-rar, jib*, jkube and mdb-rar
 ** cd ..
 * Commit the changes with message: `Update docs and examples to X.X.X.Final`
 * Run tests: `mvn clean install -Dskip.perf.tests=false`

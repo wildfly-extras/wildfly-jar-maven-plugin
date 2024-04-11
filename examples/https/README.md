@@ -38,11 +38,12 @@ In this example, the keystore is not packaged in the bootable jar but mounted in
 Steps:
 * mvn package -Popenshift
 * mkdir os && cp target/https-bootable.jar os/
-* oc new-build --strategy source --binary --image-stream openjdk11 --name https-test
+oc import-image ubi8/openjdk-17 --from=registry.redhat.io/ubi8/openjdk-17 --confirm
+* oc new-build --strategy source --binary --image-stream openjdk-17 --name https-test
 * oc start-build https-test --from-dir ./os/
 * oc new-app https-test
-* oc expose svc/https-test
-* oc secrets new ks-secret extra-content/standalone/configuration/keystore.jks
+* Create a secure route with Termination Type `passthrough`
+* oc create secret generic ks-secret --from-file=extra-content/standalone/configuration/keystore.jks
 * Mount the keystore secret on /etc/wf-secrets in the pod, update DeploymentConfig:
   spec:
     volumes:

@@ -22,7 +22,7 @@
     </dependencies>
 
     <properties>
-        <jkube.generator.from>registry.redhat.io/ubi8/openjdk-11:latest</jkube.generator.from>
+        <jkube.generator.from>registry.redhat.io/ubi8/openjdk-17:latest</jkube.generator.from>
     </properties>
 
     <build>

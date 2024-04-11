@@ -1,6 +1,6 @@
 build:
   uri: https://github.com/wildfly-extras/wildfly-jar-maven-plugin.git
-  ref: 7.0.2.Final
+  ref: 11.0.0.Beta2
   contextDir: examples
   mode: bootable-jar
   bootableJar:

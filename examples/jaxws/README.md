@@ -7,7 +7,7 @@ Build and run
 
 * To build: `mvn package`
 * To run: `mvn wildfly-jar:run`
-* Access the WSDL from any SOAP Client: `http://localhost:8080/jaxws-pojo-endpoint/JSEBean`
+* Access the WSDL from any SOAP Client: `http://localhost:8080/jaxws-pojo-endpoint/JSEBean?wsdl`
 
 * Send a SOAP Request. Ex.:
 

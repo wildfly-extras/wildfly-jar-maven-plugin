@@ -37,6 +37,7 @@ public class UpgradeArtifactEE9TransformTestCase extends AbstractBootableJarMojo
     @Test
     public void testUpgrade() throws Exception {
         Assume.assumeFalse("Not stupported on XP", isXP());
+        Assume.assumeFalse("Not supprted on JDK11", TestEnvironment.javaVersion() < 17);
         BuildBootableJarMojo mojo = lookupMojo("package");
         MavenProjectArtifactVersions artifacts = MavenProjectArtifactVersions.getInstance(mojo.project);
         Assert.assertEquals(2, mojo.overriddenServerArtifacts.size());

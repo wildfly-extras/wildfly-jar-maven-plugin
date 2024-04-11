@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -392,15 +391,16 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
     }
 
     protected Process startServer(Path dir, String fileName, String... args) throws Exception {
+        final List<String> serverArgs = List.of(args);
         List<String> cmd = new ArrayList<>();
         cmd.add(getJavaCommand());
-        cmd.addAll(getJvmArgs());
+        cmd.addAll(getJvmArgs(serverArgs.contains("-secmgr")));
         // On windows, to remove when Upgraded to WILDFLY 26.1.1 that should contain XNIO 3.8.7
         // https://issues.redhat.com/browse/XNIO-404
         cmd.add("-Djdk.io.File.enableADS=true");
         cmd.add("-jar");
         cmd.add(dir.resolve("target").resolve(fileName == null ? TEST_FILE : fileName).toAbsolutePath().toString());
-        cmd.addAll(Arrays.asList(args));
+        cmd.addAll(serverArgs);
         final Path out = TestEnvironment.createTempPath("logs", getClass().getName() + "-process.txt");
         final Path parent = out.getParent();
         if (parent != null && Files.notExists(parent)) {
@@ -515,7 +515,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
         return cmd;
     }
 
-    private static Collection<String> getJvmArgs() {
+    private static Collection<String> getJvmArgs(final boolean securityManager) {
         final Collection<String> result = new ArrayList<>();
         final String defaultArgs = System.getProperty("test.jvm.args");
         if (defaultArgs != null) {
@@ -525,6 +525,9 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
                     result.add(arg);
                 }
             }
+        }
+        if (securityManager && TestEnvironment.javaVersion() >= 17) {
+            result.add("-Djava.security.manager=allow");
         }
         return result;
     }

@@ -1,18 +1,14 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: WildFly JAR Maven Plugin - CI
+name: WildFly JAR Maven Plugin Examples - CI
 
 on:
   push:
     branches:
       - '**'
-    paths-ignore:
-      - 'examples/**'
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths-ignore:
-      - 'examples/**'
 
 # Only run the latest job
 concurrency:
@@ -30,22 +26,26 @@ jobs:
         java: ['11', '17', '21']
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: 'maven'
-      - name: Build and Test on ${{ matrix.java }}
-        # Some tests start the server with large default configurations, on Windows CI it has been observed some failure caused by reaching mem limits.
-        run: mvn clean install '-Dtest.jvm.args=-Xms1g -Xmx1g -Dorg.wildfly.logging.skipLogManagerCheck=true' '-Dorg.wildfly.bootable.jar.ci.execution=true'
+      - name: Build and Test Examples on ${{ matrix.java }}
+        # We first build the project, then we build the examples
+        run: |
+          mvn -B -ntp clean install -DskipTests
+          cd examples
+          mvn -B -ntp clean install
+      - name: Build and Test Examples that require JDK 17 on ${{ matrix.java }}
+        if: matrix.java != '11'
+        run: |
+          cd examples/mdb-rar
+          mvn -B -ntp clean install
+          cd ../gradle-mdb-rar
+          ./gradlew clean build
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -63,14 +63,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: devwatch-logs-${{ matrix.os }}-${{ matrix.java }}
-          path: |
-           !**/bootable-jar-build-artifacts/**
-           **/dev-watch-test-output.txt
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
           name: logs-${{ matrix.os }}-${{ matrix.java }}
           path: | 
            !**/bootable-jar-build-artifacts/**
            **/tests/**/logs/**
+

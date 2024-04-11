@@ -7,9 +7,7 @@ In this scenario, part of the Arquillian test is run as a client
 
 The Arquillian XML descriptor is located in _src/test/resources/arquillian.xml_
 
-Build, test and run
+Build and run tests
 ===================
 
 * To build and run tests: `mvn clean verify`
-* To run: `mvn wildfly-jar:run`
-* Access the application: `http://127.0.0.1:8080/hello`
