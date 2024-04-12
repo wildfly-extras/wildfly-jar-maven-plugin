@@ -91,6 +91,7 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.RealmCallback;
 import org.jboss.as.controller.client.OperationBuilder;
 import org.wildfly.core.launcher.Launcher;
+import org.wildfly.plugin.tools.server.ServerManager;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.BootableAppEventHandler;
 import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.ProjectContext;
@@ -98,7 +99,6 @@ import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.plugin.common.PropertyNames;
-import org.wildfly.plugin.tools.ServerHelper;
 
 /**
  * Build and start a bootable JAR for dev-watch mode. This goal monitors the
@@ -327,7 +327,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
             }
             String name = dir.getFileName().toString();
             try (ModelControllerClient client = createClient()) {
-                ServerHelper.waitForStandalone(client, timeout);
+                ServerManager.builder().client(client).process(process).standalone().waitFor(timeout, TimeUnit.SECONDS);
                 undeploy(client, name);
                 waitRemoved(client, name);
                 boolean success = deploy(client, dir);
@@ -373,7 +373,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
         public void deploy(Path dir) throws Exception {
             try (ModelControllerClient client = createClient()) {
                 getLog().debug("Trying to connect to the remote management API");
-                ServerHelper.waitForStandalone(client, timeout);
+                ServerManager.builder().client(client).process(process).standalone().waitFor(timeout, TimeUnit.SECONDS);
                 getLog().debug("Connection to the remote management API effective");
                 undeploy(client, name);
                 waitRemoved(client, name);
@@ -1296,7 +1296,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
             if (process.isAlive()) {
                 // Attempt to safely shutdown first
                 try (ModelControllerClient client = createClient()) {
-                    ServerHelper.shutdownStandalone(client, timeout);
+                    ServerManager.builder().client(client).process(process).standalone().shutdown(timeout);
                 } catch (Throwable ignore) {
                     process.destroy();
                 }

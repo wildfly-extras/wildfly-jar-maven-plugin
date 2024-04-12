@@ -17,6 +17,7 @@
 package org.wildfly.plugins.bootablejar.maven.goals;
 
 import java.io.IOException;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -24,7 +25,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.plugin.common.AbstractServerConnection;
-import org.wildfly.plugin.tools.ServerHelper;
+import org.wildfly.plugin.tools.server.ServerManager;
 
 /**
  * Shutdown the bootable JAR. In order to be able to shutdown a running server,
@@ -53,7 +54,7 @@ public class ShutdownBootableJarMojo extends AbstractServerConnection {
             return;
         }
         try ( ModelControllerClient client = createClient()) {
-            ServerHelper.shutdownStandalone(client);
+            ServerManager.builder().client(client).standalone().shutdown(timeout);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
