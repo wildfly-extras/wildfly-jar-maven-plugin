@@ -1,13 +1,15 @@
 plugins {
     id 'java'
+    id 'war'
 }
 
 repositories {    
     mavenCentral()
+    mavenLocal()
 }
 
 configurations{
-    amqRAR {
+    kafkaRAR {
         transitive = false
     }
 }
@@ -17,8 +19,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-jar{
-    mustRunAfter("getRAR")
+war{
     archiveBaseName = "gradle-demo"
     exclude("*.cli")
     exclude("*properties")
@@ -27,21 +28,33 @@ jar{
 
 dependencies {
     compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
-    amqRAR 'org.apache.activemq:activemq-rar:5.16.0'
+    compileOnly 'fish.payara.cloud.connectors.kafka:kafka-jca-api:1.0.0'
+    compileOnly 'org.jboss.ejb3:jboss-ejb3-ext-api:2.3.0.Final'
+    kafkaRAR 'fish.payara.cloud.connectors.kafka:kafka-rar:1.0.0'
+
 }
 
 
 task getRAR(type: Copy) {
-    from configurations.amqRAR
-    into 'build/'
+    from configurations.kafkaRAR
+    into layout.buildDirectory.dir("../target/build")
+}
+
+task getCliScript(type: Exec){
+    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+        commandLine 'mvnw.cmd', 'generate-sources'
+    } else {
+        commandLine './mvnw', 'generate-sources'
+    }
 }
 
 task makeHollowJar(type: Exec){
+    dependsOn getCliScript
     dependsOn getRAR
     if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-        commandLine 'mvnw.cmd', 'clean', 'wildfly-jar:package'
+        commandLine 'mvnw.cmd', 'wildfly-jar:package'
     } else {
-        commandLine './mvnw', 'clean', 'wildfly-jar:package'
+        commandLine './mvnw', 'wildfly-jar:package'
     }
 }
 
