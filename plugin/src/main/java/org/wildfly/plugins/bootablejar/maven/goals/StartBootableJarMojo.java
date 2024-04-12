@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -30,7 +32,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.core.launcher.Launcher;
 import org.wildfly.plugin.common.AbstractServerConnection;
-import org.wildfly.plugin.tools.ServerHelper;
+import org.wildfly.plugin.tools.server.ServerManager;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 
 /**
@@ -128,7 +130,7 @@ public class StartBootableJarMojo extends AbstractServerConnection {
             final Process process = launcher.launch();
             if (checkStarted) {
                 try (ModelControllerClient client = createClient()) {
-                    ServerHelper.waitForStandalone(process, client, startupTimeout);
+                    ServerManager.builder().client(client).process(process).standalone().waitFor(startupTimeout, TimeUnit.SECONDS);
                 }
             }
         } catch (Exception e) {

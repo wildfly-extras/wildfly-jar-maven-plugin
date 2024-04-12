@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jboss.as.controller.client.ModelControllerClient;
+import org.wildfly.plugin.tools.server.ServerManager;
 
-import org.wildfly.plugin.tools.ServerHelper;
 import static org.wildfly.plugins.bootablejar.maven.goals.DevWatchBootableJarMojo.TEST_PROPERTY_EXIT;
 
 /**
@@ -134,7 +134,7 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
         goalThread.start();
         Exception waitException = null;
         try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(), TestEnvironment.getManagementPort())) {
-            ServerHelper.waitForStandalone(client, TestEnvironment.getTimeout() * 5);
+            ServerManager.builder().client(client).standalone().waitFor(TestEnvironment.getTimeout() * 5L, TimeUnit.SECONDS);
             // Give some time for first deployment.
             Thread.sleep(2000);
         } catch (Exception ex) {

@@ -53,8 +53,8 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.wildfly.core.launcher.ProcessHelper;
-import org.wildfly.plugin.tools.ServerHelper;
 import org.wildfly.plugin.tools.bootablejar.BootableJarSupport;
+import org.wildfly.plugin.tools.server.ServerManager;
 
 /**
  * @author jdenise
@@ -339,7 +339,7 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
             try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(),
                     TestEnvironment.getManagementPort())) {
                 // Wait for the server to start, this calls into the management interface.
-                ServerHelper.waitForStandalone(process, client, TestEnvironment.getTimeout());
+                ServerManager.builder().client(client).process(process).standalone().waitFor(TestEnvironment.getTimeout(), TimeUnit.SECONDS);
             }
 
             if (url == null) {
@@ -534,15 +534,17 @@ public abstract class AbstractBootableJarMojoTestCase extends AbstractConfigured
 
     private static void shutdown() throws IOException {
         try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(), TestEnvironment.getManagementPort())) {
-            if (ServerHelper.isStandaloneRunning(client)) {
-                ServerHelper.shutdownStandalone(client, TestEnvironment.getTimeout());
+            final ServerManager serverManager = ServerManager.builder().client(client).standalone();
+            if (serverManager.isRunning()) {
+                serverManager.shutdown(TestEnvironment.getTimeout());
             }
         }
     }
 
     private static void shutdownAsync() throws IOException {
         try (ModelControllerClient client = ModelControllerClient.Factory.create(TestEnvironment.getHost(), TestEnvironment.getManagementPort())) {
-            if (ServerHelper.isStandaloneRunning(client)) {
+            final ServerManager serverManager = ServerManager.builder().client(client).standalone();
+            if (serverManager.isRunning()) {
                 shutdownStandaloneAsync(client, TestEnvironment.getTimeout());
             }
         }
