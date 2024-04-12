@@ -1,0 +1,7 @@
+
+deploy --name=kafka-rar.rar --runtime-name=kafka-rar.rar ${basedir}/target/build/kafka-rar-1.0.0.rar
+/subsystem=resource-adapters/resource-adapter=kafka:add(archive=kafka-rar.rar, transaction-support="XATransaction")
+/subsystem=resource-adapters/resource-adapter=kafka/connection-definitions=kafkaCF:add(class-name="fish.payara.cloud.connectors.kafka.outbound.KafkaManagedConnectionFactory", jndi-name="java:/kafka/ConnectionFactory", elytron-enabled=true,recovery-elytron-enabled=true)
+/subsystem=resource-adapters/resource-adapter=kafka/connection-definitions=kafkaCF/config-properties=bootstrapServersConfig:add(value="localhost:9092") 
+/subsystem=ejb3:write-attribute(name=default-resource-adapter-name, value=kafka)
+deploy ${basedir}/build/libs/gradle-demo.war

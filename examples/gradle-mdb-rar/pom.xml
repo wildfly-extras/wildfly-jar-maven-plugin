@@ -9,27 +9,97 @@
     </parent>
 
     <artifactId>gradle-demo</artifactId>
-    <packaging>pom</packaging>
+    <packaging>war</packaging>
 
     <name>WildFly Bootable JAR - Gradle Example</name>
     <description>WildFly Bootable JAR - Gradle Example with MDB</description>
+    <properties>
+        <!-- The versions for BOMs, Dependencies and Plugins -->
+        <version.cloud.connectors>1.0.0</version.cloud.connectors>
+    </properties>
+    
     
     <build>
         <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <configuration>
+            <outputDirectory>${basedir}/build/libs</outputDirectory>
+            </configuration>
+        </plugin>
+              <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                <execution>
+                    <id>copy-resources</id>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>copy-resources</goal>
+                    </goals>
+                    <configuration>
+                    <outputDirectory>target/build</outputDirectory>
+                    <resources>
+                        <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>true</filtering>
+                        </resource>
+                    </resources>
+                    </configuration>
+                </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>rar</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>fish.payara.cloud.connectors.kafka</groupId>
+                                    <artifactId>kafka-rar</artifactId>
+                                    <version>${version.cloud.connectors}</version>
+                                    <type>rar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>target/build</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.wildfly.plugins</groupId>
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
-                    <feature-pack-location>wildfly-preview@maven(org.jboss.universe:community-universe)#${version.wildfly}</feature-pack-location>
+                    <feature-packs>
+                        <feature-pack>
+                            <location>wildfly@maven(org.jboss.universe:community-universe)#${version.wildfly}</location>
+                        </feature-pack>
+                    </feature-packs>
                     <layers>
                         <layer>resource-adapters</layer>
                         <layer>ejb</layer>
+                        <layer>cloud-server</layer>
                     </layers>
                     <cli-sessions>
                         <cli-session>
                             <script-files>
-                                <script>src/main/resources/deploy-amq-rar.cli</script>
+                                <script>target/build/deploy-kafka-rar.cli</script>
                             </script-files>
                         </cli-session>
                     </cli-sessions>
@@ -47,4 +117,25 @@
             </plugin>
         </plugins>
     </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>fish.payara.cloud.connectors.kafka</groupId>
+            <artifactId>kafka-jca-api</artifactId>
+            <version>${version.cloud.connectors}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>2.3.0.Final</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
