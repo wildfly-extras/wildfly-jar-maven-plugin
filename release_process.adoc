@@ -13,9 +13,8 @@ First, make sure you don't have pending changes in your main branch.
 * Update the examples/pom.xml file to reference the released plugin
 * Update the examples version:
 ** cd examples
-** mvn versions:set -DnewVersion=<new released version>
-** mvn versions:commit
-** Do the same in the directory: jib* and jkube
+** mvn versions:set -DnewVersion=<new released version> -Drelease
+** mvn versions:commit -Drelease
 ** cd ..
 * Commit the changes with message: `Update docs and examples to X.X.X.Final`
 * Run tests: `mvn clean install -Dskip.perf.tests=false`

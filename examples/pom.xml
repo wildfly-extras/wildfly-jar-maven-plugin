@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-examples-parent</artifactId>
-    <version>11.0.0.Final-SNAPSHOT</version>
+    <version>11.0.0.Final</version>
     <packaging>pom</packaging>
 
     <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
-        <version.bootable.jar>11.0.0.Final-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>11.0.0.Final</version.bootable.jar>
         <version.wildfly>32.0.0.Beta1</version.wildfly>
         <version.wildfly.datasources.galleon-pack>8.0.0.Beta1</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.16.2</version.jkube>
@@ -96,9 +96,6 @@
         <module>https</module>
         <module>jaxws</module>
         <module>jaxrs</module>
-        <!--<module>jib</module>
-        <module>jib-layers</module>
-        <module>jkube</module>-->
         <module>jsf-ejb-jpa</module>
         <module>logging</module>
         <module>logging-json</module>
@@ -112,6 +109,21 @@
         <module>web-console</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <modules>
+                <module>jib</module>
+                <module>jib-layers</module>
+                <module>jkube</module>
+            </modules>
+        </profile>
+    </profiles>                
     <build>
         <pluginManagement>
             <plugins>
