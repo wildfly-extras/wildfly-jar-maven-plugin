@@ -60,17 +60,24 @@
 
     <version.junit>4.13.1</version.junit>
     <version.adoc-maven-plugin-descriptor>1.0.0.Alpha3</version.adoc-maven-plugin-descriptor>
+    <version.com.ethlo.time.itu>1.7.0</version.com.ethlo.time.itu>
     <version.org.apache.maven.core>3.8.4</version.org.apache.maven.core>
     <version.org.apache.maven.plugin-tools>3.7.0</version.org.apache.maven.plugin-tools>
     <version.org.apache.maven.plugin-plugin>3.7.0</version.org.apache.maven.plugin-plugin>
     <version.org.asciidoctor>2.0.0</version.org.asciidoctor>
+    <version.org.jboss.logging.jboss-logging>3.4.3.Final</version.org.jboss.logging.jboss-logging>
     <version.org.jboss.galleon>5.1.2.Final</version.org.jboss.galleon>
+    <version.org.jboss.staxmapper>1.4.0.Final</version.org.jboss.staxmapper>
+    <version.org.slf4j>2.0.7</version.org.slf4j>
     <version.org.wildfly.core.wildfly-core>20.0.2.Final</version.org.wildfly.core.wildfly-core>
     <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>4.1.1.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
     <version.org.wildfly.channel>1.0.5.Final</version.org.wildfly.channel>
     <version.org.wildfly.prospero>1.1.5.Final</version.org.wildfly.prospero>
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
+    <!-- These 2 dependencies are required by prod -->
+    <version.org.wildfly.client>1.0.1.Final</version.org.wildfly.client>
+    <version.org.wildfly.security>2.2.4.Final</version.org.wildfly.security>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
@@ -78,7 +85,7 @@
     <version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
     </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
     <version.org.jboss.shrinkwrap.shrinkwrap>1.2.6</version.org.jboss.shrinkwrap.shrinkwrap>
-    <version.org.twdata.maven>2.3.1</version.org.twdata.maven>
+    <version.org.twdata.maven>2.4.0</version.org.twdata.maven>
     <!-- Checkstyle configuration -->
     <linkXRef>false</linkXRef>
     <version.org.wildfly.checkstyle-config>1.0.8.Final</version.org.wildfly.checkstyle-config>
@@ -165,12 +172,54 @@
 
   <dependencyManagement>
     <dependencies>
-     
-     <dependency>
+        <dependency>
+            <groupId>org.wildfly.client</groupId>
+            <artifactId>wildfly-client-config</artifactId>
+            <version>${version.org.wildfly.client}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${version.org.jboss.logging.jboss-logging}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wildfly.security</groupId>
+            <artifactId>wildfly-elytron-sasl-auth-util</artifactId>
+            <version>${version.org.wildfly.security}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${version.org.slf4j}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ethlo.time</groupId>
+            <artifactId>itu</artifactId>
+            <version>${version.com.ethlo.time.itu}</version>
+        </dependency>
+
+        <dependency>
         <groupId>org.twdata.maven</groupId>
         <artifactId>mojo-executor</artifactId>
         <version>${version.org.twdata.maven}</version>
      </dependency>
+
      <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>wildfly-jar-cloud-extension</artifactId>
@@ -218,6 +267,30 @@
         <groupId>org.jboss.galleon</groupId>
         <artifactId>galleon-maven-plugin</artifactId>
         <version>${version.org.jboss.galleon}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.galleon</groupId>
+        <artifactId>galleon-core</artifactId>
+        <version>${version.org.jboss.galleon}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss</groupId>
+            <artifactId>staxmapper</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss</groupId>
+        <artifactId>staxmapper</artifactId>
+        <version>${version.org.jboss.staxmapper}</version>
       </dependency>
 
       <dependency>
@@ -272,6 +345,12 @@
           <groupId>org.wildfly.channel</groupId>
           <artifactId>channel-core</artifactId>
           <version>${version.org.wildfly.channel}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>com.ethlo.time</groupId>
+                  <artifactId>itu</artifactId>
+              </exclusion>
+          </exclusions>
       </dependency>
 
       <dependency>
