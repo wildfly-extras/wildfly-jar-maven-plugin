@@ -60,6 +60,8 @@ import org.wildfly.prospero.metadata.ProsperoMetadataUtils;
 
 public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, ChannelResolvable, MavenStreamResolver {
     private static final String REQUIRE_CHANNEL_FOR_ALL_ARTIFACT = "org.wildfly.plugins.galleon.all.artifact.requires.channel.resolution";
+    private static final String BOOTABLE_JAR_PLUGIN_GROUPID = "org.wildfly.plugins";
+    private static final String BOOTABLE_JAR_CLOUD_EXTENSION_ARTIFACTID = "wildfly-jar-cloud-extension";
 
     private final ChannelSession channelSession;
     private final List<Channel> channels = new ArrayList<>();
@@ -100,6 +102,15 @@ public class ChannelMavenArtifactRepositoryManager implements MavenRepoManager, 
 
     @Override
     public void resolve(MavenArtifact artifact) throws MavenUniverseException {
+        // This one is resolved directly.
+        if (BOOTABLE_JAR_PLUGIN_GROUPID.equals(artifact.getGroupId())
+                && BOOTABLE_JAR_CLOUD_EXTENSION_ARTIFACTID.equals(artifact.getArtifactId())) {
+            org.wildfly.channel.MavenArtifact mavenArtifact = channelSession.resolveDirectMavenArtifact(
+                    artifact.getGroupId(), artifact.getArtifactId(), artifact.getExtension(), artifact.getClassifier(),
+                    artifact.getVersion());
+            artifact.setPath(mavenArtifact.getFile().toPath());
+            return;
+        }
         try {
             resolveFromChannels(artifact);
         } catch (ArtifactTransferException ex) {
