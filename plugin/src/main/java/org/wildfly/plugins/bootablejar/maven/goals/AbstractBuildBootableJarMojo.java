@@ -1096,7 +1096,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                         Artifact a = getArtifact(value);
                         if ( BOOT_ARTIFACT_ID.equals(a.getArtifactId())) {
                             // We got it.
-                            getLog().info("Found boot artifact " + a + " in " + fprt.getFPID() );
+                            getLog().info("Found boot artifact " + a.getGroupId()+":"+a.getArtifactId() + " in " + fprt.getFPID() );
                             bootArtifact = a;
                             break;
                         }
