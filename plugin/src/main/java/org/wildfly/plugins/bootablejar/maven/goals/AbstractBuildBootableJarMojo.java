@@ -82,6 +82,7 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
+import org.wildfly.plugin.common.PropertyNames;
 import org.wildfly.plugin.core.MavenJBossLogger;
 import org.wildfly.plugin.tools.PluginProgressTracker;
 
@@ -352,9 +353,40 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     String installArtifactClassifier;
 
     /**
-     * List of channel URL and/or Maven coordinates (version being optional).
+     * A list of channels used for resolving artifacts while provisioning.
+     * <p>
+     * Defining a channel:
+     *
+     * <pre>
+     * <channels>
+     *     <channel>
+     *         <manifest>
+     *             <groupId>org.wildfly.channels</groupId>
+     *             <artifactId>wildfly-30.0</artifactId>
+     *         </manifest>
+     *     </channel>
+     *     <channel>
+     *         <manifest>
+     *             <url>https://example.example.org/channel/30</url>
+     *         </manifest>
+     *     </channel>
+     * </channels>
+     * </pre>
+     * </p>
+     * <p>
+     * The {@code wildfly.channels} property can be used pass a comma delimited string for the channels. The channel
+     * can be a URL or a Maven GAV. If a Maven GAV is used, the groupId and artifactId are required.
+     * <br>
+     * Examples:
+     *
+     * <pre>
+     *     -Dwildfly.channels=&quot;https://channels.example.org/30&quot;
+     *     -Dwildfly.channels=&quot;https://channels.example.org/30,org.example.channel:updates-30&quot;
+     *     -Dwildfly.channels=&quot;https://channels.example.org/30,org.example.channel:updates-30:1.0.2&quot;
+     * </pre>
+     * </p>
      */
-    @Parameter(alias = "channels", required = false)
+    @Parameter(alias = "channels", property = PropertyNames.CHANNELS)
     List<ChannelConfiguration> channels;
 
     MavenProjectArtifactVersions artifactVersions;
@@ -496,7 +528,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     }
 
     private boolean isChannelsProvisioning() {
-        return channels != null;
+        return channels != null && !channels.isEmpty();
     }
 
     protected boolean isPackageDev() {
