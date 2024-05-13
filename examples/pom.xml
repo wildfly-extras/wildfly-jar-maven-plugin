@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wildfly.plugins</groupId>
     <artifactId>wildfly-jar-examples-parent</artifactId>
-    <version>11.0.2.Final-SNAPSHOT</version>
+    <version>11.0.2.Final</version>
     <packaging>pom</packaging>
 
     <name>WildFly Bootable JAR - Examples</name>
 
     <properties>
-        <version.bootable.jar>11.0.2.Final-SNAPSHOT</version.bootable.jar>
+        <version.bootable.jar>11.0.2.Final</version.bootable.jar>
         <version.wildfly>32.0.0.Final</version.wildfly>
         <version.wildfly.datasources.galleon-pack>8.0.0.Final</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.16.2</version.jkube>
