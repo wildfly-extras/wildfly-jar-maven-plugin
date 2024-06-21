@@ -60,6 +60,14 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
+          name: project-src-${{ matrix.os }}-${{ matrix.java }}
+          path: |
+           !**/bootable-jar-build-artifacts/**
+           **/tests/target/devwatch*/src/**
+           **/tests/target/devwatch*/target/deployments/**
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
           name: logs-${{ matrix.os }}-${{ matrix.java }}
           path: | 
            !**/bootable-jar-build-artifacts/**
