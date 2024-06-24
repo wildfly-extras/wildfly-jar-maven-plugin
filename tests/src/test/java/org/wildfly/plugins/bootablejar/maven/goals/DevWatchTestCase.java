@@ -92,14 +92,24 @@ public class DevWatchTestCase extends AbstractDevWatchTestCase {
         assertTrue(pollBodyContent(url, expectedNewContent));
 
         Thread.sleep(3000);
-        // Update Java file and check that previous resources update is reflected
+        // In some very rare cases we got an empty resource file in the expoded deployment.
+        // Allthough in the previous check the resource file has been tested to be updated.
+        // This is a cause of test instability that we are removing with a simpler use-case, make a change to the resource file
+        // to force again having it updated.
+        // Update Java file and check that resources update is reflected
+        String testMsg2 = " The test2!";
+        props.setProperty("msg", testMsg2);
+        try (FileOutputStream output = new FileOutputStream(resourcesFile.toFile())) {
+            props.store(output, null);
+        }
+        Thread.sleep(3000);
         javaFile = getTestDir().resolve("src").resolve("main").resolve("java").
                 resolve("org").resolve("wildfly").resolve("plugins").resolve("demo").resolve("jaxrs").resolve("HelloWorldEndpoint.java");
         str = new String(Files.readAllBytes(javaFile), "UTF-8");
         radical = "Hi guys ";
         patchedRadical = "FOOFOO ";
         str = str.replace(radical, patchedRadical);
-        expectedNewContent = patchedRadical + testMsg;
+        expectedNewContent = patchedRadical + testMsg2;
         Files.write(javaFile, str.getBytes());
 
         assertTrue(pollBodyContent(url, expectedNewContent));

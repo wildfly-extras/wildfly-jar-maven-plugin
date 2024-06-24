@@ -1299,6 +1299,7 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
                     ServerManager.builder().client(client).process(process).standalone().shutdown(timeout);
                 } catch (Throwable ignore) {
                     process.destroy();
+                    getLog().warn("Server process has been destroyed due to raised exception when shutting down the server. Exception: " + ignore);
                 }
                 try {
                     if (!process.waitFor(timeout, TimeUnit.SECONDS)) {

@@ -20,6 +20,7 @@ public class HelloWorldEndpoint {
             props = new Properties();
             props.load(inputStream);
         }
+        System.out.println("CLASSLOADER " + HelloWorldEndpoint.class.getClassLoader());
         InputStream inputStream2 = HelloWorldEndpoint.class.getResourceAsStream("/myresources2.properties");
         Properties props2 = null;
         if (inputStream2 != null) {
@@ -30,7 +31,9 @@ public class HelloWorldEndpoint {
                 inputStream2.close();
             }
         }
-
+        for(String k : props.stringPropertyNames()) {
+            System.out.println("KEY " + k + "=" + props.getProperty(k));
+        }
         //return Response.ok("Hello from " + "XXXWildFly bootable jar!").build();
         return Response.ok("Hello from " + props.getProperty("msg") + (props2 == null ? "" : " " + props2.getProperty("msg"))).build();
     }
