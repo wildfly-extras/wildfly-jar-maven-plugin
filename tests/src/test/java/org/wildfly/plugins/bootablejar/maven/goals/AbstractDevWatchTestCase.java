@@ -154,7 +154,8 @@ public abstract class AbstractDevWatchTestCase extends AbstractBootableJarMojoTe
 
     @Override
     public void shutdownServer() throws Exception {
-        super.shutdownServerAsync();
+        // Do not initiate shutdown, when the mvn process will exit, shutdown hook will shutdown any running server
+        //super.shutdownServerAsync();
 
         if (process != null) {
             if (retCode != null) {
