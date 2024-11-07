@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLStreamException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -84,6 +85,7 @@ import org.jboss.galleon.config.ProvisioningConfig;
 import org.jboss.galleon.maven.plugin.util.MavenArtifactRepositoryManager;
 import org.jboss.galleon.maven.plugin.util.MvnMessageWriter;
 import org.jboss.galleon.runtime.FeaturePackRuntime;
+import org.jboss.galleon.runtime.PackageRuntime;
 import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.galleon.universe.FeaturePackLocation;
 import org.jboss.galleon.universe.maven.MavenArtifact;
@@ -93,6 +95,10 @@ import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.jboss.galleon.xml.ProvisioningXmlParser;
 import org.jboss.galleon.xml.ProvisioningXmlWriter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
 import org.wildfly.plugin.core.PluginProgressTracker;
 
@@ -119,6 +125,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
     public static final String JAR = "jar";
     public static final String WAR = "war";
     private static final String MODULE_ID_JAR_RUNTIME = "org.wildfly.bootable-jar";
+    private static final String PACKAGE_ID_WILDFLY_CLI_SHADED_JAR = "org.wildfly.core.wildfly-cli.shaded";
 
     private static final String BOOT_ARTIFACT_ID = "wildfly-jar-boot";
 
@@ -1141,16 +1148,24 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
                 } catch (Exception ex) {
                     throw new MojoExecutionException("Error reading artifact versions", ex);
                 }
+                PackageRuntime shadedModelpackage = fprt.getPackage(PACKAGE_ID_WILDFLY_CLI_SHADED_JAR);
+                if (shadedModelpackage != null) {
+                    Path shadedModelFile = shadedModelpackage.getResource("pm", "wildfly", "shaded", "shaded-model.xml");
+                    cliArtifacts.addAll(getArtifacts(shadedModelFile, propsMap));
+                    debug("Found cli artifact %s in %s shaded model", cliArtifacts, fprt.getFPID());
+                }
                 for (Entry<String, String> entry : propsMap.entrySet()) {
                     String value = entry.getValue();
                     Artifact a = getArtifact(value);
-                    if ("wildfly-cli".equals(a.getArtifactId())
-                            && "org.wildfly.core".equals(a.getGroupId())) {
-                        // We got it.
-                        debug("Found cli artifact %s in %s", a, fprt.getFPID());
-                        cliArtifacts.add(new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "provided", JAR,
-                                "client", new DefaultArtifactHandler(JAR)));
-                        continue;
+                    if (cliArtifacts.isEmpty()) {
+                        if ("wildfly-cli".equals(a.getArtifactId())
+                                && "org.wildfly.core".equals(a.getGroupId())) {
+                            // We got it.
+                            debug("Found cli artifact %s in %s", a, fprt.getFPID());
+                            cliArtifacts.add(new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "provided", JAR,
+                                    "client", new DefaultArtifactHandler(JAR)));
+                            continue;
+                        }
                     }
                     if ("jboss-modules".equals(a.getArtifactId())
                             && "org.jboss.modules".equals(a.getGroupId())) {
@@ -1176,6 +1191,38 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
 
             return bootArtifact;
         }
+    }
+
+    static List<Artifact> getArtifacts(Path shadedModel, Map<String, String> propsMap) throws ProvisioningException {
+        Element rootElement;
+        try (InputStream srcInput = Files.newInputStream(shadedModel)) {
+            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(srcInput);
+            rootElement = document.getDocumentElement();
+        } catch (Exception ex) {
+            throw new ProvisioningException(ex);
+        }
+        List<Artifact> artifacts = new ArrayList<>();
+        NodeList shadedDependencies = rootElement.getElementsByTagName("dependency");
+        for (int i = 0; i < shadedDependencies.getLength(); i++) {
+            Node n = shadedDependencies.item(i);
+            if (n instanceof Element) {
+                Element e = (Element) n;
+                //GroupId:ArtifactId:Version:Classifier:Extension
+                String[] coordinates = e.getTextContent().split(":");
+                StringBuilder keyBuilder = new StringBuilder();
+                // groupId
+                keyBuilder.append(coordinates[0]).append(":");
+                // artifactId
+                keyBuilder.append(coordinates[1]);
+                // classifier
+                if (coordinates[3] != null && !coordinates[3].isEmpty()) {
+                    keyBuilder.append("::").append(coordinates[3]);
+                }
+                String withVersion = propsMap.get(keyBuilder.toString());
+                artifacts.add(getArtifact(withVersion));
+            }
+        }
+        return artifacts;
     }
 
     // Get Artifact, syntax comply with WildFly feature-pack versions file.
