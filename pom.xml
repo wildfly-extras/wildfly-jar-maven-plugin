@@ -69,7 +69,7 @@
     <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
     <version.org.wildfly.plugins.wildfly-maven-plugin>5.0.0.Final</version.org.wildfly.plugins.wildfly-maven-plugin>
     <version.org.wildfly.plugins.wildfly-plugin-tools>1.1.0.Final</version.org.wildfly.plugins.wildfly-plugin-tools>
-    <version.org.wildfly.channel>1.1.0.Final</version.org.wildfly.channel>
+    <version.org.wildfly.channel>1.2.1.Final</version.org.wildfly.channel>
     <version.org.wildfly.prospero>1.2.1.Final</version.org.wildfly.prospero>
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
     <!-- required by tests -->
