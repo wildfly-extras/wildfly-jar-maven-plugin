@@ -98,7 +98,6 @@ import org.wildfly.plugins.bootablejar.maven.goals.DevWatchContext.ProjectContex
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
-import org.wildfly.plugin.common.PropertyNames;
 
 /**
  * Build and start a bootable JAR for dev-watch mode. This goal monitors the
@@ -170,19 +169,19 @@ public final class DevWatchBootableJarMojo extends AbstractDevBootableJarMojo {
      * Specifies the host name of the server where the deployment plan should be
      * executed.
      */
-    @Parameter(defaultValue = "localhost", property = PropertyNames.HOSTNAME)
+    @Parameter(defaultValue = "localhost", property = "wildfly.hostname")
     private String hostname;
 
     /**
      * Specifies the port number the server is listening on.
      */
-    @Parameter(defaultValue = "9990", property = PropertyNames.PORT)
+    @Parameter(defaultValue = "9990", property = "wildfly.port")
     private int port;
 
     /**
      * The timeout, in seconds, to wait for a management connection.
      */
-    @Parameter(property = PropertyNames.TIMEOUT, defaultValue = "60")
+    @Parameter(property = "wildfly.timeout", defaultValue = "60")
     protected int timeout;
 
     @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
