@@ -99,14 +99,6 @@
         </dependency>
         <dependency>
             <groupId>org.wildfly.plugins</groupId>
-            <artifactId>wildfly-plugin-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly.plugins</groupId>
-            <artifactId>wildfly-maven-plugin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-plugin-tools</artifactId>
         </dependency>
         <dependency>
