@@ -25,6 +25,9 @@
                         <layer>jaxrs-server</layer>
                         <layer>jpa-distributed</layer>
                     </layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

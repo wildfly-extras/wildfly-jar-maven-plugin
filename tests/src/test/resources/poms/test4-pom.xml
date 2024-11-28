@@ -17,6 +17,9 @@
                 <artifactId>wildfly-jar-maven-plugin</artifactId>
                 <configuration>
                     <context-root>false</context-root>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 
             </plugin>

@@ -11,7 +11,7 @@
 
     <properties>
         <version.bootable.jar>12.0.0.Beta1-SNAPSHOT</version.bootable.jar>
-        <version.wildfly>33.0.0.Final</version.wildfly>
+        <version.wildfly>34.0.1.Final</version.wildfly>
         <version.wildfly.datasources.galleon-pack>8.0.1.Final</version.wildfly.datasources.galleon-pack>
         <version.jkube>1.16.2</version.jkube>
         <plugin.fork.embedded>true</plugin.fork.embedded>

@@ -39,7 +39,6 @@ public class DefaultConfigurationSecurityManagerTestCase extends AbstractBootabl
         assertNotNull(mojo.projectBuildDir);
         assertTrue(mojo.excludedLayers.isEmpty());
         assertTrue(mojo.layers.isEmpty());
-        assertTrue(mojo.pluginOptions.isEmpty());
         assertFalse(mojo.hollowJar);
         assertFalse(mojo.logTime);
         assertFalse(mojo.offline);

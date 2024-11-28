@@ -26,6 +26,9 @@
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <hollow-jar>true</hollow-jar>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 
             </plugin>

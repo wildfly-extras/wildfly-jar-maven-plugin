@@ -33,6 +33,9 @@
                              <artifactId>jakarta.jakartaee-api</artifactId>
                         </artifact>
                     </overridden-server-artifacts>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

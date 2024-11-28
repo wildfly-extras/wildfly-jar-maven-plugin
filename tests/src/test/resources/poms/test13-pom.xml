@@ -18,6 +18,9 @@
                 <configuration>
                     <feature-pack-location>TEST_REPLACE</feature-pack-location>
                     <cloud/>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

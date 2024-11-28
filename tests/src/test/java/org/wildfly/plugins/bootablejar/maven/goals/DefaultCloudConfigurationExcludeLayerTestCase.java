@@ -39,7 +39,6 @@ public class DefaultCloudConfigurationExcludeLayerTestCase extends AbstractBoota
         assertNotNull(mojo.projectBuildDir);
         assertFalse(mojo.excludedLayers.isEmpty());
         assertTrue(mojo.layers.isEmpty());
-        assertTrue(mojo.pluginOptions.isEmpty());
         assertFalse(mojo.hollowJar);
         assertFalse(mojo.logTime);
         assertFalse(mojo.offline);

@@ -60,6 +60,9 @@
                              <version>WF_VERSION</version>
                         </artifact>
                     </overridden-server-artifacts>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 
             </plugin>
