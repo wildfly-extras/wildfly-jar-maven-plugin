@@ -75,7 +75,7 @@ jobs:
            !**/bootable-jar-build-artifacts/**
            **/tests/target/devwatch*/src/**
            **/tests/target/devwatch*/target/deployments/**
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: logs-${{ matrix.os }}-${{ matrix.java }}
