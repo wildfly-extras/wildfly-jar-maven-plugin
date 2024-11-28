@@ -82,7 +82,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.wildfly.core</groupId>
+            <groupId>org.wildfly.launcher</groupId>
             <artifactId>wildfly-launcher</artifactId>
         </dependency>
         <dependency>
