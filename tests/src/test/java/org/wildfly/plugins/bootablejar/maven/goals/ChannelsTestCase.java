@@ -75,21 +75,15 @@ public class ChannelsTestCase extends AbstractBootableJarMojoTestCase {
         ds.setArtifactId("wildfly-datasources-galleon-pack");
         ds.setVersionRange("'3\\.\\d+\\.\\d+\\.Final'");
         artifacts.add(ds);
-        MavenArtifact cli = new MavenArtifact();
-        // Workaround required artifacts https://issues.redhat.com/browse/WFWIP-567
-        cli.setGroupId("org.wildfly.core");
-        cli.setArtifactId("wildfly-cli");
-        cli.setVersionRange("'20\\.0\\.\\d+\\.Final'");
-        artifacts.add(cli);
         MavenArtifact cg = new MavenArtifact();
         cg.setGroupId("org.wildfly.galleon-plugins");
         cg.setArtifactId("wildfly-config-gen");
-        cg.setVersion("'7.0.0.Beta7'");
+        cg.setVersion("'7.3.1.Final'");
         artifacts.add(cg);
         MavenArtifact launcher = new MavenArtifact();
         launcher.setGroupId("org.wildfly.core");
         launcher.setArtifactId("wildfly-launcher");
-        launcher.setVersionRange("'20\\.0\\.\\d+\\.Final'");
+        launcher.setVersionRange("'26\\.0\\.\\d+\\.Final'");
         artifacts.add(launcher);
         MavenArtifact modules = new MavenArtifact();
         modules.setGroupId("org.jboss.modules");

@@ -22,6 +22,9 @@
                             <included-default-config>TEST_DEFAULT_CONFIG_REPLACE</included-default-config>
                         </feature-pack>
                     </feature-packs>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

@@ -23,6 +23,9 @@
                     </layers>
                     <legacy-patch-cli-script>patch.cli</legacy-patch-cli-script>
                     <legacy-patch-clean-up>true</legacy-patch-clean-up>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

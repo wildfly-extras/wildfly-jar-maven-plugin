@@ -42,6 +42,7 @@
                     </layers>
                     <plugin-options>
                         <jboss-maven-dist>true</jboss-maven-dist>
+                         <jboss-fork-embedded>true</jboss-fork-embedded>
                     </plugin-options>
                     <overridden-server-artifacts>
                         <!-- undertow core -->

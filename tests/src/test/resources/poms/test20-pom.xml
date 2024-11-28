@@ -23,6 +23,9 @@
                         </feature-pack>
                     </feature-packs>
                     <cloud/>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

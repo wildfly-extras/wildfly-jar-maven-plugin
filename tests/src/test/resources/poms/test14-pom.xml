@@ -18,6 +18,9 @@
                 <configuration>
                     <feature-pack-location>TEST_REPLACE</feature-pack-location>
                     <legacy-patch-cli-script>patch.cli</legacy-patch-cli-script>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
             </plugin>
         </plugins>

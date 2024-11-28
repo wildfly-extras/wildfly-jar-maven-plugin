@@ -26,6 +26,9 @@
                         <layer>deployment-scanner</layer>
                     </excluded-layers>
                     <context-root>false</context-root>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
                 </configuration>
                 
             </plugin>

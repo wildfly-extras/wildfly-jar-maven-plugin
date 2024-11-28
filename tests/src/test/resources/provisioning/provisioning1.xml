@@ -13,5 +13,6 @@
     </config>
      <options>
         <option name="optional-packages" value="passive+"/>
+        <option name="jboss-fork-embedded" value="true"/>
     </options>
 </installation>
