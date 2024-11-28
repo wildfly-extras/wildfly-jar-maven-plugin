@@ -56,7 +56,7 @@
     <version.wildfly>34.0.1.Final</version.wildfly>
     <!-- docs properties -->
     <docs.project.branch>12.0.0.Beta1</docs.project.branch>
-    <docs.wildfly.major>34</docs.wildfly.major>
+    <docs.wildfly.major>main</docs.wildfly.major>
 
     <version.junit>4.13.1</version.junit>
     <version.adoc-maven-plugin-descriptor>1.0.0.Alpha3</version.adoc-maven-plugin-descriptor>
