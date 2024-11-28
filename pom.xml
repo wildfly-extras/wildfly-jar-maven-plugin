@@ -28,7 +28,7 @@
 
   <groupId>org.wildfly.plugins</groupId>
   <artifactId>wildfly-jar-parent</artifactId>
-  <version>11.0.3.Final-SNAPSHOT</version>
+  <version>12.0.0.Beta1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>WildFly Bootable JAR Plugin Parent</name>
