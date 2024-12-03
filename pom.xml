@@ -75,7 +75,8 @@
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
-    <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
+    <version.org.apache.maven.resolver>1.9.18</version.org.apache.maven.resolver>
+    <version.org.apache.maven.wagon>3.5.3</version.org.apache.maven.wagon>
     <version.org.jboss.logging.slf4j-jboss-logging>1.2.1.Final</version.org.jboss.logging.slf4j-jboss-logging>
     <version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>3.3.0
     </version.org.apache.maven.plugin-testing.maven-plugin-testing-harness>
@@ -225,6 +226,12 @@
         <groupId>org.jboss.galleon</groupId>
         <artifactId>galleon-maven-plugin</artifactId>
         <version>${version.org.jboss.galleon}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.eclipse.aether</groupId>
+                <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
       </dependency>
       
       <dependency>
@@ -232,7 +239,17 @@
           <artifactId>galleon-api</artifactId>
           <version>${version.org.jboss.galleon}</version>
       </dependency>
-
+      <dependency>
+          <groupId>org.jboss.galleon</groupId>
+          <artifactId>galleon-maven-universe</artifactId>
+          <version>${version.org.jboss.galleon}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.eclipse.aether</groupId>
+                  <artifactId>*</artifactId>
+              </exclusion>
+          </exclusions>
+      </dependency>
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-core</artifactId>
@@ -317,14 +334,39 @@
         <version>${version.org.apache.maven.plugin-testing.maven-plugin-testing-harness}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.aether</groupId>
-        <artifactId>aether-connector-basic</artifactId>
-        <version>${version.org.eclipse.aether}</version>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-api</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.aether</groupId>
-        <artifactId>aether-transport-http</artifactId>
-        <version>${version.org.eclipse.aether}</version>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-spi</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-impl</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-connector-basic</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-http</artifactId>
+          <version>${version.org.apache.maven.wagon}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-transport-wagon</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.maven.resolver</groupId>
+          <artifactId>maven-resolver-util</artifactId>
+          <version>${version.org.apache.maven.resolver}</version>
       </dependency>
       <dependency>
         <groupId>org.jboss.slf4j</groupId>
