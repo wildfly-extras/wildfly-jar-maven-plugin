@@ -122,8 +122,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wildfly.core</groupId>
-            <artifactId>wildfly-patching</artifactId>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

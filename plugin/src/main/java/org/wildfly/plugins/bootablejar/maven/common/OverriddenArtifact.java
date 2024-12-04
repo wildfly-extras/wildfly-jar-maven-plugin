@@ -17,7 +17,7 @@
 package org.wildfly.plugins.bootablejar.maven.common;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.shared.dependencies.DependableCoordinate;
+import org.apache.maven.shared.transfer.dependencies.DependableCoordinate;
 
 public class OverriddenArtifact implements DependableCoordinate {
 
