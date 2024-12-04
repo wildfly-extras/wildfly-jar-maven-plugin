@@ -48,12 +48,24 @@
             <artifactId>mojo-executor</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+        </dependency>
+        <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>wildfly-jar-cloud-extension</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.galleon</groupId>
             <artifactId>galleon-maven-plugin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.galleon</groupId>
+            <artifactId>galleon-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-artifact-transfer</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -88,32 +100,14 @@
         <dependency>
             <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-plugin-core</artifactId>
-            <exclusions>
-              <exclusion>
-                    <groupId>org.jboss.modules</groupId>
-                    <artifactId>jboss-modules</artifactId>
-              </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-maven-plugin</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-plugin-tools</artifactId>
-            <exclusions>
-              <exclusion>
-                    <groupId>org.jboss.modules</groupId>
-                    <artifactId>jboss-modules</artifactId>
-              </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wildfly.channel</groupId>
@@ -127,6 +121,14 @@
             <groupId>org.wildfly.prospero</groupId>
             <artifactId>prospero-metadata</artifactId>
         </dependency>
+        <dependency>
+          <groupId>org.wildfly.core</groupId>
+          <artifactId>wildfly-protocol</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.wildfly.core</groupId>
+          <artifactId>wildfly-controller-client</artifactId>
+      </dependency>
         <!-- Required by Galleon during provisioning --> 
         <dependency>
             <groupId>org.wildfly.common</groupId>
