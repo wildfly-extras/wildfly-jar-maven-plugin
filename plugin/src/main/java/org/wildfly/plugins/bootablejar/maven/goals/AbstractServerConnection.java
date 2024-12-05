@@ -20,7 +20,6 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.ModelControllerClientConfiguration;
-import org.wildfly.plugin.tools.client.ToolsModelControllerClientConfiguration;
 
 /**
  * The default implementation for connecting to a running WildFly instance
