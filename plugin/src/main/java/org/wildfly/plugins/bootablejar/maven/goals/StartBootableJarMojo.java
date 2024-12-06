@@ -31,7 +31,6 @@ import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.wildfly.core.launcher.BootableJarCommandBuilder;
 import org.wildfly.core.launcher.Launcher;
-import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.tools.server.ServerManager;
 import org.wildfly.plugins.bootablejar.maven.common.Utils;
 

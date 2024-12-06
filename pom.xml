@@ -72,7 +72,7 @@
     <version.org.wildfly.plugins.wildfly-maven-plugin>5.1.0.Alpha2</version.org.wildfly.plugins.wildfly-maven-plugin>
     <version.org.wildfly.plugins.wildfly-plugin-tools>1.2.0.Beta2</version.org.wildfly.plugins.wildfly-plugin-tools>
     <version.org.wildfly.channel>1.2.1.Final</version.org.wildfly.channel>
-    <version.org.wildfly.prospero>1.3.0.Beta2</version.org.wildfly.prospero>
+    <version.org.wildfly.prospero>1.3.0.Final</version.org.wildfly.prospero>
     <maven.surefire.plugin>3.0.0-M6</maven.surefire.plugin>
     <!-- required by tests -->
     <version.org.apache.httpcomponents.httpclient>4.5.13</version.org.apache.httpcomponents.httpclient>
@@ -292,18 +292,6 @@
         <artifactId>wildfly-checkstyle-config</artifactId>
         <version>${version.org.wildfly.checkstyle-config}</version>
       </dependency>
-      
-      <dependency>
-          <groupId>org.wildfly.plugins</groupId>
-          <artifactId>wildfly-plugin-core</artifactId>
-          <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
-          <exclusions>
-              <exclusion>
-                  <groupId>*</groupId>
-                  <artifactId>*</artifactId>
-              </exclusion>
-          </exclusions>
-      </dependency>
 
       <dependency>
           <groupId>org.wildfly.plugins</groupId>
@@ -321,18 +309,6 @@
               <exclusion>
                   <groupId>org.wildfly.core</groupId>
                   <artifactId>wildfly-protocol</artifactId>
-              </exclusion>
-          </exclusions>
-      </dependency>
-
-      <dependency>
-          <groupId>org.wildfly.plugins</groupId>
-          <artifactId>wildfly-maven-plugin</artifactId>
-          <version>${version.org.wildfly.plugins.wildfly-maven-plugin}</version>
-          <exclusions>
-              <exclusion>
-                  <groupId>*</groupId>
-                  <artifactId>*</artifactId>
               </exclusion>
           </exclusions>
       </dependency>

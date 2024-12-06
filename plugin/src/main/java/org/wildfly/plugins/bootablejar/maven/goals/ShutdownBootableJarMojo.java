@@ -24,7 +24,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.jboss.as.controller.client.ModelControllerClient;
-import org.wildfly.plugin.common.AbstractServerConnection;
 import org.wildfly.plugin.tools.server.ServerManager;
 
 /**
