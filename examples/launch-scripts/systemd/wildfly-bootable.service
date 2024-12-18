@@ -1,0 +1,14 @@
+[Unit]
+Description=A WildFly Bootable Application Server
+After=syslog.target network.target
+Before=httpd.service
+
+[Service]
+EnvironmentFile=-/etc/wildfly-bootable/wildfly-bootable.conf
+User=wildfly
+LimitNOFILE=102642
+ExecStart=/opt/wildfly-bootable/bin/launch.sh ${WILDFLY_BIND}
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
