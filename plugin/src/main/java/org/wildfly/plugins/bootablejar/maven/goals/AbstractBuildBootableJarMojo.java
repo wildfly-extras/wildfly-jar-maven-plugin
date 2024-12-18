@@ -82,8 +82,6 @@ import org.jboss.galleon.universe.maven.repo.MavenRepoManager;
 import org.jboss.galleon.util.IoUtils;
 import org.jboss.galleon.util.ZipUtils;
 import org.wildfly.channel.UnresolvedMavenArtifactException;
-import org.wildfly.plugin.common.PropertyNames;
-import org.wildfly.plugin.core.MavenJBossLogger;
 import org.wildfly.plugin.tools.PluginProgressTracker;
 
 import org.wildfly.plugins.bootablejar.maven.cli.CLIExecutor;
@@ -386,7 +384,7 @@ public abstract class AbstractBuildBootableJarMojo extends AbstractMojo {
      * </pre>
      * </p>
      */
-    @Parameter(alias = "channels", property = PropertyNames.CHANNELS)
+    @Parameter(alias = "channels", property = "wildfly.channels")
     List<ChannelConfiguration> channels;
 
     MavenProjectArtifactVersions artifactVersions;
